@@ -462,7 +462,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
               >
                 <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2">
-                  <span>CareerAI – AI-Powered Career Platform</span>
+                  <span>CareerAI – AI-Powered Career &amp; Placement Platform</span>
                   <motion.span
                     initial={{ rotate: 0 }}
                     animate={{ rotate: [0, 14, -10, 14, -6, 10, 0] }}
@@ -474,7 +474,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </motion.span>
                 </h1>
                 <p className="text-sm sm:text-base text-slate-600 font-normal mt-1 leading-relaxed">
-                  {greetingDisplayName ? `Hi ${greetingDisplayName}! ` : ''}CareerAI is an AI-powered career and placement platform that helps students track skills, discover jobs, identify skill gaps, find learning opportunities, and improve career readiness.
+                  {greetingDisplayName ? `Welcome, ${greetingDisplayName}! ` : ''}CareerAI is an AI-powered career and placement platform designed to help students track their skills, discover relevant jobs, identify skill gaps, find learning opportunities, and improve their career readiness.
                 </p>
               </motion.div>
             </div>

@@ -25,7 +25,7 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
-              CareerAI is an AI-powered career and placement platform that helps students track skills, discover jobs, identify skill gaps, and improve career readiness.
+              CareerAI is an AI-powered career and placement platform designed to help students track their skills, discover relevant jobs, identify skill gaps, find learning opportunities, and improve their career readiness.
             </p>
           </div>
 

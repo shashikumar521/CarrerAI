@@ -9,6 +9,11 @@ import {
   Target,
   FileCheck,
   Compass,
+  Briefcase,
+  TrendingUp,
+  BookOpen,
+  Building2,
+  Bot,
 } from 'lucide-react';
 
 export const AboutPlatformInfo: React.FC = () => {
@@ -17,11 +22,11 @@ export const AboutPlatformInfo: React.FC = () => {
   return (
     <section
       id="about-careerai"
-      aria-label="About CareerAI and CarrerAI Platform"
-      className="border-t border-slate-200 bg-white/70 py-10 mt-14 print:hidden transition-all text-slate-700"
+      aria-label="About CareerAI Platform"
+      className="border-t border-slate-200 bg-white/80 py-10 mt-14 print:hidden transition-all text-slate-700"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header summary */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+        {/* Top Header Summary */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
           <div className="flex items-start gap-3.5">
             <div className="relative shrink-0">
@@ -42,10 +47,10 @@ export const AboutPlatformInfo: React.FC = () => {
                 </span>
               </div>
               <h2 className="text-lg md:text-xl font-semibold text-slate-900 tracking-tight">
-                About CareerAI — AI-Powered Career Platform for Engineering Students
+                CareerAI – Placement Intelligence &amp; Career Acceleration
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
-                <strong>CareerAI</strong> is an AI-powered career and placement platform engineered to guide students from initial academic tracking to recruitment success through real-time company cutoff screening, skill gap analysis, curated courses, and personalized interview readiness roadmaps.
+                CareerAI is an AI-powered career and placement platform designed to help students track their skills, discover relevant jobs, identify skill gaps, find learning opportunities, and improve their career readiness.
               </p>
             </div>
           </div>
@@ -55,65 +60,153 @@ export const AboutPlatformInfo: React.FC = () => {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50/80 hover:bg-indigo-100 px-3.5 py-2 rounded-lg border border-indigo-200 transition-colors cursor-pointer self-start md:self-auto shrink-0"
             aria-expanded={expanded}
           >
-            <span>{expanded ? 'Collapse Detailed Overview' : 'Explore Platform Breakdown'}</span>
+            <span>{expanded ? 'Collapse Detailed Breakdown' : 'Explore Platform Breakdown'}</span>
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Highlight Grid (Always visible for accessibility & crawlers) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
-          <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center mb-3">
-              <GraduationCap className="w-4 h-4" />
-            </div>
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
-              Who It Is For
+        {/* What is CareerAI? Section */}
+        <div>
+          <div className="mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-600" />
+              <span>What is CareerAI?</span>
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Designed for B.Tech &amp; engineering students across Computer Science (CSE), IT, ECE, EEE, Mechanical, and Civil streams navigating campus hiring and off-campus tech recruitment.
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
+              CareerAI serves as an all-in-one technical career companion for engineering students. It unites real-time skill measurement, market demand matching, and personalized interview readiness into one unified platform:
             </p>
           </div>
 
-          <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
-              <Target className="w-4 h-4" />
+          {/* 7 Core Capabilities Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            {/* 1. AI-powered career guidance */}
+            <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+              <div>
+                <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center mb-2">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                  AI-Powered Career Guidance
+                </h4>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  Interactive mentorship and placement strategy powered by intelligent career advisors to help students make confident, informed career moves.
+                </p>
+              </div>
             </div>
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
-              Academic Analysis
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Evaluates B.Tech CGPA, 10th and 12th percentages, and active backlogs to identify cutoff risks and provide realistic backlog clearance and placement recovery plans.
-            </p>
-          </div>
 
-          <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-3">
-              <Cpu className="w-4 h-4" />
+            {/* 2. Skill tracking and progress */}
+            <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+              <div>
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-2">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                  Skill Tracking &amp; Progress
+                </h4>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  Continuous tracking of core languages, tools, and technical competencies with transparent milestones as coursework and projects advance.
+                </p>
+              </div>
             </div>
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
-              Skill-Gap Analysis
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Benchmarks individual skills against real industry profiles (SDE, Full-Stack, Cloud/DevOps, AI/ML, Data Analyst, Embedded) with missing-skill alerts and learning timelines.
-            </p>
-          </div>
 
-          <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4">
-            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mb-3">
-              <Compass className="w-4 h-4" />
+            {/* 3. Career readiness */}
+            <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+              <div>
+                <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-2">
+                  <Target className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                  Career Readiness
+                </h4>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  Objective placement readiness scoring evaluating resume ATS compliance, academics, and practical skill depth against real recruiter benchmarks.
+                </p>
+              </div>
             </div>
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
-              Personalized Roadmaps
+
+            {/* 4. Skill gap analysis */}
+            <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+              <div>
+                <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mb-2">
+                  <Cpu className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                  Skill Gap Analysis
+                </h4>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  Automated gap detection comparing current abilities to target job roles like SDE, Full-Stack, AI/ML, and DevOps with actionable roadmaps.
+                </p>
+              </div>
+            </div>
+
+            {/* 5. Learning recommendations */}
+            <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+              <div>
+                <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center mb-2">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                  Learning Recommendations
+                </h4>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  Curated course pathways, hands-on tutorials, and industry-recognized certifications mapped specifically to bridge each student's missing skills.
+                </p>
+              </div>
+            </div>
+
+            {/* 6. Job recommendations */}
+            <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+              <div>
+                <div className="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center mb-2">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                  Job Recommendations
+                </h4>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  Personalized matching with verified engineering roles, internships, and recruiter opportunities tailored to the student's qualification profile.
+                </p>
+              </div>
+            </div>
+
+            {/* 7. Placement eligibility */}
+            <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between sm:col-span-2 lg:col-span-3 xl:col-span-2">
+              <div>
+                <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center mb-2">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 mb-1">
+                  Placement Eligibility
+                </h4>
+                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                  Automated eligibility screening across cutoffs, CGPA thresholds, and backlog criteria for 30+ top campus hiring companies and tech recruiters.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* About CareerAI Section */}
+        <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <GraduationCap className="w-5 h-5 text-indigo-600" />
+            <h3 className="text-base font-semibold text-slate-900">
+              About CareerAI
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Provides structured 4-phase preparation timelines covering coding fundamentals, core CS subjects (OS, DBMS, Networks), project deliverables, and interview drilling.
+          </div>
+          <div className="space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed max-w-4xl">
+            <p>
+              CareerAI was created to solve the persistent disconnect between standard college curricula and the competitive requirements of modern software engineering recruitment. Rather than relying on guesswork, students use CareerAI to gain clear, diagnostic visibility into where they stand across technical, academic, and practical benchmarks.
+            </p>
+            <p>
+              From the initial semester through campus placements and off-campus drives, CareerAI equips learners with the tools, practice drills, ATS resume compliance, and step-by-step guidance needed to turn career aspirations into realized offers.
             </p>
           </div>
         </div>
 
         {/* Expanded Educational Content */}
         {expanded && (
-          <div className="mt-8 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-700 leading-relaxed">
+          <div className="pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-700 leading-relaxed">
             <div className="space-y-4">
               <div>
                 <h4 className="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-1.5">
@@ -121,7 +214,7 @@ export const AboutPlatformInfo: React.FC = () => {
                   <span>How CareerAI Works</span>
                 </h4>
                 <p>
-                  Engineering students enter their real academic scores, branch, active backlogs, technical stack, and projects. CareerAI instantly screens the student against cutoffs for 30+ top recruiters, computes a multi-dimensional placement readiness score (0–100), and flags critical placement obstacles before campus recruitment begins.
+                  Engineering students enter their academic scores, branch, active backlogs, technical stack, and projects. CareerAI instantly screens the student against cutoffs for 30+ top recruiters, computes a multi-dimensional placement readiness score (0–100), and flags critical placement obstacles before campus recruitment begins.
                 </p>
               </div>
 
