@@ -42,10 +42,10 @@ export const AboutPlatformInfo: React.FC = () => {
                 </span>
               </div>
               <h2 className="text-lg md:text-xl font-semibold text-slate-900 tracking-tight">
-                About CareerAI (CarrerAI) — AI Career Guidance for B.Tech &amp; Engineering Students
+                About CareerAI — AI-Powered Career Platform for Engineering Students
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
-                <strong>CareerAI</strong> (also recognized and searched as <strong>CarrerAI</strong> or <strong>Carrer AI</strong>) is a specialized, AI-powered career guidance and placement readiness platform engineered to guide undergraduate B.Tech and B.E. students from initial academic tracking to recruitment success.
+                <strong>CareerAI</strong> is an AI-powered career and placement platform engineered to guide students from initial academic tracking to recruitment success through real-time company cutoff screening, skill gap analysis, curated courses, and personalized interview readiness roadmaps.
               </p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export const AboutPlatformInfo: React.FC = () => {
               <div>
                 <h4 className="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                  <span>How CareerAI (CarrerAI) Works</span>
+                  <span>How CareerAI Works</span>
                 </h4>
                 <p>
                   Engineering students enter their real academic scores, branch, active backlogs, technical stack, and projects. CareerAI instantly screens the student against cutoffs for 30+ top recruiters, computes a multi-dimensional placement readiness score (0–100), and flags critical placement obstacles before campus recruitment begins.

@@ -1,6 +1,6 @@
 {
   "name": "CareerAI",
-  "description": "AI-powered career guidance, placement readiness, company eligibility checker, and skill roadmap platform for engineering students.",
+  "description": "CareerAI is an AI-powered career and placement platform that helps students track skills, discover jobs, identify skill gaps, find learning opportunities, and improve career readiness.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
