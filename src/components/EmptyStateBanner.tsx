@@ -40,7 +40,7 @@ export const EmptyStateBanner: React.FC<EmptyStateBannerProps> = ({
                 Private &amp; Secure
               </span>
             </div>
-            <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">{title}</h3>
+            <h3 className="text-lg md:text-xl font-semibold text-slate-900 tracking-tight">{title}</h3>
             <p className="text-sm text-slate-600 mt-1 leading-relaxed">{description}</p>
           </div>
         </div>

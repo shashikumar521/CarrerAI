@@ -18,6 +18,8 @@ import {
   logoutUser,
 } from './utils/authService';
 import { Navbar, NavTab } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
+import { TopHeader } from './components/TopHeader';
 import { DashboardView } from './components/DashboardView';
 import { ProfileView } from './components/ProfileView';
 import { EligibilityView } from './components/EligibilityView';
@@ -32,12 +34,24 @@ import { AboutPlatformInfo } from './components/AboutPlatformInfo';
 import { Footer } from './components/Footer';
 import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
 import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
+import { CareerAiWatermarkBackground } from './components/CareerAiWatermarkBackground';
+import { LEARNING_PATH_STORAGE_KEY } from './data/coursesDatabase';
+import { COURSE_PROGRESS_UPDATED_EVENT } from './utils/courseSkillService';
+import { ThemeProvider } from './context/ThemeContext';
 
 const STORAGE_KEY = 'careerai_student_profile_v1';
 const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
 const STARTUP_SESSION_KEY = 'careerai_startup_shown_v1';
 
 export function App() {
+  return (
+    <ThemeProvider>
+      <CareerAiAppMain />
+    </ThemeProvider>
+  );
+}
+
+function CareerAiAppMain() {
   // Authentication & Session State
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getActiveSession());
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -84,15 +98,10 @@ export function App() {
 
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [initialCounselorPrompt, setInitialCounselorPrompt] = useState<string>('');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Startup Animation State (displays fullscreen on initial website open, once per session)
-  const [showStartupIntro, setShowStartupIntro] = useState<boolean>(() => {
-    try {
-      return !sessionStorage.getItem(STARTUP_SESSION_KEY);
-    } catch {
-      return false;
-    }
-  });
+  // Startup Animation State (can be replayed from footer, does not block initial view)
+  const [showStartupIntro, setShowStartupIntro] = useState<boolean>(false);
 
   // Global Loading Screen State (for authentication, demo profile, assessment calculation)
   const [globalLoading, setGlobalLoading] = useState<{
@@ -165,6 +174,33 @@ export function App() {
       setAssessmentSubmitted(true);
       try {
         localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
+        const demoLearningPath = [
+          {
+            courseId: 'cisco-python-essentials',
+            status: 'in-progress' as const,
+            progressPercentage: 65,
+            savedAt: new Date().toISOString(),
+            orderIndex: 0,
+          },
+          {
+            courseId: 'ibm-pandas-data-science',
+            status: 'in-progress' as const,
+            progressPercentage: 40,
+            savedAt: new Date().toISOString(),
+            orderIndex: 1,
+          },
+          {
+            courseId: 'oracle-database-sql-associate',
+            status: 'in-progress' as const,
+            progressPercentage: 80,
+            savedAt: new Date().toISOString(),
+            orderIndex: 2,
+          },
+        ];
+        localStorage.setItem(LEARNING_PATH_STORAGE_KEY, JSON.stringify(demoLearningPath));
+        window.dispatchEvent(
+          new CustomEvent(COURSE_PROGRESS_UPDATED_EVENT, { detail: demoLearningPath })
+        );
       } catch (e) {
         console.warn(e);
       }
@@ -179,6 +215,10 @@ export function App() {
     try {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(ASSESSMENT_SUBMITTED_KEY);
+      localStorage.removeItem(LEARNING_PATH_STORAGE_KEY);
+      window.dispatchEvent(
+        new CustomEvent(COURSE_PROGRESS_UPDATED_EVENT, { detail: [] })
+      );
       if (currentUser) {
         saveAccountToRegistry({
           user: currentUser,
@@ -295,40 +335,58 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Top Fixed / Sticky Navigation */}
-      <Navbar
+    <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white">
+      {/* Subtle Animated CareerAI Brand Watermark Background (Layer 2 & 3) */}
+      <CareerAiWatermarkBackground />
+
+      {/* Modern Fixed Left Navigation Sidebar (Desktop + Mobile Slideover) */}
+      <Sidebar
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
         report={readinessReport}
         isProfileEmpty={emptyProfileState}
-        onLoadDemo={handleLoadDemo}
-        onClearProfile={handleClearProfile}
         eligibleCompanyCount={eligibleCompanyCount}
         currentUser={currentUser}
         assessmentSubmitted={assessmentSubmitted}
-        onOpenAuth={(mode) => {
-          setAuthModalMode(mode);
-          setAuthModalOpen(true);
-        }}
-        onLogout={handleLogout}
-        onReplayIntro={handleReplayIntro}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentTab === 'dashboard' && (
-          <DashboardView
-            profile={profile}
-            report={readinessReport}
-            isProfileEmpty={emptyProfileState}
-            eligibilityResults={eligibilityResults}
-            onNavigate={setCurrentTab}
-            onLoadDemo={handleLoadDemo}
-            currentUser={currentUser}
-            assessmentSubmitted={assessmentSubmitted}
-          />
-        )}
+      {/* Main Content Column (with desktop left padding for the fixed sidebar) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64">
+        {/* Top Header with Search, Notifications, Demo Profile toggle & User Avatar */}
+        <TopHeader
+          onToggleMobile={() => setMobileSidebarOpen(true)}
+          currentTab={currentTab}
+          onSelectTab={setCurrentTab}
+          report={readinessReport}
+          isProfileEmpty={emptyProfileState}
+          onLoadDemo={handleLoadDemo}
+          onClearProfile={handleClearProfile}
+          currentUser={currentUser}
+          assessmentSubmitted={assessmentSubmitted}
+          onOpenAuth={(mode) => {
+            setAuthModalMode(mode);
+            setAuthModalOpen(true);
+          }}
+          onLogout={handleLogout}
+          onReplayIntro={handleReplayIntro}
+        />
+
+        {/* Main Content Area */}
+        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          {currentTab === 'dashboard' && (
+            <DashboardView
+              profile={profile}
+              report={readinessReport}
+              isProfileEmpty={emptyProfileState}
+              eligibilityResults={eligibilityResults}
+              onNavigate={setCurrentTab}
+              onLoadDemo={handleLoadDemo}
+              currentUser={currentUser}
+              assessmentSubmitted={assessmentSubmitted}
+            />
+          )}
 
         {currentTab === 'profile' && (
           <ProfileView
@@ -409,10 +467,15 @@ export function App() {
       </main>
 
       {/* Crawlable Platform Overview for Users & Search Engines */}
-      <AboutPlatformInfo />
+      <div className="relative z-10">
+        <AboutPlatformInfo />
+      </div>
 
       {/* Professional Startup Footer */}
-      <Footer onReplayIntro={handleReplayIntro} />
+      <div className="relative z-10">
+        <Footer onReplayIntro={handleReplayIntro} />
+      </div>
+    </div>
 
       {/* Unified Google & Email Authentication Modal */}
       <AuthModal

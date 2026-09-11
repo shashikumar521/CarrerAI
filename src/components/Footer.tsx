@@ -19,7 +19,7 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
                 className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-slate-700 shadow-xs shrink-0"
                 referrerPolicy="no-referrer"
               />
-              <span className="text-xl font-black tracking-tight text-white">
+              <span className="text-xl font-semibold tracking-tight text-white">
                 Career<span className="text-indigo-400">AI</span>
               </span>
             </div>

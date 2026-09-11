@@ -144,7 +144,7 @@ export const AiCounselorView: React.FC<AiCounselorViewProps> = ({
       {/* Top Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Bot className="w-6 h-6 text-indigo-600" />
             <span>AI Placement Counselor & Career Mentor</span>
           </h2>

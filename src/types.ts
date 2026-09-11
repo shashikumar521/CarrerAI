@@ -266,7 +266,9 @@ export interface RealWorldProject {
 
 export interface UserLearningPathItem {
   courseId: string;
-  status: 'not-started' | 'in-progress' | 'completed';
+  courseTitle?: string;
+  status: 'not-started' | 'in-progress' | 'completed' | 'abandoned';
+  progressPercentage?: number; // 0 to 100 actual completion percentage
   savedAt: string;
   completedAt?: string;
   targetCompletionDate?: string;

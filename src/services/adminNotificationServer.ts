@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 
 export interface LoginNotificationPayload {
   name: string;
@@ -33,7 +33,7 @@ setInterval(() => {
 /**
  * Creates or retrieves the Nodemailer transport based on environment variables.
  */
-function getEmailTransporter(): nodemailer.Transporter | null {
+function getEmailTransporter(): Transporter | null {
   const gmailUser = process.env.GMAIL_USER;
   const gmailPass = process.env.GMAIL_APP_PASSWORD;
 
@@ -134,7 +134,7 @@ No sensitive authentication credentials or passwords are ever stored or transmit
   <meta charset="utf-8">
   <title>CareerAI - New User Login</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #0f172a;">
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #0f172a;">
   <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
     
     <!-- Header -->

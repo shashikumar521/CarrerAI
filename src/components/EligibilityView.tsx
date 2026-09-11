@@ -68,7 +68,7 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
       {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Building2 className="w-6 h-6 text-indigo-600" />
             <span>Campus Placement Company Eligibility Tracker</span>
           </h2>
@@ -202,11 +202,11 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
                 {/* Top Strip */}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black text-xs tracking-wider">
+                    <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-semibold text-xs tracking-wider">
                       {company.logoBadge}
                     </div>
                     <div>
-                      <h4 className="text-base font-black text-slate-900 tracking-tight">
+                      <h4 className="text-base font-semibold text-slate-900 tracking-tight">
                         {company.name}
                       </h4>
                       <span className="text-[11px] font-semibold text-slate-500 block">

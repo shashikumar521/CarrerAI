@@ -50,6 +50,7 @@ import {
   calculateLearningProgressMetrics,
 } from '../data/coursesDatabase';
 import { TARGET_ROLE_DEFINITIONS as TARGET_ROLES } from '../data/mockDatabase';
+import { COURSE_PROGRESS_UPDATED_EVENT } from '../utils/courseSkillService';
 
 interface CoursesViewProps {
   profile: StudentProfile;
@@ -125,14 +126,56 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
   const [editingCredentialId, setEditingCredentialId] = useState<string | null>(null);
   const [newCredentialText, setNewCredentialText] = useState<string>('');
 
-  // Save learning path updates to localStorage
+  // Save learning path updates to localStorage and notify global listeners
   useEffect(() => {
     try {
       localStorage.setItem(LEARNING_PATH_STORAGE_KEY, JSON.stringify(learningPath));
+      window.dispatchEvent(
+        new CustomEvent(COURSE_PROGRESS_UPDATED_EVENT, { detail: learningPath })
+      );
     } catch (e) {
       console.warn('Failed to save learning path to storage', e);
     }
   }, [learningPath]);
+
+  // Synchronize if learning path updated elsewhere (e.g. Dashboard modal)
+  useEffect(() => {
+    const handleExternalUpdate = () => {
+      try {
+        const saved = localStorage.getItem(LEARNING_PATH_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setLearningPath(parsed);
+          }
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    window.addEventListener('storage', handleExternalUpdate);
+    return () => {
+      window.removeEventListener('storage', handleExternalUpdate);
+    };
+  }, []);
+
+  const handleUpdateCourseProgress = (courseId: string, newPercent: number) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(newPercent)));
+    setLearningPath((prev) =>
+      prev.map((item) => {
+        if (item.courseId === courseId) {
+          return {
+            ...item,
+            progressPercentage: clamped,
+            status: clamped >= 100 ? 'completed' : 'in-progress',
+            completedAt: clamped >= 100 ? new Date().toISOString() : item.completedAt,
+          };
+        }
+        return item;
+      })
+    );
+  };
 
   // Providers list
   const providers: CourseProvider[] = [
@@ -416,7 +459,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
               )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
               Recommended Courses &amp; Certifications
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
@@ -428,7 +471,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
           {/* Quick Metrics Bar */}
           <div className="flex items-center gap-3 shrink-0 bg-slate-50 border border-slate-200 p-3 rounded-xl">
             <div className="text-center px-2">
-              <div className="text-lg font-black text-slate-900">
+              <div className="text-lg font-semibold text-slate-900">
                 {learningPath.length}
               </div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
@@ -437,7 +480,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
             <div className="h-8 w-px bg-slate-200" />
             <div className="text-center px-2">
-              <div className="text-lg font-black text-emerald-600">
+              <div className="text-lg font-semibold text-emerald-600">
                 {learningMetrics.totalCompleted}
               </div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
@@ -446,7 +489,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
             <div className="h-8 w-px bg-slate-200" />
             <div className="text-center px-2">
-              <div className="text-lg font-black text-indigo-600">
+              <div className="text-lg font-semibold text-indigo-600">
                 {learningMetrics.acquiredSkillsCount}
               </div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
@@ -593,7 +636,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
           <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div>
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-slate-900 flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-indigo-600" />
                   Target Role Skill Gap Analysis
                 </h2>
@@ -625,7 +668,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center justify-between">
                 <span>The CareerAI Placement Readiness Pipeline</span>
-                <span className="text-indigo-600 font-black lowercase text-[11px]">
+                <span className="text-indigo-600 font-semibold lowercase text-[11px]">
                   Learn → Practice → Build → Certify → Apply
                 </span>
               </div>
@@ -639,7 +682,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     </span>
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   </div>
-                  <h4 className="text-xs font-black text-slate-900">
+                  <h4 className="text-xs font-semibold text-slate-900">
                     Current Skills
                   </h4>
                   <p className="text-[11px] text-slate-500 leading-tight">
@@ -660,7 +703,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     </span>
                     <Flame className="w-4 h-4 text-amber-500" />
                   </div>
-                  <h4 className="text-xs font-black text-slate-900">Skill Gap</h4>
+                  <h4 className="text-xs font-semibold text-slate-900">Skill Gap</h4>
                   <p className="text-[11px] text-slate-500 leading-tight">
                     {roleSkillAnalysis.missing.length} missing skills required for {selectedRoleFilter}
                   </p>
@@ -677,7 +720,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     </span>
                     <BookOpen className="w-4 h-4 text-indigo-600" />
                   </div>
-                  <h4 className="text-xs font-black text-slate-900">
+                  <h4 className="text-xs font-semibold text-slate-900">
                     Recommended Course
                   </h4>
                   <p className="text-[11px] text-slate-500 leading-tight">
@@ -696,7 +739,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     </span>
                     <Award className="w-4 h-4 text-blue-600" />
                   </div>
-                  <h4 className="text-xs font-black text-slate-900">
+                  <h4 className="text-xs font-semibold text-slate-900">
                     Certification
                   </h4>
                   <p className="text-[11px] text-slate-500 leading-tight">
@@ -715,7 +758,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     </span>
                     <TrendingUp className="w-4 h-4 text-purple-600" />
                   </div>
-                  <h4 className="text-xs font-black text-slate-900">
+                  <h4 className="text-xs font-semibold text-slate-900">
                     Job Readiness
                   </h4>
                   <p className="text-[11px] text-slate-500 leading-tight">
@@ -845,7 +888,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     Auto-saved to your browser session
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
                   My Structured Learning Path
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
@@ -908,10 +951,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     {/* Stage Header */}
                     <div className="bg-slate-50/80 px-5 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-semibold text-xs flex items-center justify-center shrink-0">
                           {stageIdx + 1}
                         </span>
-                        <h3 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
+                        <h3 className="text-xs sm:text-sm font-semibold text-slate-900 tracking-tight">
                           {stageName}
                         </h3>
                         <span className="text-xs text-slate-500">
@@ -991,6 +1034,72 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                                 <p className="text-xs text-slate-500 mt-1 line-clamp-2">
                                   {course.realWorldApplication}
                                 </p>
+
+                                {/* Course Completion Progress Tracker */}
+                                <div className="mt-3 p-2.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="font-bold text-slate-700">Course Completion Progress:</span>
+                                    <span className={`font-semibold ${item.status === 'completed' ? 'text-emerald-600' : 'text-indigo-600'}`}>
+                                      {item.status === 'completed' ? '100% (Completed)' : `${item.progressPercentage ?? 0}%`}
+                                    </span>
+                                  </div>
+
+                                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full transition-all duration-500 rounded-full ${
+                                        item.status === 'completed' ? 'bg-emerald-600' : 'bg-indigo-600'
+                                      }`}
+                                      style={{ width: `${item.status === 'completed' ? 100 : (item.progressPercentage ?? 0)}%` }}
+                                    />
+                                  </div>
+
+                                  {item.status !== 'completed' && (
+                                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                      <div className="flex items-center gap-1.5">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdateCourseProgress(course.id, Math.max(0, (item.progressPercentage ?? 0) - 10))}
+                                          className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-200 cursor-pointer"
+                                          title="Decrease 10%"
+                                        >
+                                          -10%
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdateCourseProgress(course.id, Math.min(100, (item.progressPercentage ?? 0) + 10))}
+                                          className="px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold border border-indigo-200 cursor-pointer"
+                                          title="Complete 10% lesson"
+                                        >
+                                          +10% Lesson
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdateCourseProgress(course.id, Math.min(100, (item.progressPercentage ?? 0) + 25))}
+                                          className="px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold border border-indigo-200 cursor-pointer"
+                                          title="Complete 25% module/quiz"
+                                        >
+                                          +25% Quiz
+                                        </button>
+                                      </div>
+
+                                      <div className="flex items-center gap-2">
+                                        <input
+                                          type="range"
+                                          min="0"
+                                          max="100"
+                                          step="1"
+                                          value={item.progressPercentage ?? 0}
+                                          onChange={(e) => handleUpdateCourseProgress(course.id, Number(e.target.value))}
+                                          className="w-24 accent-indigo-600 cursor-pointer"
+                                          title="Adjust course progress"
+                                        />
+                                        <span className="text-[11px] font-bold text-slate-600 w-8 text-right">
+                                          {item.progressPercentage ?? 0}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
 
                                 {/* Target Completion Date & Credential ID */}
                                 <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs flex flex-wrap items-center justify-between gap-2 text-slate-600">
@@ -1108,7 +1217,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                 <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
                   Learn → Practice → Build → Certify → Apply
                 </span>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
+                <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight mt-1">
                   Practical Real-World Engineering Projects
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed mt-0.5">
@@ -1138,7 +1247,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                       </span>
                     </div>
 
-                    <h3 className="text-base font-black text-slate-900 leading-snug">
+                    <h3 className="text-base font-semibold text-slate-900 leading-snug">
                       {proj.title}
                     </h3>
 
@@ -1408,7 +1517,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
 
                         {/* Match Score */}
                         <span
-                          className={`text-[11px] font-black px-2 py-0.5 rounded-full ${
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                             matchScore >= 80
                               ? 'bg-emerald-100 text-emerald-800'
                               : matchScore >= 60
@@ -1424,7 +1533,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
 
                     {/* Title and Category */}
                     <div>
-                      <h3 className="text-sm font-black text-slate-900 leading-snug line-clamp-2">
+                      <h3 className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">
                         {course.title}
                       </h3>
                       <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-1">

@@ -253,7 +253,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               referrerPolicy="no-referrer"
             />
             <div>
-              <h2 id="auth-modal-title" className="text-lg font-black tracking-tight text-slate-900 leading-tight">
+              <h2 id="auth-modal-title" className="text-lg font-semibold tracking-tight text-slate-900 leading-tight">
                 {mode === 'signin' ? 'Sign In to CareerAI' : 'Create CareerAI Account'}
               </h2>
               <p className="text-xs text-slate-500 font-medium">

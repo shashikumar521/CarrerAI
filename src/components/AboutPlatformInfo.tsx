@@ -41,7 +41,7 @@ export const AboutPlatformInfo: React.FC = () => {
                   Official Knowledge Base
                 </span>
               </div>
-              <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">
+              <h2 className="text-lg md:text-xl font-semibold text-slate-900 tracking-tight">
                 About CareerAI (CarrerAI) — AI Career Guidance for B.Tech &amp; Engineering Students
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
@@ -66,7 +66,7 @@ export const AboutPlatformInfo: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center mb-3">
               <GraduationCap className="w-4 h-4" />
             </div>
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
               Who It Is For
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
@@ -78,7 +78,7 @@ export const AboutPlatformInfo: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
               <Target className="w-4 h-4" />
             </div>
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
               Academic Analysis
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
@@ -90,7 +90,7 @@ export const AboutPlatformInfo: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-3">
               <Cpu className="w-4 h-4" />
             </div>
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
               Skill-Gap Analysis
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
@@ -102,7 +102,7 @@ export const AboutPlatformInfo: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mb-3">
               <Compass className="w-4 h-4" />
             </div>
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-1">
               Personalized Roadmaps
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
