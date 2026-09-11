@@ -461,7 +461,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
               >
-                <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2">
                   <span>
                     {greetingDisplayName ? `Hi, ${greetingDisplayName}!` : 'Hi there!'}
                   </span>
@@ -475,7 +475,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     👋
                   </motion.span>
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 leading-relaxed">
+                <p className="text-sm sm:text-base text-slate-600 font-normal mt-1 leading-relaxed">
                   Keep building your skills. Your future is waiting.
                 </p>
               </motion.div>
@@ -581,14 +581,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               </div>
 
-              {/* Center Circular Progress Meter */}
+              {/* Center Circular Progress Meter with subtle hover glow and slight scale */}
               <div className="flex flex-col items-center justify-center my-2">
-                <div className="relative w-36 h-36 flex items-center justify-center">
+                <div className="relative w-36 h-36 flex items-center justify-center group/score cursor-pointer transition-transform duration-300 hover:scale-[1.03]">
                   {scoreAnimationFinished && isAssessed && (
                     <div className="absolute inset-1 rounded-full border border-indigo-400/30 animate-pulse pointer-events-none" />
                   )}
 
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 180 180">
+                  <svg className="w-full h-full transform -rotate-90 transition-all duration-300 group-hover/score:drop-shadow-[0_0_10px_rgba(79,70,229,0.35)]" viewBox="0 0 180 180">
                     <defs>
                       <linearGradient id="scoreIndigoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="#4F46E5" />
@@ -624,10 +624,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     />
                   </svg>
 
-                  {/* Centered Score Counter */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  {/* Centered Score Counter with hover scale and subtle glow */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center transition-all duration-300 group-hover/score:scale-105 group-hover/score:drop-shadow-[0_0_8px_rgba(99,102,241,0.25)]">
                     <div className="flex items-baseline">
-                      <span className="text-4xl font-semibold text-slate-900 tracking-normal">
+                      <span className="text-4xl font-semibold text-slate-900 tracking-normal transition-colors duration-200 group-hover/score:text-indigo-600">
                         {isAssessed ? animatedScore : '—'}
                       </span>
                       {isAssessed && <span className="text-base font-semibold text-indigo-600 ml-0.5">%</span>}

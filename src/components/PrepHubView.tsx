@@ -142,10 +142,10 @@ export const PrepHubView: React.FC = () => {
       {/* Top Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <BookOpen className="w-6 h-6 text-indigo-600" />
             <span>Campus Technical Interview Drill Hub</span>
-          </h2>
+          </h1>
           <p className="text-xs text-slate-500 mt-1">
             High-frequency core CS interview questions asked by Amazon, Microsoft, Google, TCS, and high-growth engineering teams.
           </p>

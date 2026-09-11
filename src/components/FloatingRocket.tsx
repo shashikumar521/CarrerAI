@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 
 export interface FloatingRocketProps {
@@ -12,50 +12,119 @@ export interface FloatingRocketProps {
  * - Engineered in CareerAI brand palette (indigo, cyan, clean white, slate accents).
  * - Gentle multi-axis floating (vertical heave + slight sway + subtle banking rotation).
  * - Occasional slow, smooth upward drift cycle and gentle glide back down.
+ * - Gently reacts when the cursor comes near it with tiny movement (3-5px) and rotation (1-2 deg).
  * - Soft pulsing exhaust jet and subtle fading trail vapor.
  * - Responsive: desktop (full size, smooth float), tablet (scaled), mobile (compact, calm).
  * - Strictly pointer-events-none and non-obstructive: never covers text, buttons, or cards.
  * - Respects prefers-reduced-motion.
  */
 export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [cursorOffset, setCursorOffset] = useState<{ x: number; y: number; rotate: number }>({
+    x: 0,
+    y: 0,
+    rotate: 0,
+  });
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReducedMotion(mq.matches);
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
+
+    const hasFineHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!hasFineHover || mq.matches) {
+      return () => mq.removeEventListener('change', handler);
+    }
+
+    let isNear = false;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const rocketCenterX = rect.left + rect.width / 2;
+      const rocketCenterY = rect.top + rect.height / 2;
+
+      const dx = e.clientX - rocketCenterX;
+      const dy = e.clientY - rocketCenterY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const threshold = 220;
+      if (dist < threshold && dist > 0) {
+        isNear = true;
+        // Smooth falloff factor
+        const proximity = Math.pow(1 - dist / threshold, 1.4);
+        // Very gentle movement (approx 3-5px) and tiny banking rotation (approx 1.5-2.2 deg)
+        const offsetX = (dx / dist) * -4.5 * proximity;
+        const offsetY = (dy / dist) * -4.5 * proximity;
+        const rotateOffset = (dx / threshold) * 2.2 * proximity;
+
+        setCursorOffset({
+          x: offsetX,
+          y: offsetY,
+          rotate: rotateOffset,
+        });
+      } else if (isNear) {
+        isNear = false;
+        setCursorOffset({ x: 0, y: 0, rotate: 0 });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+    return () => {
+      mq.removeEventListener('change', handler);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [prefersReducedMotion]);
 
   return (
     <div
+      ref={containerRef}
       aria-hidden="true"
       className={`relative pointer-events-none select-none ${className}`}
     >
-      {/* Outer Motion Wrapper: Slow graceful floating cycle */}
+      {/* Interactive Cursor Proximity Reaction Wrapper (Gentle spring physics) */}
       <motion.div
         animate={
           prefersReducedMotion
-            ? { y: 0, x: 0, rotate: 0 }
+            ? { x: 0, y: 0, rotate: 0 }
             : {
-                // Gentle heave with occasional upward drift and smooth recovery
-                y: [0, -10, -3, -18, -6, -24, -8, 0],
-                x: [0, 3, -2, 4, -1, 3, -2, 0],
-                rotate: [0, 2, -1.5, 3, -1, 2.5, -1, 0],
+                x: cursorOffset.x,
+                y: cursorOffset.y,
+                rotate: cursorOffset.rotate,
               }
         }
-        transition={
-          prefersReducedMotion
-            ? { duration: 0 }
-            : {
-                duration: 9.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }
-        }
-        className="relative flex flex-col items-center"
+        transition={{
+          type: 'spring',
+          damping: 22,
+          stiffness: 150,
+          mass: 0.6,
+        }}
       >
+        {/* Outer Motion Wrapper: Slow graceful floating cycle */}
+        <motion.div
+          animate={
+            prefersReducedMotion
+              ? { y: 0, x: 0, rotate: 0 }
+              : {
+                  // Gentle heave with occasional upward drift and smooth recovery
+                  y: [0, -10, -3, -18, -6, -24, -8, 0],
+                  x: [0, 3, -2, 4, -1, 3, -2, 0],
+                  rotate: [0, 2, -1.5, 3, -1, 2.5, -1, 0],
+                }
+          }
+          transition={
+            prefersReducedMotion
+              ? { duration: 0 }
+              : {
+                  duration: 9.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }
+          }
+          className="relative flex flex-col items-center"
+        >
         {/* Ambient Subtle Glow behind Rocket (Soft in light mode, slightly brighter accent in dark mode) */}
         <div className="absolute -inset-2 bg-indigo-400/10 dark:bg-indigo-500/25 rounded-full blur-md pointer-events-none transition-colors duration-300" />
 
@@ -265,6 +334,7 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
           )}
         </div>
       </motion.div>
-    </div>
-  );
+    </motion.div>
+  </div>
+);
 };

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { PlacementReadinessReport, AuthUser } from '../types';
 import { GoogleIcon } from './GoogleIcon';
+import { CareerAiBrand } from './CareerAiBrand';
 
 export type NavTab =
   | 'dashboard'
@@ -124,32 +125,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Logo & Platform Name */}
           <div className="flex items-center gap-3">
-            <button
+            <CareerAiBrand
               onClick={() => handleTabClick('dashboard')}
-              className="flex items-center gap-2.5 text-left group cursor-pointer focus:outline-hidden"
-            >
-              <div className="relative">
-                <img
-                  src="/careerai-logo.png"
-                  alt="CareerAI compass logo"
-                  className="w-10 h-10 object-contain rounded-full border border-slate-200 shadow-xs group-hover:scale-105 transition-transform shrink-0 relative z-10 bg-white"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
-                    CareerAI
-                  </span>
-                  <span className="px-1.5 py-0.2 rounded-sm text-[10px] font-bold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
-                    B.Tech
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 font-medium leading-none mt-0.5">
-                  Placement Intelligence Engine
-                </p>
-              </div>
-            </button>
+              subtitle="Placement Intelligence Engine"
+              badge="B.Tech"
+              size="navbar"
+            />
           </div>
 
           {/* Desktop Nav Items */}
@@ -162,19 +143,32 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={item.id}
                   id={`nav-item-${item.id}`}
                   onClick={() => handleTabClick(item.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold tracking-tight transition-all cursor-pointer ${
+                  className={`relative group flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm sm:text-[15px] font-medium tracking-normal leading-snug transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200/60 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200/60 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                  <Icon
+                    className={`w-4 h-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-105 ${
+                      isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-700'
+                    }`}
+                  />
                   <span>{item.label}</span>
                   {item.badge && (
                     <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {item.badge}
                     </span>
                   )}
+                  {/* Small animated underline */}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute bottom-0.5 left-2.5 right-2.5 h-0.5 rounded-full bg-indigo-600 transition-all duration-200 ${
+                      isActive
+                        ? 'scale-x-100 opacity-100'
+                        : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-70'
+                    }`}
+                  />
                 </button>
               );
             })}
@@ -424,9 +418,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleTabClick(item.id)}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm sm:text-[15px] font-medium tracking-normal leading-snug transition-colors cursor-pointer ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200'
+                      ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200'
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >

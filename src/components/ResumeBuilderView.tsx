@@ -41,10 +41,10 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
       {/* Top Controls Bar */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <FileText className="w-6 h-6 text-indigo-600" />
-            <span>ATS Resume Generator & Compliance Auditor</span>
-          </h2>
+            <span>ATS Resume Generator &amp; Compliance Auditor</span>
+          </h1>
           <p className="text-xs text-slate-500 mt-1">
             Single-column, recruiter-friendly template engineered to pass Applicant Tracking Systems without layout breakage.
           </p>
@@ -94,7 +94,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
               </span>
             </div>
 
-            <div className="text-4xl font-black text-slate-900 tracking-tight my-2">
+            <div className="text-4xl font-semibold text-slate-900 tracking-tight my-2">
               {atsAnalysis.score} <span className="text-base text-slate-400 font-normal">/ 100</span>
             </div>
 
@@ -150,10 +150,10 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
         </div>
 
         {/* Right: Clean White ATS Resume Sheet */}
-        <div className="lg:col-span-8 bg-white border border-slate-300 rounded-2xl p-8 sm:p-12 shadow-sm font-sans text-slate-900 text-xs leading-relaxed print:p-0 print:border-none print:shadow-none">
+        <div className="lg:col-span-8 bg-white border border-slate-300 rounded-2xl p-8 sm:p-12 shadow-sm font-sans text-slate-900 text-xs leading-relaxed print:p-0 print:border-none print:shadow-none resume-sheet">
           {/* Header */}
           <div className="border-b-2 border-slate-900 pb-4 mb-5 text-center">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
+            <h1 className="text-[21px] font-semibold tracking-normal leading-[1.2] text-slate-900 uppercase">
               {profile.name || 'YOUR FULL NAME'}
             </h1>
             <p className="text-xs text-slate-600 mt-1 font-medium">
@@ -184,7 +184,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
 
           {/* Education */}
           <div className="mb-5">
-            <h2 className="text-xs font-black uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
+            <h2 className="text-xs font-semibold uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
               Education
             </h2>
             <div className="space-y-2">
@@ -220,7 +220,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
 
           {/* Technical Skills */}
           <div className="mb-5">
-            <h2 className="text-xs font-black uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
+            <h2 className="text-xs font-semibold uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
               Technical Skills
             </h2>
             {(!profile.skills || profile.skills.length === 0) ? (
@@ -260,7 +260,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
 
           {/* Engineering Projects */}
           <div className="mb-5">
-            <h2 className="text-xs font-black uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
+            <h2 className="text-xs font-semibold uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
               Technical Projects
             </h2>
 
@@ -300,7 +300,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
           {/* Internships & Experience */}
           {profile.internships && profile.internships.length > 0 && (
             <div className="mb-5">
-              <h2 className="text-xs font-black uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
+              <h2 className="text-xs font-semibold uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
                 Work Experience
               </h2>
               <div className="space-y-3">
@@ -326,7 +326,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
           {/* Certifications */}
           {profile.certifications && profile.certifications.length > 0 && (
             <div>
-              <h2 className="text-xs font-black uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
+              <h2 className="text-xs font-semibold uppercase tracking-wider border-b border-slate-300 pb-1 mb-2 text-slate-900">
                 Certifications
               </h2>
               <div className="space-y-1 text-[11px]">

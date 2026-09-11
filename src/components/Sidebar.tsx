@@ -17,6 +17,7 @@ import {
 import { PlacementReadinessReport, AuthUser } from '../types';
 import { NavTab } from './Navbar';
 import { ThemeToggle } from './ThemeToggle';
+import { CareerAiBrand } from './CareerAiBrand';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -79,33 +80,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Top Header: Logo & Branding */}
       <div>
         <div className="flex items-center justify-between pb-5 mb-4 border-b border-slate-100">
-          <button
-            type="button"
+          <CareerAiBrand
             onClick={() => handleTabClick('dashboard')}
-            className="flex items-center gap-3 text-left group cursor-pointer focus:outline-hidden"
-          >
-            <div className="relative">
-              <img
-                src="/careerai-logo.png"
-                alt="CareerAI logo"
-                className="w-10 h-10 object-contain rounded-xl border border-slate-200/80 shadow-xs group-hover:scale-105 transition-transform shrink-0 bg-white p-0.5"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
-                  CareerAI
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
-                  B.Tech
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">
-                Placement Intelligence SaaS
-              </p>
-            </div>
-          </button>
+            subtitle="Placement Intelligence SaaS"
+            badge="B.Tech"
+            size="sidebar"
+          />
 
           {/* Close button on mobile drawer */}
           <button
@@ -132,16 +112,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 id={`sidebar-nav-item-${item.id}`}
                 type="button"
                 onClick={() => handleTabClick(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all duration-200 cursor-pointer group ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm sm:text-[15px] font-medium tracking-normal leading-snug transition-all duration-200 cursor-pointer group ${
                   isActive
-                    ? 'bg-indigo-50 text-indigo-700 font-bold border-l-4 border-indigo-600 shadow-2xs translate-x-0.5'
+                    ? 'bg-indigo-50 text-indigo-700 font-semibold border-l-4 border-indigo-600 shadow-2xs translate-x-0.5'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover:translate-x-1'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Icon
-                    className={`w-4 h-4 transition-colors ${
-                      isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
+                    className={`w-4 h-4 transition-all duration-200 group-hover:scale-105 group-hover:translate-x-0.5 ${
+                      isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-700'
                     }`}
                   />
                   <span>{item.label}</span>

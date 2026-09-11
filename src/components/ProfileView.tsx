@@ -260,10 +260,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* Top Header & Actions */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <User className="w-6 h-6 text-indigo-600" />
             <span>Student Profile Management</span>
-          </h2>
+          </h1>
           <p className="text-xs text-slate-500 mt-1">
             Fill in your authentic academic records, skills, and projects. Data is automatically preserved in your browser.
           </p>
@@ -327,7 +327,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   </span>
                 )}
               </div>
-              <h3 className="text-base font-black text-slate-900 tracking-tight">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900 tracking-normal leading-snug">
                 Complete your profile to unlock your personalized career analysis
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -339,7 +339,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 id="profile-submit-assessment-btn"
                 onClick={onSubmitAssessment}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-extrabold rounded-xl shadow-xs transition-all cursor-pointer hover:shadow-sm"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer hover:shadow-sm"
               >
                 <CheckCircle2 className="w-4 h-4 text-emerald-100" />
                 <span>Submit Assessment &amp; Unlock Analysis</span>

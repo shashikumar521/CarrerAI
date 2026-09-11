@@ -53,10 +53,10 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
       {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <GitBranch className="w-6 h-6 text-indigo-600" />
-            <span>Target Role Skill Gap Analyzer & Roadmap</span>
-          </h2>
+            <span>Target Role Skill Gap Analyzer &amp; Roadmap</span>
+          </h1>
           <p className="text-xs text-slate-500 mt-1">
             Compare your current skillset with industry standards for top engineering roles to reveal missing skills and concrete learning timelines.
           </p>
@@ -114,9 +114,9 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
               </span>
             </div>
 
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-normal leading-snug">
               {activeRole.title}
-            </h3>
+            </h2>
             <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
               {activeRole.description}
             </p>
@@ -126,7 +126,7 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1">
               Skill Alignment
             </span>
-            <div className="text-4xl font-black text-slate-900 tracking-tight my-1">
+            <div className="text-4xl font-semibold text-slate-900 tracking-tight my-1">
               {gapAnalysis.matchPercentage}%
             </div>
             <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden my-2">
@@ -240,10 +240,10 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 flex items-center gap-2 leading-snug">
               <Calendar className="w-5 h-5 text-indigo-600" />
               <span>Tailored 4-Phase Preparation Roadmap</span>
-            </h3>
+            </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               Structured path to bridge your skill gap and become placement-ready for {activeRole.title}.
             </p>
@@ -261,15 +261,15 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
                   <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-sm">
                     {milestone.duration}
                   </span>
-                  <span className="text-xs font-black text-slate-400">0{idx + 1}</span>
+                  <span className="text-xs font-semibold text-slate-400">0{idx + 1}</span>
                 </div>
 
                 <span className="text-[11px] font-bold text-slate-500 block mb-0.5">
                   {milestone.phase}
                 </span>
-                <h4 className="text-xs font-black text-slate-900 tracking-tight mb-2 leading-snug">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-900 tracking-normal mb-2 leading-snug">
                   {milestone.title}
-                </h4>
+                </h3>
 
                 <div className="space-y-1 my-2.5">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">

@@ -144,10 +144,10 @@ export const AiCounselorView: React.FC<AiCounselorViewProps> = ({
       {/* Top Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <Bot className="w-6 h-6 text-indigo-600" />
-            <span>AI Placement Counselor & Career Mentor</span>
-          </h2>
+            <span>AI Placement Counselor &amp; Career Mentor</span>
+          </h1>
           <p className="text-xs text-slate-500 mt-1">
             Grounded in your real profile metrics. Provides objective advice on company preparation, off-campus referrals, and backlog recovery.
           </p>

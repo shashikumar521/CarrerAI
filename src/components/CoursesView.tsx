@@ -459,7 +459,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
               )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
+            <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2]">
               Recommended Courses &amp; Certifications
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">

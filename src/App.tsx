@@ -35,6 +35,8 @@ import { Footer } from './components/Footer';
 import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
 import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
 import { CareerAiWatermarkBackground } from './components/CareerAiWatermarkBackground';
+import { CursorGlow } from './components/CursorGlow';
+import { CardCursorManager } from './components/CardCursorManager';
 import { LEARNING_PATH_STORAGE_KEY } from './data/coursesDatabase';
 import { COURSE_PROGRESS_UPDATED_EVENT } from './utils/courseSkillService';
 import { ThemeProvider } from './context/ThemeContext';
@@ -338,6 +340,10 @@ function CareerAiAppMain() {
     <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white">
       {/* Subtle Animated CareerAI Brand Watermark Background (Layer 2 & 3) */}
       <CareerAiWatermarkBackground />
+
+      {/* Premium Subtle Cursor Glow & Card Cursor Manager */}
+      <CursorGlow />
+      <CardCursorManager />
 
       {/* Modern Fixed Left Navigation Sidebar (Desktop + Mobile Slideover) */}
       <Sidebar

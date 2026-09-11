@@ -72,28 +72,28 @@ export const CareerAiWatermarkBackground: React.FC = () => {
       const my = mouseCurrentRef.current.y;
       const sy = scrollOffsetRef.current;
 
-      // Parallax shifts (very small, calm, max 6-12px)
+      // Parallax shifts (very subtle, calm, only a few pixels: 3-5px max)
       if (wm1Ref.current) {
-        const px = mx * 10;
-        const py = my * 8 + sy * 0.035;
+        const px = mx * 5;
+        const py = my * 4 + sy * 0.025;
         wm1Ref.current.style.transform = `translate3d(${px.toFixed(2)}px, ${py.toFixed(2)}px, 0)`;
       }
 
       if (wm2Ref.current) {
-        const px = mx * -8;
-        const py = my * -6 + sy * 0.045;
+        const px = mx * -4.5;
+        const py = my * -3.5 + sy * 0.035;
         wm2Ref.current.style.transform = `translate3d(${px.toFixed(2)}px, ${py.toFixed(2)}px, 0)`;
       }
 
       if (wm3Ref.current) {
-        const px = mx * 7;
-        const py = my * 9 + sy * 0.03;
+        const px = mx * 4;
+        const py = my * 4.5 + sy * 0.02;
         wm3Ref.current.style.transform = `translate3d(${px.toFixed(2)}px, ${py.toFixed(2)}px, 0)`;
       }
 
       if (wm4Ref.current) {
-        const px = mx * -6;
-        const py = my * 5 + sy * 0.05;
+        const px = mx * -3.5;
+        const py = my * 3 + sy * 0.03;
         wm4Ref.current.style.transform = `translate3d(${px.toFixed(2)}px, ${py.toFixed(2)}px, 0)`;
       }
 

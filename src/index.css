@@ -93,15 +93,15 @@ samp {
 
 /* =========================================================================
    CareerAI Refined Inter Typography System
-   Clean, Balanced, and Professional SaaS Standards
-   - Body text: Inter 400 (line-height 1.5-1.6, letter-spacing 0em)
-   - Secondary text / descriptions: Inter 400
-   - Navigation & labels: Inter 500
-   - Card titles: Inter 500–600
-   - Section headings: Inter 600 (line-height 1.25-1.35, letter-spacing 0 to -0.006em)
-   - Main page headings: Inter 600 (line-height 1.15-1.25, letter-spacing -0.01em)
-   - Numbers & scores: Inter 600
-   - Uppercase badges/labels: subtle 0.025em–0.035em letter spacing
+   Exact Hierarchy Specifications:
+   - MAIN HEADING (H1): Inter, 32–40px (mobile 28–32px), Weight 600, Letter spacing -0.01em to 0, Line height 1.2
+   - SECTION HEADING (H2): Inter, 24–32px (mobile 22–26px), Weight 600, Letter spacing 0, Line height 1.25
+   - SUBHEADING (H3): Inter, 20–24px (mobile 18–20px), Weight 500–600, Letter spacing 0, Line height 1.3
+   - NORMAL TEXT / PARAGRAPH: Inter, 16px, Weight 400, Letter spacing 0, Line height 1.5–1.6
+   - SMALL TEXT: Inter, 14px, Weight 400, Letter spacing 0, Line height 1.4–1.5
+   - VERY SMALL TEXT: Inter, 12px, Weight 400, Letter spacing 0, Line height 1.4
+   - NAVIGATION / MENU: Inter, 15–16px, Weight 400–500, Letter spacing 0, Line height 1.4
+   - BUTTONS: Inter, 14–16px, Weight 500–600, Letter spacing 0, Line height 1.4
    ========================================================================= */
 
 html {
@@ -111,34 +111,66 @@ html {
 }
 
 body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.55;
-  letter-spacing: 0em;
+  letter-spacing: 0;
 }
 
-/* Headings: Clean, lighter, semibold (600 max), comfortable letter spacing & line heights */
-h1 {
+/* -------------------------------------------------------------------------
+   MAIN HEADING (H1)
+   Font: Inter | Size: exactly 21px (desktop & mobile) | Weight: 600
+   Letter spacing: 0 | Line height: 1.2
+   ------------------------------------------------------------------------- */
+h1,
+.h1,
+.main-heading {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 21px !important;
   font-weight: 600 !important;
+  letter-spacing: 0 !important;
   line-height: 1.2 !important;
-  letter-spacing: -0.01em !important;
 }
 
-h2 {
+/* -------------------------------------------------------------------------
+   SECTION HEADING (H2)
+   Font: Inter | Size: 24–32px (mobile 22–26px) | Weight: 600
+   Letter spacing: 0 | Line height: 1.25
+   ------------------------------------------------------------------------- */
+h2,
+.h2,
+.section-heading {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: clamp(24px, 2.2vw, 32px);
   font-weight: 600 !important;
+  letter-spacing: 0 !important;
   line-height: 1.25 !important;
-  letter-spacing: -0.006em !important;
 }
 
-h3 {
+/* -------------------------------------------------------------------------
+   SUBHEADING (H3)
+   Font: Inter | Size: 20–24px (mobile 18–20px) | Weight: 500–600
+   Letter spacing: 0 | Line height: 1.3
+   ------------------------------------------------------------------------- */
+h3,
+.h3,
+.subheading {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: clamp(20px, 1.8vw, 24px);
   font-weight: 600 !important;
+  letter-spacing: 0 !important;
   line-height: 1.3 !important;
-  letter-spacing: 0em !important;
 }
 
-h4, h5, h6 {
+/* Subsection / Card Heading (H4) */
+h4,
+.h4 {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: clamp(16px, 1.3vw, 18px);
   font-weight: 600 !important;
+  letter-spacing: 0 !important;
   line-height: 1.35 !important;
-  letter-spacing: 0em !important;
 }
 
 /* Ensure headings with font-bold or leftover heavy classes stay at clean 600 semibold */
@@ -148,59 +180,164 @@ h1.font-extrabold, h2.font-extrabold, h3.font-extrabold, h4.font-extrabold {
   font-weight: 600 !important;
 }
 
-/* Paragraphs, descriptions, lists, table cells: Inter 400, comfortable 1.55 line height */
+/* Responsive heading adaptations: prevent oversized headings and awkward line wraps */
+@media (max-width: 640px) {
+  h1,
+  .h1,
+  .main-heading {
+    font-size: 21px !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0 !important;
+    word-break: break-word;
+  }
+  h2,
+  .h2,
+  .section-heading {
+    font-size: clamp(22px, 5.2vw, 26px) !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+    word-break: break-word;
+  }
+  h3,
+  .h3,
+  .subheading {
+    font-size: clamp(18px, 4.5vw, 20px) !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0 !important;
+    word-break: break-word;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   NORMAL TEXT / PARAGRAPH
+   Font: Inter | Size: 16px | Weight: 400 | Letter spacing: 0 | Line height: 1.5–1.6
+   ------------------------------------------------------------------------- */
 p,
 li,
 td,
-dd {
+dd,
+.text-normal,
+.paragraph {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 400;
   line-height: 1.55;
-  letter-spacing: 0em;
+  letter-spacing: 0;
 }
 
-/* Secondary text / descriptions: Inter 400 with 0em letter spacing */
+/* Explicit 16px base paragraph styling */
+p:not(.text-sm):not(.text-xs):not(.text-lg):not(.text-xl):not(.text-[10px]):not(.text-[11px]):not(.text-[13px]):not([class*="text-xs"]):not([class*="text-sm"]) {
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* Secondary text / descriptions: Inter 400 with 0 letter spacing */
 p.text-slate-600,
 p.text-slate-500,
 p.text-slate-400,
 .text-slate-500,
 .text-slate-400,
 .text-muted {
-  letter-spacing: 0em;
+  letter-spacing: 0;
 }
 
-/* Navigation links, tabs, and form labels: Inter 500 */
+/* -------------------------------------------------------------------------
+   SMALL TEXT
+   Font: Inter | Size: 14px | Weight: 400 | Letter spacing: 0 | Line height: 1.4–1.5
+   ------------------------------------------------------------------------- */
+.text-sm,
+.small-text,
+p.text-sm,
+span.text-sm,
+div.text-sm {
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+
+/* -------------------------------------------------------------------------
+   VERY SMALL TEXT
+   Font: Inter | Size: 12px | Weight: 400 | Letter spacing: 0 | Line height: 1.4
+   ------------------------------------------------------------------------- */
+.text-xs,
+.very-small-text,
+p.text-xs,
+span.text-xs,
+div.text-xs {
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+/* -------------------------------------------------------------------------
+   NAVIGATION / MENU
+   Font: Inter | Size: 15–16px | Weight: 400–500 | Letter spacing: 0 | Line height: 1.4
+   ------------------------------------------------------------------------- */
 nav a,
 nav button,
 [role="navigation"] a,
 [role="navigation"] button,
+.nav-link,
+.menu-item,
+[id^="nav-item-"],
+[id^="sidebar-nav-item-"] {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0 !important;
+  line-height: 1.4 !important;
+}
+
 label,
 legend {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 500;
-  letter-spacing: 0em;
+  letter-spacing: 0;
 }
 
-/* Buttons: crisp, balanced Inter 500-600 */
-button {
-  letter-spacing: 0em;
+/* -------------------------------------------------------------------------
+   BUTTONS
+   Font: Inter | Size: 14–16px | Weight: 500–600 | Letter spacing: 0 | Line height: 1.4
+   ------------------------------------------------------------------------- */
+button,
+.btn,
+[role="button"] {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0;
+  line-height: 1.4;
 }
 
-/* Uppercase chips, badges, and category labels: subtle breathable spacing 0.025em–0.035em */
+/* Standard button size & weight normalization (14–16px, 500–600 weight) */
+button:not(.btn-icon):not(.btn-custom):not([class*="p-1"]):not([class*="p-1.5"]):not([class*="text-[10px]"]):not([class*="text-[11px]"]) {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+button.font-bold,
+button.font-semibold,
+button.font-extrabold,
+button.font-black,
+.btn-primary,
+.btn-semibold {
+  font-weight: 600 !important;
+}
+
+/* Uppercase chips, badges, and category labels: subtle breathable spacing */
 .uppercase,
 [class*="uppercase"] {
-  letter-spacing: 0.03em !important;
+  letter-spacing: 0.025em;
 }
 
-/* Normalizing negative letter spacing utilities to prevent crowded text */
-.tracking-tighter {
-  letter-spacing: -0.01em !important;
-}
-
+/* Letter spacing refinement: keep comfortable, avoid excessively contracted letters */
 .tracking-tight {
   letter-spacing: -0.005em !important;
 }
 
+.tracking-tighter {
+  letter-spacing: -0.008em !important;
+}
+
 .tracking-normal {
-  letter-spacing: 0em !important;
+  letter-spacing: 0 !important;
 }
 
 /* Line height utility refinements matching SaaS standards */
@@ -220,22 +357,16 @@ button {
   line-height: 1.6 !important;
 }
 
-/* Responsive heading adaptations: prevent awkward wrapping or oversized text on smaller screens */
-@media (max-width: 640px) {
-  h1 {
-    line-height: 1.22 !important;
-    word-break: break-word;
-    letter-spacing: -0.008em !important;
-  }
-  h2 {
-    line-height: 1.28 !important;
-    word-break: break-word;
-    letter-spacing: -0.005em !important;
-  }
-  h3 {
-    line-height: 1.32 !important;
-    word-break: break-word;
-  }
+/* Isolate print and ATS resume preview so document-specific sizing is respected */
+.resume-sheet h1,
+.resume-sheet h2,
+.resume-sheet h3,
+.resume-sheet h4,
+.resume-sheet p {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
 }
 
 /* =========================================================================
@@ -831,4 +962,423 @@ html.dark,
     transform: none !important;
   }
 }
+
+/* =========================================================================
+   CAREERAI PREMIUM CURSOR-BASED ANIMATIONS SYSTEM
+   1. Small cursor-following glow (CursorGlow component)
+   2. Cards: Lift 3px, soft shadow, internal cursor light, 1–2 deg 3D tilt
+   3. Buttons: Lift 2px, scale 1.02, soft glow, animate icon, click scale 0.97
+   4. Navigation: Smooth highlight, animated underline, icon movement (Navbar & Sidebar)
+   5. Icons: Subtle hover animations (arrows 1-2px, chevrons 1-2px, edit/search scale, settings rotate)
+   6. Progress bars: 0-to-value smooth animation, hover shine/glow
+   7. Career readiness score: 0-to-value animation, hover glow/scale
+   8. Rocket: Gentle cursor proximity reaction (3-5px, 1-2 deg)
+   9. Background logos: Subtle mouse parallax (a few pixels)
+   10. Page / Scroll: Fade + slide-up entry animations with card stagger
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   2. CARDS: LIFT 3PX, SOFT SHADOW, CURSOR LIGHT & 1–2 DEG 3D TILT
+   ------------------------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  .cai-card,
+  [data-cai-card],
+  .bg-white.border.rounded-2xl,
+  .bg-white.border.rounded-xl,
+  .bg-white.border.border-slate-200.rounded-2xl,
+  .bg-white.border.border-slate-200.rounded-xl {
+    --cai-tilt-x: 0deg;
+    --cai-tilt-y: 0deg;
+    --cai-mouse-x: -9999px;
+    --cai-mouse-y: -9999px;
+    position: relative;
+    transform-style: preserve-3d;
+    perspective: 1200px;
+    transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 250ms ease, border-color 200ms ease;
+  }
+
+  .cai-card:hover,
+  [data-cai-card]:hover,
+  .bg-white.border.rounded-2xl:hover,
+  .bg-white.border.rounded-xl:hover,
+  .bg-white.border.border-slate-200.rounded-2xl:hover,
+  .bg-white.border.border-slate-200.rounded-xl:hover {
+    transform: translateY(-3px) rotateX(var(--cai-tilt-x, 0deg)) rotateY(var(--cai-tilt-y, 0deg));
+    box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 6px 16px -4px rgba(99, 102, 241, 0.06);
+  }
+
+  /* Subtle cursor-following light inside the card */
+  .cai-card::before,
+  [data-cai-card]::before,
+  .bg-white.border.rounded-2xl::before,
+  .bg-white.border.rounded-xl::before,
+  .bg-white.border.border-slate-200.rounded-2xl::before,
+  .bg-white.border.border-slate-200.rounded-xl::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      360px circle at var(--cai-mouse-x, -9999px) var(--cai-mouse-y, -9999px),
+      rgba(99, 102, 241, 0.065),
+      transparent 65%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 220ms ease;
+    z-index: 1;
+  }
+
+  .cai-card:hover::before,
+  [data-cai-card]:hover::before,
+  .bg-white.border.rounded-2xl:hover::before,
+  .bg-white.border.rounded-xl:hover::before,
+  .bg-white.border.border-slate-200.rounded-2xl:hover::before,
+  .bg-white.border.border-slate-200.rounded-xl:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Explicit tilt exclusions (dialogs, root layout, modals, dropdowns) */
+.cai-no-tilt,
+.cai-no-tilt:hover,
+header,
+header:hover,
+[role="dialog"],
+[role="dialog"]:hover,
+.modal-backdrop,
+.modal-container,
+.modal-container:hover {
+  transform: none !important;
+  perspective: none !important;
+}
+.cai-no-tilt::before,
+header::before,
+[role="dialog"]::before,
+.modal-container::before {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   3. BUTTONS: LIFT 2PX, SCALE 1.02, SOFT GLOW, ICON ANIMATION, CLICK SCALE 0.97
+   ------------------------------------------------------------------------- */
+button:not(:disabled):not(.no-btn-fx),
+.btn-interactive:not(:disabled) {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease, background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled):not(.no-btn-fx):not(#navbar-user-menu-btn):hover,
+  .btn-interactive:not(:disabled):hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 16px -4px rgba(99, 102, 241, 0.18);
+  }
+
+  /* Animate button icon slightly on hover */
+  button:not(:disabled):not(.no-btn-fx):hover svg,
+  button:not(:disabled):not(.no-btn-fx):hover .lucide {
+    transform: translateY(-0.5px) scale(1.05);
+    transition: transform 180ms ease;
+  }
+}
+
+/* On click: briefly scale to 0.97 and return */
+button:not(:disabled):not(.no-btn-fx):active,
+.btn-interactive:not(:disabled):active {
+  transform: scale(0.97) translateY(0) !important;
+  transition: transform 70ms ease-out !important;
+}
+
+/* -------------------------------------------------------------------------
+   5. ICONS: ARROWS (1–2PX), CHEVRONS (1–2PX), EDIT/SEARCH (SCALE), SETTINGS (ROTATE)
+   ------------------------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  /* Arrow icons move 1-2px */
+  button:hover svg.lucide-arrow-right,
+  a:hover svg.lucide-arrow-right,
+  .group:hover svg.lucide-arrow-right,
+  button:hover svg.lucide-arrow-up-right,
+  a:hover svg.lucide-arrow-up-right,
+  .group:hover svg.lucide-arrow-up-right {
+    transform: translate(1.5px, -1px);
+    transition: transform 180ms ease;
+  }
+
+  button:hover svg.lucide-arrow-left,
+  a:hover svg.lucide-arrow-left,
+  .group:hover svg.lucide-arrow-left {
+    transform: translateX(-1.5px);
+    transition: transform 180ms ease;
+  }
+
+  /* Chevron icons move 1-2px */
+  button:hover svg.lucide-chevron-right,
+  a:hover svg.lucide-chevron-right,
+  .group:hover svg.lucide-chevron-right {
+    transform: translateX(1.8px);
+    transition: transform 180ms ease;
+  }
+
+  button:hover svg.lucide-chevron-left,
+  a:hover svg.lucide-chevron-left,
+  .group:hover svg.lucide-chevron-left {
+    transform: translateX(-1.8px);
+    transition: transform 180ms ease;
+  }
+
+  button:hover svg.lucide-chevron-down,
+  a:hover svg.lucide-chevron-down,
+  .group:hover svg.lucide-chevron-down {
+    transform: translateY(1.5px);
+    transition: transform 180ms ease;
+  }
+
+  /* Edit & Search icons scale slightly */
+  button:hover svg.lucide-search,
+  button:hover svg.lucide-edit,
+  button:hover svg.lucide-edit-2,
+  button:hover svg.lucide-edit-3,
+  button:hover svg.lucide-pencil,
+  a:hover svg.lucide-search,
+  a:hover svg.lucide-pencil,
+  .group:hover svg.lucide-search,
+  .group:hover svg.lucide-pencil {
+    transform: scale(1.08);
+    transition: transform 180ms ease;
+  }
+
+  /* Settings & Refresh rotate very slightly */
+  button:hover svg.lucide-settings,
+  button:hover svg.lucide-rotate-ccw,
+  button:hover svg.lucide-refresh-cw,
+  a:hover svg.lucide-settings,
+  .group:hover svg.lucide-settings {
+    transform: rotate(16deg);
+    transition: transform 220ms ease;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   6. PROGRESS BARS: 0-TO-VALUE ANIMATION & SUBTLE HOVER SHINE/GLOW
+   ------------------------------------------------------------------------- */
+div[style*="width:"] {
+  transition: width 900ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 250ms ease, filter 250ms ease;
+  position: relative;
+}
+
+@keyframes caiProgressShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.rounded-full:hover > div[style*="width:"],
+div[style*="width:"]:hover {
+  filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.45));
+}
+
+.rounded-full:hover > div[style*="width:"]::after,
+div[style*="width:"]:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: caiProgressShine 1.5s infinite linear;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* -------------------------------------------------------------------------
+   10. PAGE / SCROLL: FADE + SLIDE-UP ANIMATIONS & CARD STAGGER
+   ------------------------------------------------------------------------- */
+@keyframes caiSectionSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cai-fade-slide-up,
+section:not([role="dialog"]) {
+  animation: caiSectionSlideUp 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.grid > *:nth-child(1) { animation-delay: 30ms; }
+.grid > *:nth-child(2) { animation-delay: 60ms; }
+.grid > *:nth-child(3) { animation-delay: 90ms; }
+.grid > *:nth-child(4) { animation-delay: 120ms; }
+.grid > *:nth-child(5) { animation-delay: 150ms; }
+.grid > *:nth-child(6) { animation-delay: 180ms; }
+
+/* -------------------------------------------------------------------------
+   TOP-LEFT CAREERAI APP BRANDING SYSTEM
+   - Inter font, weight 600 (semi-bold)
+   - Slow, elegant continuous AI gradient/shimmer across "CareerAI"
+   - Subtle futuristic logo ambient glow
+   - Occasional tiny light sweep across logo (~8.5s cycle)
+   - Micro-float / tilt (max 1.5° - 2°)
+   - Smooth 1.03 scale and soft glow on hover
+   ------------------------------------------------------------------------- */
+@keyframes caiBrandShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes caiLogoLightSweep {
+  0%, 72% {
+    transform: translateX(-150%) skewX(-20deg);
+    opacity: 0;
+  }
+  76% {
+    opacity: 0.75;
+  }
+  86% {
+    transform: translateX(220%) skewX(-20deg);
+    opacity: 0.75;
+  }
+  89%, 100% {
+    transform: translateX(220%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes caiLogoMicroFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-1.2px) rotate(1.4deg);
+  }
+  66% {
+    transform: translateY(0.8px) rotate(-1.2deg);
+  }
+}
+
+.cai-brand-text {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-weight: 600 !important;
+  background: linear-gradient(
+    115deg,
+    #0f172a 0%,
+    #1e1b4b 28%,
+    #4f46e5 48%,
+    #0284c7 54%,
+    #1e1b4b 72%,
+    #0f172a 100%
+  );
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: caiBrandShimmer 7.5s ease-in-out infinite;
+  display: inline-block;
+  will-change: background-position;
+}
+
+.dark .cai-brand-text {
+  background: linear-gradient(
+    115deg,
+    #f8fafc 0%,
+    #cbd5e1 26%,
+    #818cf8 48%,
+    #38bdf8 54%,
+    #c7d2fe 72%,
+    #f8fafc 100%
+  );
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.cai-brand-logo-float {
+  animation: caiLogoMicroFloat 6.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.cai-brand-light-sweep {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.75) 50%,
+    transparent 65%
+  );
+  animation: caiLogoLightSweep 8.5s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.dark .cai-brand-light-sweep {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%
+  );
+}
+
+/* Hover glow on the CareerAI branding */
+#navbar-brand-btn:hover .cai-brand-text,
+#sidebar-brand-btn:hover .cai-brand-text {
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.28));
+}
+
+.dark #navbar-brand-btn:hover .cai-brand-text,
+.dark #sidebar-brand-btn:hover .cai-brand-text {
+  filter: drop-shadow(0 0 10px rgba(129, 140, 248, 0.35));
+}
+
+/* -------------------------------------------------------------------------
+   RESPECT PREFERS-REDUCED-MOTION
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .cai-brand-text,
+  .cai-brand-logo-float,
+  .cai-brand-light-sweep {
+    animation: none !important;
+    transform: none !important;
+  }
+  .cai-brand-light-sweep {
+    display: none !important;
+  }
+  button:not(:disabled):hover,
+  .btn-interactive:hover,
+  button:not(:disabled):active,
+  .cai-card,
+  .cai-card:hover,
+  .bg-white.border.rounded-2xl:hover,
+  .bg-white.border.rounded-xl:hover,
+  div[style*="width:"],
+  .cai-fade-slide-up,
+  section {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+  }
+  .cai-card::before,
+  [data-cai-card]::before,
+  .bg-white.border.rounded-2xl::before,
+  .bg-white.border.rounded-xl::before,
+  .rounded-full:hover > div[style*="width:"]::after {
+    display: none !important;
+  }
+}
+
 

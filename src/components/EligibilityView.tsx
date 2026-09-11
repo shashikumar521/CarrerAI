@@ -68,10 +68,10 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
       {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <Building2 className="w-6 h-6 text-indigo-600" />
             <span>Campus Placement Company Eligibility Tracker</span>
-          </h2>
+          </h1>
           <p className="text-xs text-slate-500 mt-1">
             Real-time evaluation against B.Tech CGPA, backlogs, branch, and 10th/12th cutoffs across 30+ top recruiters.
           </p>
