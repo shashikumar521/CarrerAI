@@ -1,0 +1,6 @@
+{
+  "name": "CareerAI",
+  "description": "AI-powered career guidance, placement readiness, company eligibility checker, and skill roadmap platform for engineering students.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
