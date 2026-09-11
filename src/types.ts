@@ -149,3 +149,49 @@ export interface PlacementReadinessReport {
   criticalGaps: string[];
   immediateSteps: string[];
 }
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  photoUrl?: string;
+  provider: 'google' | 'email';
+  createdAt: string;
+}
+
+export interface AccountRecord {
+  user: AuthUser;
+  password?: string;
+  profile: StudentProfile;
+  assessmentSubmitted: boolean;
+  updatedAt: string;
+}
+
+export interface LiveJob {
+  id: string;
+  title: string;
+  company: string;
+  companyLogo?: string;
+  location: string;
+  workMode: 'Remote' | 'Hybrid' | 'On-site';
+  jobType: string;
+  experienceLevel?: string;
+  salary?: string;
+  requiredSkills: string[];
+  descriptionSummary: string;
+  fullDescription?: string;
+  postedDate: string;
+  source: string;
+  applyUrl: string;
+  retrievedAt: string;
+  isDemo?: boolean;
+}
+
+export interface JobMatchEvaluation {
+  matchPercentage: number;
+  matchingSkills: string[];
+  missingSkills: string[];
+  explanation: string;
+  branchMatch: boolean;
+  levelBonus: number;
+}

@@ -21,9 +21,12 @@ export const EmptyStateBanner: React.FC<EmptyStateBannerProps> = ({
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start gap-4 max-w-2xl">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 text-indigo-600">
-            <UserCheck className="w-6 h-6" />
-          </div>
+          <img
+            src="/careerai-logo.png"
+            alt="CareerAI official logo"
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full object-contain border border-amber-200 shadow-xs shrink-0"
+            referrerPolicy="no-referrer"
+          />
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">

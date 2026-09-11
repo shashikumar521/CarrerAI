@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
+import { getLiveJobs } from './src/services/jobsApiServer';
 
 dotenv.config();
 
@@ -31,6 +32,62 @@ function getGenAI(): GoogleGenAI | null {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'CareerAI API' });
+});
+
+// Real Live Jobs API Endpoint
+app.get('/api/jobs', async (req, res) => {
+  try {
+    const { query, location, role, refresh } = req.query;
+    const result = await getLiveJobs({
+      query: typeof query === 'string' ? query : undefined,
+      location: typeof location === 'string' ? location : undefined,
+      role: typeof role === 'string' ? role : undefined,
+      refresh: refresh === 'true',
+    });
+
+    return res.json({
+      success: true,
+      jobs: result.jobs,
+      total: result.jobs.length,
+      source: result.source,
+      cached: result.cached,
+      retrievedAt: result.retrievedAt,
+    });
+  } catch (error: any) {
+    console.error('Live Jobs API Error:', error);
+    // Explicitly return failure status as required by rules:
+    // "Live job data is temporarily unavailable. Provide a Retry button. Do NOT silently replace failed live data with fake jobs."
+    return res.status(503).json({
+      success: false,
+      error: 'Live job data is temporarily unavailable.',
+      details: error?.message || 'External job board upstream failure',
+      jobs: [],
+    });
+  }
+});
+
+// Jobs API Provider Status (never exposes raw secrets, only whether configured)
+app.get('/api/jobs/status', (req, res) => {
+  const hasAdzuna = Boolean(process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY);
+  const hasRapidApi = Boolean(process.env.RAPIDAPI_KEY);
+
+  res.json({
+    primaryProvider: hasAdzuna ? 'Adzuna' : 'Remotive & Arbeitnow Open Tech APIs',
+    hasAdzunaConfigured: hasAdzuna,
+    hasRapidApiConfigured: hasRapidApi,
+    mode: 'live_data',
+  });
+});
+
+// Explicit SEO routes for search engine crawlers
+app.get('/robots.txt', (req, res) => {
+  const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
+  res.type('text/plain').sendFile(robotsPath);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+  res.type('application/xml').sendFile(sitemapPath);
 });
 
 // AI Career Counselor endpoint

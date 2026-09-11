@@ -1,0 +1,8 @@
+# Robots.txt for CareerAI (CarrerAI)
+# https://carrer-ai-kappa.vercel.app/
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://carrer-ai-kappa.vercel.app/sitemap.xml

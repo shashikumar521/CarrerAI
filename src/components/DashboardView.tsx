@@ -3,6 +3,7 @@ import {
   GraduationCap,
   Building2,
   GitBranch,
+  Briefcase,
   AlertTriangle,
   CheckCircle2,
   ArrowRight,
@@ -15,7 +16,7 @@ import {
   Sparkles,
   Info,
 } from 'lucide-react';
-import { StudentProfile, PlacementReadinessReport, EligibilityResult } from '../types';
+import { StudentProfile, PlacementReadinessReport, EligibilityResult, AuthUser } from '../types';
 import { EmptyStateBanner } from './EmptyStateBanner';
 import { NavTab } from './Navbar';
 
@@ -26,6 +27,8 @@ interface DashboardViewProps {
   eligibilityResults: EligibilityResult[];
   onNavigate: (tab: NavTab) => void;
   onLoadDemo: () => void;
+  currentUser?: AuthUser | null;
+  assessmentSubmitted?: boolean;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -35,23 +38,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   eligibilityResults,
   onNavigate,
   onLoadDemo,
+  currentUser,
+  assessmentSubmitted = false,
 }) => {
-  const eligibleCount = eligibilityResults.filter((r) => r.status === 'eligible').length;
-  const borderlineCount = eligibilityResults.filter((r) => r.status === 'borderline').length;
-  const ineligibleCount = eligibilityResults.filter((r) => r.status === 'ineligible').length;
+  const isAssessed = !isProfileEmpty && assessmentSubmitted;
+  const eligibleCount = isAssessed ? eligibilityResults.filter((r) => r.status === 'eligible').length : 0;
+  const borderlineCount = isAssessed ? eligibilityResults.filter((r) => r.status === 'borderline').length : 0;
+  const ineligibleCount = isAssessed ? eligibilityResults.filter((r) => r.status === 'ineligible').length : 0;
 
   const cgpaValue = Number(profile.cgpa) || 0;
   const backlogsCount = Number(profile.activeBacklogs) || 0;
 
   return (
     <div className="space-y-8">
-      {/* Empty State Banner if student has not entered data */}
-      {isProfileEmpty && (
+      {/* Empty State Banner if student has not submitted assessment */}
+      {!isAssessed && (
         <EmptyStateBanner
           onGoToProfile={() => onNavigate('profile')}
           onLoadDemo={onLoadDemo}
-          title="Welcome to CareerAI — Engineering Placement Readiness Platform"
-          description="Your student profile is currently completely empty with no default or demo data. Fill in your academic branch, CGPA, backlogs, skills, and projects to calculate your placement score and check company cutoffs."
+          title="Complete your profile to unlock your personalized career analysis."
+          description="CareerAI evaluates your real engineering academic metrics (CGPA, Branch, Backlogs, Skills, and Projects) to calculate placement readiness, check company cutoffs, and pinpoint skill gaps. Submit your student assessment to unlock your personalized dashboard."
         />
       )}
 
@@ -75,20 +81,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     : 'bg-slate-100 text-slate-600 border border-slate-200'
                 }`}
               >
-                {report.grade}
+                {!isAssessed ? 'Empty Profile' : report.grade}
               </span>
             </div>
 
             <div className="flex items-baseline gap-3 my-2">
               <span className="text-5xl font-black text-slate-900 tracking-tight">
-                {isProfileEmpty ? '0' : report.overallScore}
+                {!isAssessed ? '0' : report.overallScore}
               </span>
               <span className="text-lg font-bold text-slate-400">/ 100</span>
             </div>
 
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              {isProfileEmpty
-                ? 'Score is 0 because no student data is recorded yet. Input your academic details to assess real readiness.'
+              {!isAssessed
+                ? 'Score is 0 because no student assessment has been submitted yet. Enter your academic details to calculate real readiness.'
                 : `Calculated from CGPA (${cgpaValue || 'N/A'}), ${backlogsCount} backlog(s), ${
                     profile.skills?.length || 0
                   } skills, and ${profile.projects?.length || 0} projects.`}
@@ -100,12 +106,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
                 <span className="text-slate-600">Academics & Backlogs</span>
-                <span className="text-slate-900 font-bold">{report.academicScore}/25</span>
+                <span className="text-slate-900 font-bold">{isAssessed ? report.academicScore : 0}/25</span>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-600 rounded-full transition-all duration-500"
-                  style={{ width: `${(report.academicScore / 25) * 100}%` }}
+                  style={{ width: `${isAssessed ? (report.academicScore / 25) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -113,12 +119,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
                 <span className="text-slate-600">Technical Skills Depth</span>
-                <span className="text-slate-900 font-bold">{report.skillsScore}/30</span>
+                <span className="text-slate-900 font-bold">{isAssessed ? report.skillsScore : 0}/30</span>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-emerald-600 rounded-full transition-all duration-500"
-                  style={{ width: `${(report.skillsScore / 30) * 100}%` }}
+                  style={{ width: `${isAssessed ? (report.skillsScore / 30) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -126,12 +132,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
                 <span className="text-slate-600">Engineering Projects</span>
-                <span className="text-slate-900 font-bold">{report.projectsScore}/25</span>
+                <span className="text-slate-900 font-bold">{isAssessed ? report.projectsScore : 0}/25</span>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-amber-500 rounded-full transition-all duration-500"
-                  style={{ width: `${(report.projectsScore / 25) * 100}%` }}
+                  style={{ width: `${isAssessed ? (report.projectsScore / 25) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -139,12 +145,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
                 <span className="text-slate-600">Experience & Certifications</span>
-                <span className="text-slate-900 font-bold">{report.experienceScore}/20</span>
+                <span className="text-slate-900 font-bold">{isAssessed ? report.experienceScore : 0}/20</span>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-purple-600 rounded-full transition-all duration-500"
-                  style={{ width: `${(report.experienceScore / 20) * 100}%` }}
+                  style={{ width: `${isAssessed ? (report.experienceScore / 20) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -159,12 +165,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="text-xs font-semibold text-slate-500 block mb-1">B.Tech CGPA</span>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-slate-900">
-                  {profile.cgpa ? Number(profile.cgpa).toFixed(2) : '—'}
+                  {isAssessed && profile.cgpa ? Number(profile.cgpa).toFixed(2) : '—'}
                 </span>
                 <span className="text-xs text-slate-400">/ 10</span>
               </div>
               <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                {profile.branch || 'Branch not set'}
+                {isAssessed && profile.branch ? profile.branch : 'Branch not set'}
               </span>
             </div>
 
@@ -173,19 +179,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="flex items-baseline gap-1">
                 <span
                   className={`text-2xl font-black ${
-                    backlogsCount > 0 ? 'text-rose-600' : 'text-slate-900'
+                    isAssessed && backlogsCount > 0 ? 'text-rose-600' : 'text-slate-900'
                   }`}
                 >
-                  {isProfileEmpty ? '—' : backlogsCount}
+                  {!isAssessed ? '—' : backlogsCount}
                 </span>
               </div>
               <span
                 className={`text-[11px] font-medium mt-1 block ${
-                  backlogsCount > 0 ? 'text-rose-600 font-semibold' : 'text-emerald-600'
+                  !isAssessed
+                    ? 'text-slate-400'
+                    : backlogsCount > 0
+                    ? 'text-rose-600 font-semibold'
+                    : 'text-emerald-600'
                 }`}
               >
-                {isProfileEmpty
-                  ? 'No data entered'
+                {!isAssessed
+                  ? 'No assessment submitted'
                   : backlogsCount === 0
                   ? '0 Active Backlogs (Clean)'
                   : `${backlogsCount} require clearance`}
@@ -196,11 +206,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="text-xs font-semibold text-slate-500 block mb-1">Technical Skills</span>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-slate-900">
-                  {profile.skills?.length || 0}
+                  {isAssessed ? profile.skills?.length || 0 : '—'}
                 </span>
               </div>
               <span className="text-[11px] text-slate-500 mt-1 block">
-                {profile.skills?.filter((s) => s.level === 'Advanced').length || 0} Advanced level
+                {isAssessed
+                  ? `${profile.skills?.filter((s) => s.level === 'Advanced').length || 0} Advanced level`
+                  : 'Pending assessment'}
               </span>
             </div>
 
@@ -208,11 +220,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="text-xs font-semibold text-slate-500 block mb-1">Live Projects</span>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-slate-900">
-                  {profile.projects?.length || 0}
+                  {isAssessed ? profile.projects?.length || 0 : '—'}
                 </span>
               </div>
               <span className="text-[11px] text-slate-500 mt-1 block">
-                {profile.projects?.filter((p) => p.githubUrl).length || 0} with GitHub
+                {isAssessed
+                  ? `${profile.projects?.filter((p) => p.githubUrl).length || 0} with GitHub`
+                  : 'Pending assessment'}
               </span>
             </div>
           </div>
@@ -239,13 +253,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </button>
             </div>
 
-            {isProfileEmpty ? (
+            {!isAssessed ? (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
                 <Info className="w-6 h-6 text-slate-400 mx-auto mb-2" />
                 <p className="text-sm font-semibold text-slate-700">No Academic Criteria to Evaluate</p>
                 <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Once you add your B.Tech CGPA, branch, and backlogs in the Student Profile tab,
-                  we automatically compute your eligibility across Google, Microsoft, Amazon, TCS, Infosys, and more.
+                  Once you submit your student assessment, we automatically compute your eligibility across Google, Microsoft, Amazon, TCS, Infosys, and more.
                 </p>
               </div>
             ) : (
@@ -297,7 +310,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span>Placement Obstacles & Critical Gaps</span>
           </h3>
 
-          {report.criticalGaps.length === 0 ? (
+          {!isAssessed ? (
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+              Submit your student assessment to identify personalized placement obstacles and skill gaps.
+            </div>
+          ) : report.criticalGaps.length === 0 ? (
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
               No critical placement obstacles identified! Your profile demonstrates solid academic and technical readiness.
             </div>
@@ -316,7 +333,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
 
           {/* Immediate Action Steps */}
-          {report.immediateSteps.length > 0 && (
+          {isAssessed && report.immediateSteps.length > 0 && (
             <div className="mt-5 pt-5 border-t border-slate-100">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2.5">
                 Recommended Immediate Next Steps
@@ -341,7 +358,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>Competitive Advantages</span>
             </h3>
 
-            {report.strengths.length === 0 ? (
+            {!isAssessed ? (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+                Submit your student assessment to unlock your personalized competitive advantages and peer benchmark.
+              </div>
+            ) : report.strengths.length === 0 ? (
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
                 Complete your profile data or load sample data to see competitive strengths against peer applicants.
               </div>
@@ -361,7 +382,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Quick Action Navigation Buttons */}
-          <div className="grid grid-cols-2 gap-3 mt-6 pt-6 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-100">
+            <button
+              onClick={() => onNavigate('jobs')}
+              className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/70 hover:bg-indigo-100/60 border border-indigo-200 text-left transition-colors cursor-pointer"
+            >
+              <div>
+                <span className="text-xs font-bold text-indigo-950 block">Live Job Discovery</span>
+                <span className="text-[11px] text-indigo-600">Real verified tech jobs</span>
+              </div>
+              <Briefcase className="w-4 h-4 text-indigo-600" />
+            </button>
+
             <button
               onClick={() => onNavigate('skillgap')}
               className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors cursor-pointer"

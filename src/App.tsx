@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { StudentProfile } from './types';
+import { StudentProfile, AuthUser, AccountRecord } from './types';
 import {
   EMPTY_STUDENT_PROFILE,
   DEMO_STUDENT_PROFILE,
@@ -10,21 +10,61 @@ import {
   evaluateCompanyEligibility,
   isProfileEmpty,
 } from './utils/readinessCalculator';
+import {
+  getActiveSession,
+  setActiveSession,
+  saveAccountToRegistry,
+  getAccountByEmail,
+  logoutUser,
+} from './utils/authService';
 import { Navbar, NavTab } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { ProfileView } from './components/ProfileView';
 import { EligibilityView } from './components/EligibilityView';
 import { SkillGapView } from './components/SkillGapView';
+import { JobsView } from './components/JobsView';
 import { AiCounselorView } from './components/AiCounselorView';
 import { ResumeBuilderView } from './components/ResumeBuilderView';
 import { PrepHubView } from './components/PrepHubView';
+import { AuthModal } from './components/AuthModal';
+import { AboutPlatformInfo } from './components/AboutPlatformInfo';
+import { Footer } from './components/Footer';
 
 const STORAGE_KEY = 'careerai_student_profile_v1';
+const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
 
 export function App() {
+  // Authentication & Session State
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getActiveSession());
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+
+  // Assessment Submitted Flag
+  const [assessmentSubmitted, setAssessmentSubmitted] = useState<boolean>(() => {
+    try {
+      const active = getActiveSession();
+      if (active) {
+        const record = getAccountByEmail(active.email);
+        if (record?.assessmentSubmitted) return true;
+      }
+      return localStorage.getItem(ASSESSMENT_SUBMITTED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   // CRITICAL: Initialize strictly with EMPTY_STUDENT_PROFILE for new users
   const [profile, setProfile] = useState<StudentProfile>(() => {
     try {
+      // Check if logged in user has an isolated account profile
+      const active = getActiveSession();
+      if (active) {
+        const record = getAccountByEmail(active.email);
+        if (record && record.profile && !isProfileEmpty(record.profile)) {
+          return record.profile;
+        }
+      }
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -41,14 +81,22 @@ export function App() {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [initialCounselorPrompt, setInitialCounselorPrompt] = useState<string>('');
 
-  // Persist profile changes to localStorage
+  // Persist profile changes to localStorage and user account registry
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      if (currentUser) {
+        saveAccountToRegistry({
+          user: currentUser,
+          profile,
+          assessmentSubmitted,
+          updatedAt: new Date().toISOString(),
+        });
+      }
     } catch (e) {
-      console.warn('Failed to persist profile to localStorage:', e);
+      console.warn('Failed to persist profile to storage:', e);
     }
-  }, [profile]);
+  }, [profile, currentUser, assessmentSubmitted]);
 
   // Derived state: check if profile is empty
   const emptyProfileState = useMemo(() => isProfileEmpty(profile), [profile]);
@@ -73,15 +121,97 @@ export function App() {
   // Handler to load demo profile (Preview mode)
   const handleLoadDemo = () => {
     setProfile(DEMO_STUDENT_PROFILE);
+    setAssessmentSubmitted(true);
+    try {
+      localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
+    } catch (e) {
+      console.warn(e);
+    }
   };
 
   // Handler to clear profile to completely empty
   const handleClearProfile = () => {
     setProfile(EMPTY_STUDENT_PROFILE);
+    setAssessmentSubmitted(false);
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(ASSESSMENT_SUBMITTED_KEY);
+      if (currentUser) {
+        saveAccountToRegistry({
+          user: currentUser,
+          profile: EMPTY_STUDENT_PROFILE,
+          assessmentSubmitted: false,
+          updatedAt: new Date().toISOString(),
+        });
+      }
     } catch (e) {
-      console.warn('Failed to clear localStorage:', e);
+      console.warn('Failed to clear storage:', e);
+    }
+  };
+
+  // Submit assessment callback
+  const handleSubmitAssessment = () => {
+    setAssessmentSubmitted(true);
+    try {
+      localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
+      if (currentUser) {
+        saveAccountToRegistry({
+          user: currentUser,
+          profile,
+          assessmentSubmitted: true,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
+  // Profile update handler
+  const handleUpdateProfile = (updated: StudentProfile) => {
+    setProfile(updated);
+    if (!isProfileEmpty(updated)) {
+      setAssessmentSubmitted(true);
+      try {
+        localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    setAssessmentSubmitted(false);
+    setProfile(EMPTY_STUDENT_PROFILE);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(ASSESSMENT_SUBMITTED_KEY);
+    } catch (e) {
+      console.warn(e);
+    }
+    setCurrentTab('dashboard');
+  };
+
+  // Auth success handler (Google Sign-In or Email Auth)
+  const handleAuthSuccess = (record: AccountRecord, isNewUser: boolean) => {
+    setCurrentUser(record.user);
+    setActiveSession(record.user);
+    setAssessmentSubmitted(record.assessmentSubmitted || false);
+
+    if (record.profile && !isProfileEmpty(record.profile)) {
+      setProfile(record.profile);
+    } else {
+      setProfile(EMPTY_STUDENT_PROFILE);
+    }
+
+    setAuthModalOpen(false);
+
+    // If new user or assessment not yet submitted, guide to profile assessment
+    if (isNewUser || !record.assessmentSubmitted) {
+      setCurrentTab('profile');
     }
   };
 
@@ -102,6 +232,13 @@ export function App() {
         onLoadDemo={handleLoadDemo}
         onClearProfile={handleClearProfile}
         eligibleCompanyCount={eligibleCompanyCount}
+        currentUser={currentUser}
+        assessmentSubmitted={assessmentSubmitted}
+        onOpenAuth={(mode) => {
+          setAuthModalMode(mode);
+          setAuthModalOpen(true);
+        }}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -114,15 +251,24 @@ export function App() {
             eligibilityResults={eligibilityResults}
             onNavigate={setCurrentTab}
             onLoadDemo={handleLoadDemo}
+            currentUser={currentUser}
+            assessmentSubmitted={assessmentSubmitted}
           />
         )}
 
         {currentTab === 'profile' && (
           <ProfileView
             profile={profile}
-            onUpdateProfile={setProfile}
+            onUpdateProfile={handleUpdateProfile}
             onLoadDemo={handleLoadDemo}
             onClearProfile={handleClearProfile}
+            currentUser={currentUser}
+            assessmentSubmitted={assessmentSubmitted}
+            onSubmitAssessment={handleSubmitAssessment}
+            onOpenAuth={(mode) => {
+              setAuthModalMode(mode);
+              setAuthModalOpen(true);
+            }}
           />
         )}
 
@@ -143,6 +289,16 @@ export function App() {
             onNavigate={setCurrentTab}
             onLoadDemo={handleLoadDemo}
             onAskCounselorWithPrompt={handleAskCounselor}
+          />
+        )}
+
+        {currentTab === 'jobs' && (
+          <JobsView
+            profile={profile}
+            currentUser={currentUser}
+            assessmentSubmitted={assessmentSubmitted}
+            onNavigate={setCurrentTab}
+            onLoadDemoProfile={handleLoadDemo}
           />
         )}
 
@@ -169,22 +325,19 @@ export function App() {
         {currentTab === 'prep' && <PrepHubView />}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6 mt-12 print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-900">CareerAI</span>
-            <span>—</span>
-            <span>B.Tech Campus Placement & Eligibility Intelligence</span>
-          </div>
+      {/* Crawlable Platform Overview for Users & Search Engines */}
+      <AboutPlatformInfo />
 
-          <div className="flex items-center gap-6">
-            <span>Client Data Privacy: Local Storage Only</span>
-            <span>•</span>
-            <span>AI Powered by Gemini</span>
-          </div>
-        </div>
-      </footer>
+      {/* Professional Startup Footer */}
+      <Footer />
+
+      {/* Unified Google & Email Authentication Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        initialMode={authModalMode}
+        onClose={() => setAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </div>
   );
 }
