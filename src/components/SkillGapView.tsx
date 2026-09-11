@@ -10,6 +10,7 @@ import {
   Layers,
   Code2,
   Bot,
+  Award,
 } from 'lucide-react';
 import { StudentProfile } from '../types';
 import { TARGET_ROLE_DEFINITIONS, STANDARD_PLACEMENT_ROADMAP } from '../data/mockDatabase';
@@ -194,6 +195,21 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
                     + {sk}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {gapAnalysis.missingRequiredSkills.length > 0 && (
+              <div className="mt-3 pt-2.5 border-t border-rose-200/80 flex items-center justify-between">
+                <span className="text-[11px] text-rose-800 font-medium">
+                  Bridge these gaps with industry-recognized courses
+                </span>
+                <button
+                  onClick={() => onNavigate('courses')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  <span>View Recommended Courses</span>
+                </button>
               </div>
             )}
           </div>

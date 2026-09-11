@@ -22,6 +22,7 @@ import { DashboardView } from './components/DashboardView';
 import { ProfileView } from './components/ProfileView';
 import { EligibilityView } from './components/EligibilityView';
 import { SkillGapView } from './components/SkillGapView';
+import { CoursesView } from './components/CoursesView';
 import { JobsView } from './components/JobsView';
 import { AiCounselorView } from './components/AiCounselorView';
 import { ResumeBuilderView } from './components/ResumeBuilderView';
@@ -29,9 +30,12 @@ import { PrepHubView } from './components/PrepHubView';
 import { AuthModal } from './components/AuthModal';
 import { AboutPlatformInfo } from './components/AboutPlatformInfo';
 import { Footer } from './components/Footer';
+import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
+import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
 
 const STORAGE_KEY = 'careerai_student_profile_v1';
 const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
+const STARTUP_SESSION_KEY = 'careerai_startup_shown_v1';
 
 export function App() {
   // Authentication & Session State
@@ -81,6 +85,36 @@ export function App() {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [initialCounselorPrompt, setInitialCounselorPrompt] = useState<string>('');
 
+  // Startup Animation State (displays fullscreen on initial website open, once per session)
+  const [showStartupIntro, setShowStartupIntro] = useState<boolean>(() => {
+    try {
+      return !sessionStorage.getItem(STARTUP_SESSION_KEY);
+    } catch {
+      return false;
+    }
+  });
+
+  // Global Loading Screen State (for authentication, demo profile, assessment calculation)
+  const [globalLoading, setGlobalLoading] = useState<{
+    active: boolean;
+    title?: string;
+    subtitle?: string;
+    solidBg?: boolean;
+  }>({ active: false });
+
+  const handleStartupComplete = () => {
+    setShowStartupIntro(false);
+    try {
+      sessionStorage.setItem(STARTUP_SESSION_KEY, 'true');
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
+  const handleReplayIntro = () => {
+    setShowStartupIntro(true);
+  };
+
   // Persist profile changes to localStorage and user account registry
   useEffect(() => {
     try {
@@ -120,13 +154,22 @@ export function App() {
 
   // Handler to load demo profile (Preview mode)
   const handleLoadDemo = () => {
-    setProfile(DEMO_STUDENT_PROFILE);
-    setAssessmentSubmitted(true);
-    try {
-      localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
-    } catch (e) {
-      console.warn(e);
-    }
+    setGlobalLoading({
+      active: true,
+      title: 'Loading Demo Student Profile...',
+      subtitle: 'Evaluating 30+ company cutoffs, readiness metrics, and roadmap',
+    });
+
+    setTimeout(() => {
+      setProfile(DEMO_STUDENT_PROFILE);
+      setAssessmentSubmitted(true);
+      try {
+        localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
+      } catch (e) {
+        console.warn(e);
+      }
+      setGlobalLoading({ active: false });
+    }, 600);
   };
 
   // Handler to clear profile to completely empty
@@ -151,20 +194,30 @@ export function App() {
 
   // Submit assessment callback
   const handleSubmitAssessment = () => {
-    setAssessmentSubmitted(true);
-    try {
-      localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
-      if (currentUser) {
-        saveAccountToRegistry({
-          user: currentUser,
-          profile,
-          assessmentSubmitted: true,
-          updatedAt: new Date().toISOString(),
-        });
+    setGlobalLoading({
+      active: true,
+      title: 'Analyzing Placement Readiness...',
+      subtitle: 'Screening B.Tech criteria against 30+ recruiters & computing skill gaps',
+    });
+
+    setTimeout(() => {
+      setAssessmentSubmitted(true);
+      try {
+        localStorage.setItem(ASSESSMENT_SUBMITTED_KEY, 'true');
+        if (currentUser) {
+          saveAccountToRegistry({
+            user: currentUser,
+            profile,
+            assessmentSubmitted: true,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      } catch (e) {
+        console.warn(e);
       }
-    } catch (e) {
-      console.warn(e);
-    }
+      setGlobalLoading({ active: false });
+      setCurrentTab('dashboard');
+    }, 700);
   };
 
   // Profile update handler
@@ -182,37 +235,57 @@ export function App() {
 
   // Logout handler
   const handleLogout = () => {
-    logoutUser();
-    setCurrentUser(null);
-    setAssessmentSubmitted(false);
-    setProfile(EMPTY_STUDENT_PROFILE);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(ASSESSMENT_SUBMITTED_KEY);
-    } catch (e) {
-      console.warn(e);
-    }
-    setCurrentTab('dashboard');
+    setGlobalLoading({
+      active: true,
+      title: 'Signing Out...',
+      subtitle: 'Safely terminating session and protecting student profile data',
+    });
+
+    setTimeout(() => {
+      logoutUser();
+      setCurrentUser(null);
+      setAssessmentSubmitted(false);
+      setProfile(EMPTY_STUDENT_PROFILE);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(ASSESSMENT_SUBMITTED_KEY);
+      } catch (e) {
+        console.warn(e);
+      }
+      setCurrentTab('dashboard');
+      setGlobalLoading({ active: false });
+    }, 500);
   };
 
   // Auth success handler (Google Sign-In or Email Auth)
   const handleAuthSuccess = (record: AccountRecord, isNewUser: boolean) => {
-    setCurrentUser(record.user);
-    setActiveSession(record.user);
-    setAssessmentSubmitted(record.assessmentSubmitted || false);
+    setGlobalLoading({
+      active: true,
+      title: isNewUser ? 'Creating Your CareerAI Account...' : 'Welcome Back to CareerAI!',
+      subtitle: 'Synchronizing isolated student credentials & intelligence dashboard',
+    });
 
-    if (record.profile && !isProfileEmpty(record.profile)) {
-      setProfile(record.profile);
-    } else {
-      setProfile(EMPTY_STUDENT_PROFILE);
-    }
+    setTimeout(() => {
+      setCurrentUser(record.user);
+      setActiveSession(record.user);
+      setAssessmentSubmitted(record.assessmentSubmitted || false);
 
-    setAuthModalOpen(false);
+      if (record.profile && !isProfileEmpty(record.profile)) {
+        setProfile(record.profile);
+      } else {
+        setProfile(EMPTY_STUDENT_PROFILE);
+      }
 
-    // If new user or assessment not yet submitted, guide to profile assessment
-    if (isNewUser || !record.assessmentSubmitted) {
-      setCurrentTab('profile');
-    }
+      setAuthModalOpen(false);
+
+      // If new user or assessment not yet submitted, guide to profile assessment
+      if (isNewUser || !record.assessmentSubmitted) {
+        setCurrentTab('profile');
+      } else {
+        setCurrentTab('dashboard');
+      }
+      setGlobalLoading({ active: false });
+    }, 750);
   };
 
   // Ask counselor with specific prompt from skill gap
@@ -239,6 +312,7 @@ export function App() {
           setAuthModalOpen(true);
         }}
         onLogout={handleLogout}
+        onReplayIntro={handleReplayIntro}
       />
 
       {/* Main Content Area */}
@@ -292,6 +366,15 @@ export function App() {
           />
         )}
 
+        {currentTab === 'courses' && (
+          <CoursesView
+            profile={profile}
+            isProfileEmpty={emptyProfileState}
+            onNavigateToTab={setCurrentTab}
+            onLoadDemoProfile={handleLoadDemo}
+          />
+        )}
+
         {currentTab === 'jobs' && (
           <JobsView
             profile={profile}
@@ -329,7 +412,7 @@ export function App() {
       <AboutPlatformInfo />
 
       {/* Professional Startup Footer */}
-      <Footer />
+      <Footer onReplayIntro={handleReplayIntro} />
 
       {/* Unified Google & Email Authentication Modal */}
       <AuthModal
@@ -337,6 +420,20 @@ export function App() {
         initialMode={authModalMode}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
+      />
+
+      {/* Startup Screen Animation (Fullscreen on initial website load/session) */}
+      {showStartupIntro && (
+        <CareerAiStartupIntro onComplete={handleStartupComplete} />
+      )}
+
+      {/* Global Branded Loading Screen */}
+      <CareerAiLoadingScreen
+        show={globalLoading.active}
+        title={globalLoading.title}
+        subtitle={globalLoading.subtitle}
+        solidBg={globalLoading.solidBg}
+        onDismiss={() => setGlobalLoading({ active: false })}
       />
     </div>
   );

@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   AlertCircle,
   ChevronDown,
+  Award,
 } from 'lucide-react';
 import { PlacementReadinessReport, AuthUser } from '../types';
 import { GoogleIcon } from './GoogleIcon';
@@ -29,6 +30,7 @@ export type NavTab =
   | 'profile'
   | 'eligibility'
   | 'skillgap'
+  | 'courses'
   | 'jobs'
   | 'counselor'
   | 'resume'
@@ -46,6 +48,7 @@ interface NavbarProps {
   assessmentSubmitted: boolean;
   onOpenAuth: (mode: 'signin' | 'signup') => void;
   onLogout: () => void;
+  onReplayIntro?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -60,6 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   assessmentSubmitted,
   onOpenAuth,
   onLogout,
+  onReplayIntro,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -87,6 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       badge: !isProfileEmpty && eligibleCompanyCount > 0 ? `${eligibleCompanyCount} Fit` : undefined,
     },
     { id: 'skillgap' as NavTab, label: 'Skill Gap & Roadmap', icon: GitBranch },
+    { id: 'courses' as NavTab, label: 'Courses & Certs', icon: Award },
     { id: 'jobs' as NavTab, label: 'Live Jobs', icon: Briefcase },
     { id: 'counselor' as NavTab, label: 'AI Counselor', icon: Bot },
     { id: 'resume' as NavTab, label: 'Resume & ATS', icon: FileText },
@@ -109,12 +114,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'Empty Profile':
         return 'bg-slate-100 text-slate-600 border-slate-200';
       default:
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-slate-100 text-slate-600 border-slate-200';
     }
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 text-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Platform Name */}
@@ -123,21 +128,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => handleTabClick('dashboard')}
               className="flex items-center gap-2.5 text-left group cursor-pointer focus:outline-hidden"
             >
-              <img
-                src="/careerai-logo.png"
-                alt="CareerAI official logo"
-                className="w-10 h-10 object-contain rounded-full border border-amber-200/80 shadow-xs group-hover:scale-105 transition-transform shrink-0"
-                referrerPolicy="no-referrer"
-              />
+              <div className="relative">
+                <img
+                  src="/careerai-logo.png"
+                  alt="CareerAI compass logo"
+                  className="w-10 h-10 object-contain rounded-full border border-slate-200 shadow-xs group-hover:scale-105 transition-transform shrink-0 relative z-10 bg-white"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xl font-black tracking-tight text-slate-900">CareerAI</span>
+                  <span className="text-xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+                    CareerAI
+                  </span>
                   <span className="px-1.5 py-0.2 rounded-sm text-[10px] font-bold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
                     B.Tech
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium leading-none mt-0.5">
-                  Engineering Placement Engine
+                  Placement Intelligence Engine
                 </p>
               </div>
             </button>
@@ -155,14 +164,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => handleTabClick(item.id)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold tracking-tight transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700 font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200/60 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {item.badge}
                     </span>
                   )}
@@ -175,14 +184,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="hidden sm:flex items-center gap-2.5">
             {/* Readiness Gauge Badge */}
             <div
-              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-2 ${getScoreBadgeColor(
+              className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-2 ${getScoreBadgeColor(
                 report.grade
               )}`}
               title="Placement Readiness Assessment"
             >
-              <span className="w-2 h-2 rounded-full bg-current"></span>
+              <span className="w-2 h-2 rounded-full bg-current animate-pulse"></span>
               <span>
-                {isProfileEmpty ? 'Empty Profile' : `Readiness: ${report.overallScore}/100`}
+                {isProfileEmpty ? 'Profile Pending' : `Readiness: ${report.overallScore}%`}
               </span>
             </div>
 
@@ -192,7 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   id="navbar-user-menu-btn"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition-all cursor-pointer shadow-xs"
                   aria-expanded={userDropdownOpen}
                   aria-haspopup="true"
                 >
@@ -200,11 +209,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <img
                       src={currentUser.photoUrl}
                       alt={currentUser.name}
-                      className="w-5 h-5 rounded-full object-cover border border-slate-300"
+                      className="w-5 h-5 rounded-full object-cover border border-slate-200"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-[10px]">
+                    <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold flex items-center justify-center text-[10px]">
                       {currentUser.name.charAt(0).toUpperCase() || 'S'}
                     </div>
                   )}
@@ -217,7 +226,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* User Dropdown Menu */}
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50">
                     <div className="px-4 py-2.5 border-b border-slate-100">
                       <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
                       <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
@@ -239,7 +248,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                             <span>Assessed</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                             <AlertCircle className="w-3 h-3 text-amber-600" />
                             <span>Pending</span>
                           </span>
@@ -255,9 +264,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                       >
-                        <User className="w-3.5 h-3.5 text-slate-400" />
+                        <User className="w-3.5 h-3.5 text-indigo-600" />
                         <span>My Profile &amp; Assessment</span>
                       </button>
+
+                      {onReplayIntro && (
+                        <button
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            onReplayIntro();
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>Watch Brand Animation</span>
+                        </button>
+                      )}
                     </div>
 
                     <div className="pt-1 border-t border-slate-100">
@@ -269,7 +291,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
                       >
-                        <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                        <LogOut className="w-3.5 h-3.5 text-rose-600" />
                         <span>Sign Out</span>
                       </button>
                     </div>
@@ -281,14 +303,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   id="navbar-signin-btn"
                   onClick={() => onOpenAuth('signin')}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors cursor-pointer"
                 >
                   Sign In
                 </button>
                 <button
                   id="navbar-signup-btn"
                   onClick={() => onOpenAuth('signup')}
-                  className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Sign Up</span>
@@ -301,10 +323,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="navbar-load-demo-btn"
                 onClick={onLoadDemo}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-semibold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all cursor-pointer"
                 title="Load sample 3rd year CSE profile for testing"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Load Demo</span>
               </button>
             ) : (
@@ -336,7 +358,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-6 space-y-3">
+        <div className="lg:hidden border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 pt-2 pb-6 space-y-3">
           {/* User Status / Login Banner on Mobile */}
           {currentUser ? (
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
@@ -345,11 +367,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <img
                     src={currentUser.photoUrl}
                     alt={currentUser.name}
-                    className="w-8 h-8 rounded-full object-cover border border-slate-300 shrink-0"
+                    className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold flex items-center justify-center text-xs shrink-0">
                     {currentUser.name.charAt(0).toUpperCase() || 'S'}
                   </div>
                 )}
@@ -378,7 +400,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onOpenAuth('signin');
                   setMobileMenuOpen(false);
                 }}
-                className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg cursor-pointer text-center"
+                className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold rounded-lg cursor-pointer text-center"
               >
                 Sign In
               </button>
@@ -404,8 +426,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => handleTabClick(item.id)}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'text-slate-700 hover:bg-slate-50'
+                      ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200'
+                      : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -413,7 +435,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {item.badge}
                     </span>
                   )}
@@ -424,11 +446,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <div className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
             <div
-              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold ${getScoreBadgeColor(
+              className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${getScoreBadgeColor(
                 report.grade
               )}`}
             >
-              {isProfileEmpty ? 'Empty Profile' : `Readiness: ${report.overallScore}/100`}
+              {isProfileEmpty ? 'Profile Pending' : `Readiness: ${report.overallScore}%`}
             </div>
 
             {isProfileEmpty ? (
@@ -437,9 +459,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onLoadDemo();
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-300 text-xs font-semibold"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Load Demo</span>
               </button>
             ) : (
@@ -448,10 +470,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setShowClearConfirm(true);
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 text-xs font-medium"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Clear Profile</span>
+              </button>
+            )}
+
+            {onReplayIntro && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onReplayIntro();
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-medium cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Watch Intro</span>
               </button>
             )}
           </div>
@@ -460,10 +495,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Clear Confirmation Modal */}
       {showClearConfirm && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-slate-900">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center">
                 <RotateCcw className="w-5 h-5" />
               </div>
               <div>
@@ -479,7 +514,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -489,7 +524,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClearProfile();
                   setShowClearConfirm(false);
                 }}
-                className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors cursor-pointer shadow-xs"
               >
                 Yes, Clear Everything
               </button>

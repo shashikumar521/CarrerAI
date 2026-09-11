@@ -12,6 +12,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { GoogleIcon } from './GoogleIcon';
+import { CareerAiAnimation } from './CareerAiAnimation';
 import {
   signInWithEmail,
   signUpWithEmail,
@@ -307,7 +308,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Form Body */}
         <div className="p-6 pt-5">
-          {/* Error Banner */}
+          {/* Active Loading State with Official CareerAI Animation */}
+          {loading ? (
+            <div className="py-8 flex flex-col items-center justify-center text-center">
+              <CareerAiAnimation
+                size="md"
+                loop={true}
+                transparentBg={true}
+                label={mode === 'signup' ? 'Creating CareerAI Account...' : 'Authenticating Account...'}
+                sublabel="Connecting to secure session registry and loading student intelligence metrics"
+              />
+            </div>
+          ) : (
+            <>
+              {/* Error Banner */}
           {errorMessage && (
             <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2 animate-in fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
@@ -507,6 +521,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <GoogleIcon className="w-5 h-5 shrink-0" />
                 <span>Continue with Google</span>
               </button>
+            </>
+          )}
             </>
           )}
 

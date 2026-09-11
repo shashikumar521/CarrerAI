@@ -1,1 +1,146 @@
 @import "tailwindcss";
+
+/* -------------------------------------------------------------
+   Company Logo Subtle Watermark Keyframe Animations
+   - 4-6s slow ease-in-out breathing/floating (3-5px, scale 1.0 - 1.035)
+   - Real authentic brand colors preserved
+   - Smooth hover scaling and brand glow transitions
+   - Respects prefers-reduced-motion
+-------------------------------------------------------------- */
+
+@keyframes watermark-float-google {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 0px rgba(66, 133, 244, 0));
+  }
+  50% {
+    transform: translateY(-4px) scale(1.025);
+    filter: drop-shadow(0 0 5px rgba(66, 133, 244, 0.25));
+  }
+}
+
+@keyframes watermark-float-msft {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-3.5px) scale(1.03);
+  }
+}
+
+@keyframes watermark-float-amzn {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 0px rgba(255, 153, 0, 0));
+  }
+  50% {
+    transform: translateY(-3px) scale(1.02);
+    filter: drop-shadow(0 0 5px rgba(255, 153, 0, 0.28));
+  }
+}
+
+@keyframes watermark-float-cisco {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.025);
+  }
+}
+
+@keyframes watermark-float-oracle {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 0px rgba(199, 70, 52, 0));
+  }
+  50% {
+    transform: translateY(-3px) scale(1.02);
+    filter: drop-shadow(0 0 5px rgba(199, 70, 52, 0.22));
+  }
+}
+
+@keyframes watermark-float-gs {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-3.5px) scale(1.015);
+  }
+}
+
+@keyframes watermark-float-tcs {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 0px rgba(0, 118, 206, 0));
+  }
+  50% {
+    transform: translateY(-3px) scale(1.025);
+    filter: drop-shadow(0 0 5px rgba(0, 118, 206, 0.25));
+  }
+}
+
+@keyframes watermark-float-infy {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 0px rgba(0, 124, 195, 0));
+  }
+  50% {
+    transform: translateY(-3.5px) scale(1.02);
+    filter: drop-shadow(0 0 5px rgba(0, 124, 195, 0.25));
+  }
+}
+
+.animate-watermark-google {
+  animation: watermark-float-google 4.8s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+.animate-watermark-msft {
+  animation: watermark-float-msft 5.2s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-watermark-amzn {
+  animation: watermark-float-amzn 4.5s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+.animate-watermark-cisco {
+  animation: watermark-float-cisco 5.0s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-watermark-oracle {
+  animation: watermark-float-oracle 5.4s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+.animate-watermark-gs {
+  animation: watermark-float-gs 6.0s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-watermark-tcs {
+  animation: watermark-float-tcs 4.6s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+.animate-watermark-infy {
+  animation: watermark-float-infy 4.9s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-watermark-google,
+  .animate-watermark-msft,
+  .animate-watermark-amzn,
+  .animate-watermark-cisco,
+  .animate-watermark-oracle,
+  .animate-watermark-gs,
+  .animate-watermark-tcs,
+  .animate-watermark-infy {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+

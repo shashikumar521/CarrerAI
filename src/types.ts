@@ -195,3 +195,83 @@ export interface JobMatchEvaluation {
   branchMatch: boolean;
   levelBonus: number;
 }
+
+export type CourseProvider =
+  | 'Cisco Networking Academy'
+  | 'Oracle University'
+  | 'AWS Skill Builder'
+  | 'Microsoft Learn'
+  | 'Google Cloud'
+  | 'IBM SkillsBuild'
+  | 'NVIDIA';
+
+export type CourseDifficulty = 'Beginner' | 'Intermediate' | 'Advanced';
+
+export type CourseCategory =
+  | 'Cloud Computing'
+  | 'Artificial Intelligence & ML'
+  | 'Cybersecurity'
+  | 'Data Science & Analytics'
+  | 'Software Engineering & DevOps'
+  | 'Databases & Infrastructure'
+  | 'Networking & Systems';
+
+export type LearningPathStage =
+  | 'START HERE'
+  | 'FOUNDATION'
+  | 'INTERMEDIATE'
+  | 'ADVANCED'
+  | 'CERTIFICATION'
+  | 'REAL-WORLD PROJECT'
+  | 'JOB READY';
+
+export interface CourseRecommendation {
+  id: string;
+  title: string;
+  provider: CourseProvider;
+  providerBadge: string;
+  category: CourseCategory;
+  difficulty: CourseDifficulty;
+  duration: string;
+  costType: 'Free' | 'Paid' | 'Free with Paid Cert';
+  certificationAvailable: boolean;
+  certificationName?: string;
+  credentialType?: string;
+  skillsGained: string[];
+  realWorldApplication: string;
+  whyRecommended: string;
+  officialUrl: string;
+  handsOn: boolean;
+  targetRoles: string[];
+  levelOrder: LearningPathStage;
+  marketDemand: 'Very High' | 'High' | 'Extremely High';
+  curriculumHighlights: string[];
+  featuredProjectIdea?: string;
+}
+
+export interface RealWorldProject {
+  id: string;
+  title: string;
+  domain: string;
+  targetRole: string;
+  difficulty: CourseDifficulty;
+  description: string;
+  keySkillsPracticed: string[];
+  techStack: string[];
+  practicalSteps: string[];
+  realWorldApplication: string;
+  recruiterImpact: string;
+  officialReferenceUrl?: string;
+}
+
+export interface UserLearningPathItem {
+  courseId: string;
+  status: 'not-started' | 'in-progress' | 'completed';
+  savedAt: string;
+  completedAt?: string;
+  targetCompletionDate?: string;
+  certificateCredentialId?: string;
+  notes?: string;
+  orderIndex: number;
+}
+

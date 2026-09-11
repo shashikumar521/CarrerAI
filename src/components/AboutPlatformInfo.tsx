@@ -18,18 +18,20 @@ export const AboutPlatformInfo: React.FC = () => {
     <section
       id="about-careerai"
       aria-label="About CareerAI and CarrerAI Platform"
-      className="border-t border-slate-200 bg-white/70 py-10 mt-14 print:hidden transition-all"
+      className="border-t border-slate-200 bg-white/70 py-10 mt-14 print:hidden transition-all text-slate-700"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header summary */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
           <div className="flex items-start gap-3.5">
-            <img
-              src="/careerai-logo.png"
-              alt="CareerAI official logo"
-              className="w-12 h-12 md:w-14 md:h-14 object-contain rounded-full border border-amber-200 shadow-xs shrink-0 mt-0.5"
-              referrerPolicy="no-referrer"
-            />
+            <div className="relative shrink-0">
+              <img
+                src="/careerai-logo.png"
+                alt="CareerAI official logo"
+                className="w-12 h-12 md:w-14 md:h-14 object-contain rounded-full border border-slate-200 shadow-xs shrink-0 mt-0.5 bg-white"
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">

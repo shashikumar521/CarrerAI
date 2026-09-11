@@ -30,6 +30,12 @@ import {
   DEMO_TESTING_OPPORTUNITIES,
 } from '../utils/jobsClient';
 import { NavTab } from './Navbar';
+import { CareerAiAnimation } from './CareerAiAnimation';
+import {
+  getCoursesForMissingSkills,
+  LEARNING_PATH_STORAGE_KEY,
+  calculateLearningProgressMetrics,
+} from '../data/coursesDatabase';
 
 interface JobsViewProps {
   profile: StudentProfile;
@@ -578,30 +584,16 @@ export const JobsView: React.FC<JobsViewProps> = ({
         )}
       </div>
 
-      {/* Loading Skeleton State */}
+      {/* CareerAI Official Loading Animation State */}
       {loading && (
-        <div className="space-y-4">
-          {[1, 2, 3, 4].map((n) => (
-            <div
-              key={n}
-              className="bg-white border border-slate-200 rounded-2xl p-6 animate-pulse space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="space-y-2 w-2/3">
-                  <div className="h-5 bg-slate-200 rounded w-3/4" />
-                  <div className="h-4 bg-slate-100 rounded w-1/2" />
-                </div>
-                <div className="h-8 bg-slate-200 rounded-full w-24" />
-              </div>
-              <div className="h-3 bg-slate-100 rounded w-full" />
-              <div className="h-3 bg-slate-100 rounded w-4/5" />
-              <div className="flex gap-2">
-                <div className="h-6 bg-slate-200 rounded w-16" />
-                <div className="h-6 bg-slate-200 rounded w-20" />
-                <div className="h-6 bg-slate-200 rounded w-24" />
-              </div>
-            </div>
-          ))}
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 shadow-xs flex flex-col items-center justify-center text-center">
+          <CareerAiAnimation
+            size="lg"
+            loop={true}
+            transparentBg={true}
+            label={searchTerm ? `Searching jobs matching "${searchTerm}"...` : "Retrieving Real Engineering Opportunities..."}
+            sublabel="Querying live recruiter APIs, Adzuna feeds & evaluating skill match against your B.Tech profile"
+          />
         </div>
       )}
 
@@ -858,16 +850,16 @@ export const JobsView: React.FC<JobsViewProps> = ({
                         </div>
                       )}
 
-                      {/* Skills to improve */}
+                      {/* Skills to improve & Gap-closing Courses */}
                       {match.missingSkills.length > 0 && (
-                        <div className="pt-1.5 space-y-1">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                            Skills to improve:
+                        <div className="pt-1.5 space-y-1.5">
+                          <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                            Skills you need ({match.missingSkills.length}):
                           </span>
                           <div className="text-[11px] text-slate-600 space-y-0.5">
                             {match.missingSkills.slice(0, 3).map((ms) => (
-                              <div key={ms} className="flex items-center gap-1">
-                                <span className="text-slate-400">•</span>
+                              <div key={ms} className="flex items-center gap-1 text-amber-900">
+                                <span className="text-amber-500 font-bold">✗</span>
                                 <span className="truncate">{ms}</span>
                               </div>
                             ))}
@@ -877,6 +869,18 @@ export const JobsView: React.FC<JobsViewProps> = ({
                               </span>
                             )}
                           </div>
+
+                          {/* Quick Gap Closer Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedJobForModal(job);
+                            }}
+                            className="w-full mt-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[10px] font-bold transition-colors text-left flex items-center justify-between cursor-pointer"
+                          >
+                            <span>Close gap with verified courses</span>
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
                         </div>
                       )}
                     </div>
@@ -896,15 +900,13 @@ export const JobsView: React.FC<JobsViewProps> = ({
                       </a>
 
                       {/* Details modal trigger */}
-                      {job.fullDescription && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedJobForModal(job)}
-                          className="w-full text-center text-xs font-semibold text-slate-600 hover:text-slate-900 py-1 transition-colors cursor-pointer"
-                        >
-                          View Full Job Requirements
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedJobForModal(job)}
+                        className="w-full text-center text-xs font-semibold text-slate-600 hover:text-slate-900 py-1 transition-colors cursor-pointer"
+                      >
+                        View Full Match &amp; Recommended Courses
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -974,6 +976,121 @@ export const JobsView: React.FC<JobsViewProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Skills Breakdown & Recommended Courses to Close Missing Skills */}
+            {(() => {
+              const modalJobEvaluation = calculateJobMatch(profile, selectedJobForModal);
+              const missingJobCourses = getCoursesForMissingSkills(modalJobEvaluation.missingSkills);
+
+              return (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm font-black text-slate-900">CareerAI Match Evaluation</span>
+                    </div>
+                    <span className="text-sm font-black px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                      Match: {modalJobEvaluation.matchPercentage}%
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* You have: */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        You have ({modalJobEvaluation.matchingSkills.length}):
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {modalJobEvaluation.matchingSkills.length > 0 ? (
+                          modalJobEvaluation.matchingSkills.map((s) => (
+                            <span key={s} className="text-xs px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold">
+                              ✓ {s}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">No direct matching skills logged in profile.</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* You need: */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-amber-800 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        You need ({modalJobEvaluation.missingSkills.length}):
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {modalJobEvaluation.missingSkills.length > 0 ? (
+                          modalJobEvaluation.missingSkills.map((s) => (
+                            <span key={s} className="text-xs px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
+                              ✗ {s}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-emerald-600 font-semibold">✓ You meet all primary technical requirements!</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recommended courses to close the gap */}
+                  {missingJobCourses.length > 0 && (
+                    <div className="pt-3 border-t border-slate-200 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                          <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+                          Recommended courses to close the gap:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedJobForModal(null);
+                            onNavigate('courses' as NavTab);
+                          }}
+                          className="text-xs text-indigo-600 font-bold hover:underline cursor-pointer"
+                        >
+                          View all in Courses Hub →
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {missingJobCourses.map((c) => (
+                          <div key={c.id} className="bg-white border border-slate-200 rounded-lg p-3 space-y-1.5 shadow-2xs">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                {c.providerBadge}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                {c.duration}
+                              </span>
+                            </div>
+                            <h5 className="text-xs font-bold text-slate-900 line-clamp-1">
+                              {c.title}
+                            </h5>
+                            <p className="text-[11px] text-slate-500 line-clamp-1">
+                              Closes: {c.skillsGained.slice(0, 2).join(', ')}
+                            </p>
+                            <div className="pt-1 flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-emerald-600">{c.costType}</span>
+                              <a
+                                href={c.officialUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                              >
+                                <span>Start Course</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Description Body */}
             <div>

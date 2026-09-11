@@ -3,6 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { getLiveJobs } from './src/services/jobsApiServer';
+import { sendAdminLoginEmail } from './src/services/adminNotificationServer';
 
 dotenv.config();
 
@@ -10,6 +11,8 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+// Serve public assets (videos, images, icons, manifest)
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Initialize Google GenAI client lazily or with safety check
 let genAIClient: GoogleGenAI | null = null;
@@ -76,6 +79,49 @@ app.get('/api/jobs/status', (req, res) => {
     hasAdzunaConfigured: hasAdzuna,
     hasRapidApiConfigured: hasRapidApi,
     mode: 'live_data',
+  });
+});
+
+// Admin Login Notification Endpoint
+// Receives user authentication metadata and sends email to administrator
+// Strictly excludes sensitive data (no passwords, tokens, or hashes)
+app.post('/api/notify/login', async (req, res) => {
+  try {
+    const { name, email, loginMethod, eventType, timestamp } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ success: false, error: 'User email is required' });
+    }
+
+    const result = await sendAdminLoginEmail({
+      name: typeof name === 'string' ? name : 'Anonymous User',
+      email: email.trim().toLowerCase(),
+      loginMethod: loginMethod === 'Google' ? 'Google' : 'Email',
+      eventType: eventType === 'registration' ? 'registration' : 'login',
+      timestamp: typeof timestamp === 'string' ? timestamp : new Date().toISOString(),
+    });
+
+    return res.json(result);
+  } catch (error: any) {
+    console.error('Notification API route error:', error);
+    // Return 200 with error property so client authentication is never disrupted
+    return res.json({
+      success: false,
+      error: error?.message || 'Admin notification service error',
+    });
+  }
+});
+
+// Admin Notification Status (masked, for diagnostics without exposing credentials)
+app.get('/api/notify/status', (req, res) => {
+  const hasGmail = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+  const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || 'sudarsishashikumar521@gmail.com';
+
+  res.json({
+    emailServiceConfigured: hasGmail || hasSmtp,
+    provider: hasGmail ? 'Gmail SMTP' : hasSmtp ? 'Custom SMTP' : 'Console Simulator',
+    recipient: adminEmail.replace(/(.{3})(.*)(@.*)/, '$1***$3'),
   });
 });
 

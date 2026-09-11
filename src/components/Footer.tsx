@@ -1,9 +1,13 @@
 import React from 'react';
-import { GraduationCap, Phone, Mail, User } from 'lucide-react';
+import { GraduationCap, Phone, Mail, User, Sparkles } from 'lucide-react';
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onReplayIntro?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
   return (
-    <footer className="border-t border-slate-200 bg-slate-900 text-slate-400 print:hidden">
+    <footer className="border-t border-slate-800 bg-slate-900 text-slate-400 print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 pb-8 border-b border-slate-800">
           {/* Brand & Purpose */}
@@ -12,7 +16,7 @@ export const Footer: React.FC = () => {
               <img
                 src="/careerai-logo.png"
                 alt="CareerAI official logo"
-                className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-amber-200/60 shadow-xs shrink-0"
+                className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-slate-700 shadow-xs shrink-0"
                 referrerPolicy="no-referrer"
               />
               <span className="text-xl font-black tracking-tight text-white">
@@ -20,7 +24,7 @@ export const Footer: React.FC = () => {
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
               AI-powered career guidance, placement readiness and personalized career planning for B.Tech and engineering students.
             </p>
           </div>
@@ -76,10 +80,20 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
           <p>© 2026 CareerAI. All rights reserved.</p>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center gap-4 text-[11px]">
+            {onReplayIntro && (
+              <button
+                type="button"
+                onClick={onReplayIntro}
+                className="text-slate-400 hover:text-indigo-400 underline transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>Replay Startup Intro</span>
+              </button>
+            )}
             <span>Client Data Privacy: Local Storage Only</span>
             <span>•</span>
-            <span>AI Powered by Gemini</span>
+            <span>AI Placement Engine</span>
           </div>
         </div>
       </div>
