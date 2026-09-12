@@ -168,6 +168,86 @@ export function signUpWithEmail(
 }
 
 /**
+ * Decodes a Google ID token (JWT) payload without external dependencies.
+ */
+export function decodeGoogleCredential(credential: string): {
+  email: string;
+  name: string;
+  picture?: string;
+  sub: string;
+  given_name?: string;
+  family_name?: string;
+} | null {
+  try {
+    const parts = credential.split('.');
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const parsed = JSON.parse(jsonPayload);
+    if (!parsed || !parsed.email || !parsed.sub) return null;
+    return {
+      email: parsed.email,
+      name: parsed.name || parsed.given_name || 'Student',
+      picture: parsed.picture,
+      sub: parsed.sub,
+      given_name: parsed.given_name,
+      family_name: parsed.family_name,
+    };
+  } catch (err) {
+    console.error('Failed to decode Google JWT credential:', err);
+    return null;
+  }
+}
+
+/**
+ * Handle Google credential response directly from Google Identity Services.
+ */
+export function handleGoogleCredentialResponse(response: {
+  credential?: string;
+  select_by?: string;
+  clientId?: string;
+}): {
+  success: boolean;
+  record?: AccountRecord;
+  isNewUser?: boolean;
+  error?: string;
+} {
+  if (!response?.credential) {
+    return {
+      success: false,
+      error: 'Google Sign-In could not be completed. Please try again.',
+    };
+  }
+
+  const decoded = decodeGoogleCredential(response.credential);
+  if (!decoded || !decoded.email) {
+    return {
+      success: false,
+      error: 'Google Sign-In could not be completed. Please try again.',
+    };
+  }
+
+  const authResult = handleGoogleAuthPayload({
+    name: decoded.name,
+    email: decoded.email,
+    photoUrl: decoded.picture,
+    sub: decoded.sub,
+  });
+
+  return {
+    success: true,
+    record: authResult.record,
+    isNewUser: authResult.isNewUser,
+  };
+}
+
+/**
  * Sign In or Register with Google payload.
  * Google Sign-In only authenticates the student.
  * Does NOT generate fake marks, CGPA, branch, or skills.

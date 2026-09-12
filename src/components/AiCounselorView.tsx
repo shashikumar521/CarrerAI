@@ -57,11 +57,11 @@ export const AiCounselorView: React.FC<AiCounselorViewProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const quickPrompts = [
-    'How do I crack SDE-1 at Amazon with my current CGPA?',
-    'I have backlogs/low CGPA. How can I still get placed in high-growth companies?',
-    'What engineering project should I build to impress Tier-1 recruiters?',
-    'Generate a 30-day DSA and Core CS study schedule for placements.',
-    'Review my profile and identify my single biggest placement risk.',
+    'How do I improve my placement readiness?',
+    'What skills are missing for an SDE role?',
+    'Recommend courses for AWS certification',
+    'What companies can I apply to right now?',
+    'How do I prepare for a technical interview?',
   ];
 
   useEffect(() => {
@@ -211,6 +211,26 @@ export const AiCounselorView: React.FC<AiCounselorViewProps> = ({
               </div>
             );
           })}
+
+          {messages.length === 1 && (
+            <div className="pt-2 pl-11 space-y-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                Suggested Starter Inquiries:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {quickPrompts.map((prompt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSend(prompt)}
+                    className="p-3 text-left bg-white hover:bg-indigo-50/70 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all text-xs font-semibold text-slate-800 hover:text-indigo-900 shadow-2xs flex items-center justify-between group cursor-pointer"
+                  >
+                    <span>{prompt}</span>
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-600 shrink-0 ml-2" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {loading && (
             <div className="flex items-center gap-3">

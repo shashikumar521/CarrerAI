@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -225,7 +224,7 @@ dd,
 }
 
 /* Explicit 16px base paragraph styling */
-p:not(.text-sm):not(.text-xs):not(.text-lg):not(.text-xl):not(.text-[10px]):not(.text-[11px]):not(.text-[13px]):not([class*="text-xs"]):not([class*="text-sm"]) {
+p:not([class*="text-"]) {
   font-size: 16px;
   line-height: 1.55;
 }

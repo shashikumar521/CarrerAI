@@ -84,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems = [
     { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'profile' as NavTab, label: 'Student Profile', icon: User },
+    { id: 'profile' as NavTab, label: 'Profile', icon: User },
     {
       id: 'eligibility' as NavTab,
       label: 'Eligibility Checker',
@@ -92,8 +92,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       badge: !isProfileEmpty && eligibleCompanyCount > 0 ? `${eligibleCompanyCount} Fit` : undefined,
     },
     { id: 'skillgap' as NavTab, label: 'Skill Gap & Roadmap', icon: GitBranch },
-    { id: 'courses' as NavTab, label: 'Courses & Certs', icon: Award },
-    { id: 'jobs' as NavTab, label: 'Live Jobs', icon: Briefcase },
+    { id: 'courses' as NavTab, label: 'Courses & Certifications', icon: Award },
+    { id: 'jobs' as NavTab, label: 'Jobs & Internships', icon: Briefcase },
     { id: 'counselor' as NavTab, label: 'AI Counselor', icon: Bot },
     { id: 'resume' as NavTab, label: 'Resume & ATS', icon: FileText },
     { id: 'prep' as NavTab, label: 'Interview Prep', icon: BookOpen },

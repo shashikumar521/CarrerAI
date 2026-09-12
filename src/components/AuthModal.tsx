@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Mail,
@@ -6,9 +6,7 @@ import {
   User,
   AlertCircle,
   CheckCircle2,
-  ExternalLink,
   ShieldCheck,
-  Info,
   Loader2,
 } from 'lucide-react';
 import { GoogleIcon } from './GoogleIcon';
@@ -17,20 +15,16 @@ import {
   signInWithEmail,
   signUpWithEmail,
   handleGoogleAuthPayload,
+  handleGoogleCredentialResponse,
 } from '../utils/authService';
-import { AuthUser, AccountRecord } from '../types';
+import { sendAdminLoginNotification } from '../utils/notificationService';
+import { AccountRecord } from '../types';
 
 interface AuthModalProps {
   isOpen: boolean;
   initialMode?: 'signin' | 'signup';
   onClose: () => void;
   onAuthSuccess: (record: AccountRecord, isNewUser: boolean) => void;
-}
-
-declare global {
-  interface Window {
-    google?: any;
-  }
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -46,30 +40,240 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [fullName, setFullName] = useState('');
 
   const [loading, setLoading] = useState(false);
+  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showTryAgain, setShowTryAgain] = useState(false);
 
-  // Google OAuth setup state
-  const [showGoogleConfigGuide, setShowGoogleConfigGuide] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('sudarsi.shashikumar129145@marwadiuniversity.ac.in');
-  const [customGoogleName, setCustomGoogleName] = useState('Sudarsi Shashi Kumar');
-
-  // Check if real Google Client ID is configured in client environment
+  const googleBtnContainerRef = useRef<HTMLDivElement | null>(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
     setMode(initialMode);
     setErrorMessage(null);
     setSuccessMessage(null);
-    setShowGoogleConfigGuide(false);
+    setShowTryAgain(false);
+    setIsConnectingGoogle(false);
   }, [initialMode, isOpen]);
 
-  if (!isOpen) return null;
+  // Helper to ensure Google Identity Services SDK is loaded
+  const ensureGoogleGsiLoaded = (): Promise<boolean> => {
+    if (typeof window !== 'undefined' && (window.google?.accounts?.id || window.google?.accounts?.oauth2)) {
+      return Promise.resolve(true);
+    }
+    return new Promise((resolve) => {
+      const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (existingScript) {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (window.google?.accounts?.id || window.google?.accounts?.oauth2) {
+            clearInterval(interval);
+            resolve(true);
+          } else if (attempts >= 40) {
+            clearInterval(interval);
+            resolve(false);
+          }
+        }, 100);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (window.google?.accounts?.id || window.google?.accounts?.oauth2) {
+            clearInterval(interval);
+            resolve(true);
+          } else if (attempts >= 20) {
+            clearInterval(interval);
+            resolve(false);
+          }
+        }, 50);
+      };
+      script.onerror = () => resolve(false);
+      document.head.appendChild(script);
+    });
+  };
+
+  // Google credential response handler for GIS
+  const handleGoogleCredentialCallback = (response: any) => {
+    setIsConnectingGoogle(false);
+
+    if (!response || !response.credential) {
+      setErrorMessage('Google Sign-In could not be completed. Please try again.');
+      setShowTryAgain(true);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const authResult = handleGoogleCredentialResponse(response);
+
+      if (!authResult.success || !authResult.record) {
+        setLoading(false);
+        setErrorMessage(authResult.error || 'Google Sign-In could not be completed. Please try again.');
+        setShowTryAgain(true);
+        return;
+      }
+
+      sendAdminLoginNotification({
+        name: authResult.record.user.name || 'Google Student',
+        email: authResult.record.user.email,
+        loginMethod: 'Google',
+        eventType: authResult.isNewUser ? 'registration' : 'login',
+      });
+
+      setSuccessMessage(
+        authResult.isNewUser
+          ? 'Google account connected! Loading your workspace...'
+          : 'Signed in successfully! Redirecting to Dashboard...'
+      );
+
+      setTimeout(() => {
+        setLoading(false);
+        onAuthSuccess(authResult.record!, authResult.isNewUser || false);
+        onClose();
+      }, 500);
+    } catch (err) {
+      setLoading(false);
+      setErrorMessage('Google Sign-In could not be completed. Please try again.');
+      setShowTryAgain(true);
+    }
+  };
+
+  // Initialize Google Identity Services when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (!googleClientId || typeof googleClientId !== 'string' || !googleClientId.trim()) {
+      return;
+    }
+
+    ensureGoogleGsiLoaded().then((loaded) => {
+      if (loaded && window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId.trim(),
+            callback: handleGoogleCredentialCallback,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+
+          if (googleBtnContainerRef.current) {
+            window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
+              type: 'standard',
+              theme: 'outline',
+              size: 'large',
+              text: 'continue_with',
+              shape: 'rectangular',
+              width: 360,
+              logo_alignment: 'left',
+            });
+          }
+        } catch (err) {
+          console.warn('Google Identity Services notice:', err);
+        }
+      }
+    });
+  }, [isOpen, googleClientId]);
+
+  // Fallback OAuth2 popup flow if GIS prompt or button overlay cannot open
+  const launchOAuth2Fallback = (clientId: string) => {
+    if (!window.google?.accounts?.oauth2) {
+      setIsConnectingGoogle(false);
+      setErrorMessage('Google Sign-In could not be completed. Please try again.');
+      setShowTryAgain(true);
+      return;
+    }
+
+    const tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: 'email profile openid',
+      callback: async (response: any) => {
+        setIsConnectingGoogle(false);
+
+        if (response.error) {
+          if (response.error === 'popup_closed_by_user' || response.error === 'access_denied') {
+            return;
+          }
+          setErrorMessage('Google Sign-In could not be completed. Please try again.');
+          setShowTryAgain(true);
+          return;
+        }
+
+        if (!response.access_token) {
+          setErrorMessage('Google Sign-In could not be completed. Please try again.');
+          setShowTryAgain(true);
+          return;
+        }
+
+        try {
+          setLoading(true);
+          const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: {
+              Authorization: `Bearer ${response.access_token}`,
+            },
+          });
+
+          if (!res.ok) {
+            throw new Error('Profile fetch failed');
+          }
+
+          const googleUser = await res.json();
+          const authResult = handleGoogleAuthPayload({
+            name: googleUser.name || googleUser.given_name || 'Student',
+            email: googleUser.email,
+            photoUrl: googleUser.picture,
+            sub: googleUser.sub,
+          });
+
+          sendAdminLoginNotification({
+            name: googleUser.name || 'Google Student',
+            email: googleUser.email,
+            loginMethod: 'Google',
+            eventType: authResult.isNewUser ? 'registration' : 'login',
+          });
+
+          setSuccessMessage(
+            authResult.isNewUser
+              ? 'Google account connected! Loading your workspace...'
+              : 'Signed in successfully! Redirecting to Dashboard...'
+          );
+
+          setTimeout(() => {
+            setLoading(false);
+            onAuthSuccess(authResult.record, authResult.isNewUser);
+            onClose();
+          }, 500);
+        } catch (fetchErr) {
+          setLoading(false);
+          setErrorMessage('Google Sign-In could not be completed. Please try again.');
+          setShowTryAgain(true);
+        }
+      },
+      error_callback: (err: any) => {
+        setIsConnectingGoogle(false);
+        if (err?.type === 'popup_closed' || err?.error === 'popup_closed_by_user') {
+          return;
+        }
+        setErrorMessage('Google Sign-In could not be completed. Please try again.');
+        setShowTryAgain(true);
+      },
+    });
+
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+  };
 
   // Handle Email/Password Sign In
   const handleEmailSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setShowTryAgain(false);
 
     if (!email.trim() || !password) {
       setErrorMessage('Please enter both email address and password.');
@@ -81,6 +285,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(false);
 
     if (result.success && result.record) {
+      sendAdminLoginNotification({
+        name: result.record.user.name || 'Student',
+        email: result.record.user.email,
+        loginMethod: 'Email',
+        eventType: 'login',
+      });
       setSuccessMessage('Signed in successfully! Loading your student profile...');
       setTimeout(() => {
         onAuthSuccess(result.record!, false);
@@ -95,6 +305,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleEmailSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setShowTryAgain(false);
 
     if (!fullName.trim() || !email.trim() || !password) {
       setErrorMessage('Please complete all required fields.');
@@ -116,6 +327,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(false);
 
     if (result.success && result.record) {
+      sendAdminLoginNotification({
+        name: result.record.user.name || 'Student',
+        email: result.record.user.email,
+        loginMethod: 'Email',
+        eventType: 'registration',
+      });
       setSuccessMessage('Account created successfully! Redirecting to student assessment...');
       setTimeout(() => {
         onAuthSuccess(result.record!, true);
@@ -126,110 +343,60 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  // Trigger Google OAuth Flow
-  const handleContinueWithGoogle = () => {
+  // Trigger Real Production Google OAuth Flow
+  const handleContinueWithGoogle = async () => {
     setErrorMessage(null);
+    setShowTryAgain(false);
 
-    // If Google Client ID is configured and Google SDK is present, run real OAuth
-    if (googleClientId && typeof window !== 'undefined' && window.google?.accounts?.oauth2) {
-      try {
-        setLoading(true);
-        const tokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id: googleClientId,
-          scope: 'email profile openid',
-          callback: async (response: any) => {
-            if (response.error) {
-              setLoading(false);
-              if (response.error === 'popup_closed_by_user') {
-                setErrorMessage('Google Sign-In was cancelled.');
-              } else {
-                setErrorMessage(`Google authentication error: ${response.error}`);
-              }
-              return;
-            }
-
-            try {
-              // Retrieve user profile from Google's UserInfo endpoint
-              const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: {
-                  Authorization: `Bearer ${response.access_token}`,
-                },
-              });
-
-              if (!res.ok) {
-                throw new Error('Could not fetch Google profile details.');
-              }
-
-              const googleUser = await res.json();
-              const authResult = handleGoogleAuthPayload({
-                name: googleUser.name || 'Student',
-                email: googleUser.email,
-                photoUrl: googleUser.picture,
-                sub: googleUser.sub,
-              });
-
-              setLoading(false);
-              setSuccessMessage(
-                authResult.isNewUser
-                  ? 'Google account connected! Please complete your student assessment.'
-                  : 'Welcome back! Loading your profile...'
-              );
-
-              setTimeout(() => {
-                onAuthSuccess(authResult.record, authResult.isNewUser);
-                onClose();
-              }, 600);
-            } catch (fetchErr: any) {
-              setLoading(false);
-              setErrorMessage('Network error while verifying Google account. Please try again.');
-            }
-          },
-          error_callback: (err: any) => {
-            setLoading(false);
-            setErrorMessage('Google Sign-In popup failed or was blocked by browser.');
-          },
-        });
-
-        tokenClient.requestAccessToken({ prompt: 'select_account' });
-      } catch (err: any) {
-        setLoading(false);
-        setErrorMessage(`OAuth initialization failed: ${err?.message || 'Check Client ID configuration'}`);
-      }
-    } else {
-      // If VITE_GOOGLE_CLIENT_ID is not yet configured, show the configuration status helper
-      setShowGoogleConfigGuide(true);
-    }
-  };
-
-  // Handle direct Google authentication for preview testing or configured profile
-  const handleCompleteGoogleSignIn = (targetEmail: string, targetName: string) => {
-    if (!targetEmail.trim() || !targetEmail.includes('@')) {
-      setErrorMessage('Please enter a valid Google email address.');
+    // Requirement 10: If VITE_GOOGLE_CLIENT_ID is missing:
+    // show a simple user-friendly message such as:
+    // "Google Sign-In is temporarily unavailable. Please use email and password."
+    // Do NOT show developer setup instructions.
+    if (!googleClientId || typeof googleClientId !== 'string' || !googleClientId.trim()) {
+      setErrorMessage('Google Sign-In is temporarily unavailable. Please use email and password.');
       return;
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      const authResult = handleGoogleAuthPayload({
-        name: targetName.trim() || 'Google Student',
-        email: targetEmail.trim(),
-        photoUrl: 'https://lh3.googleusercontent.com/a/default-user',
-        sub: `goog_sub_${Date.now()}`,
-      });
+    setIsConnectingGoogle(true);
 
-      setLoading(false);
-      setSuccessMessage(
-        authResult.isNewUser
-          ? `Connected Google account (${targetEmail}). Please complete your student assessment.`
-          : `Welcome back, ${targetName}! Loading your saved CareerAI profile.`
-      );
+    try {
+      const isLoaded = await ensureGoogleGsiLoaded();
+      if (!isLoaded || (!window.google?.accounts?.id && !window.google?.accounts?.oauth2)) {
+        setIsConnectingGoogle(false);
+        setErrorMessage('Google Sign-In could not be completed. Please try again.');
+        setShowTryAgain(true);
+        return;
+      }
 
-      setTimeout(() => {
-        onAuthSuccess(authResult.record, authResult.isNewUser);
-        onClose();
-      }, 600);
-    }, 400);
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: googleClientId.trim(),
+          callback: handleGoogleCredentialCallback,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        window.google.accounts.id.prompt((notification: any) => {
+          if (notification.isDismissedMoment()) {
+            setIsConnectingGoogle(false);
+            return;
+          }
+
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            launchOAuth2Fallback(googleClientId.trim());
+          }
+        });
+      } else {
+        launchOAuth2Fallback(googleClientId.trim());
+      }
+    } catch (err) {
+      setIsConnectingGoogle(false);
+      setErrorMessage('Google Sign-In could not be completed. Please try again.');
+      setShowTryAgain(true);
+    }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -278,7 +445,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               setMode('signin');
               setErrorMessage(null);
               setSuccessMessage(null);
-              setShowGoogleConfigGuide(false);
+              setShowTryAgain(false);
             }}
             className={`py-2 rounded-lg transition-all cursor-pointer ${
               mode === 'signin'
@@ -294,7 +461,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               setMode('signup');
               setErrorMessage(null);
               setSuccessMessage(null);
-              setShowGoogleConfigGuide(false);
+              setShowTryAgain(false);
             }}
             className={`py-2 rounded-lg transition-all cursor-pointer ${
               mode === 'signup'
@@ -321,91 +488,77 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           ) : (
             <>
-              {/* Error Banner */}
-          {errorMessage && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          {/* Success Banner */}
-          {successMessage && (
-            <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-              <span>{successMessage}</span>
-            </div>
-          )}
-
-          {/* Google Configuration Guide / Quick Sign In view */}
-          {showGoogleConfigGuide ? (
-            <div className="space-y-4 mb-4 p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-left">
-              <div className="flex items-start gap-2.5">
-                <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-amber-900">
-                    Google OAuth Status: Ready for Configuration
-                  </h4>
-                  <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
-                    Google Sign-In integration is fully wired using the official Google Identity Services framework. To activate live Google OAuth popups for external users, declare <code className="bg-amber-100 px-1 py-0.5 rounded text-[10px] font-mono font-bold">VITE_GOOGLE_CLIENT_ID</code> in your environment.
-                  </p>
+              {/* Error Banner with Optional Try Again */}
+              {errorMessage && (
+                <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between gap-2 animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                    <span>{errorMessage}</span>
+                  </div>
+                  {showTryAgain && (
+                    <button
+                      type="button"
+                      onClick={handleContinueWithGoogle}
+                      className="text-xs font-bold text-rose-700 hover:text-rose-900 underline shrink-0 cursor-pointer ml-2"
+                    >
+                      Try again
+                    </button>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* Step-by-step external setup instructions */}
-              <div className="bg-white/80 p-3 rounded-lg border border-amber-200 text-[11px] text-slate-700 space-y-1.5">
-                <p className="font-bold text-slate-900 text-xs">Google Cloud Console Setup:</p>
-                <ol className="list-decimal list-inside space-y-1 text-slate-600 pl-1">
-                  <li>Visit <strong>console.cloud.google.com</strong> &gt; APIs &amp; Services &gt; Credentials.</li>
-                  <li>Create <strong>OAuth 2.0 Client ID</strong> (Web application).</li>
-                  <li>Add your domain to <strong>Authorized JavaScript origins</strong>.</li>
-                  <li>Provide the Client ID in <code className="font-mono text-slate-800">.env</code> as <code className="font-mono text-slate-800">VITE_GOOGLE_CLIENT_ID</code>.</li>
-                </ol>
-              </div>
+              {/* Success Banner */}
+              {successMessage && (
+                <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>{successMessage}</span>
+                </div>
+              )}
 
-              {/* Instant verification connector */}
-              <div className="pt-2 border-t border-amber-200 space-y-2">
-                <p className="text-[11px] font-semibold text-slate-800">
-                  Verify Google Authentication Flow with Account:
-                </p>
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={customGoogleName}
-                    onChange={(e) => setCustomGoogleName(e.target.value)}
-                    placeholder="Student Full Name"
-                    className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              {/* Prominent "Continue with Google" Button */}
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  id="google-signin-btn"
+                  onClick={handleContinueWithGoogle}
+                  disabled={loading || isConnectingGoogle}
+                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-semibold text-sm shadow-xs transition-all flex items-center justify-center gap-3 cursor-pointer hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isConnectingGoogle ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-indigo-600 shrink-0" />
+                      <span>Connecting to Google...</span>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleIcon className="w-5 h-5 shrink-0" />
+                      <span>Continue with Google</span>
+                    </>
+                  )}
+                </button>
+
+                {/* GIS Native Button Overlay for direct account chooser popup */}
+                {googleClientId && !loading && !isConnectingGoogle && (
+                  <div
+                    ref={googleBtnContainerRef}
+                    className="absolute inset-0 opacity-[0.001] overflow-hidden cursor-pointer flex items-center justify-center z-10"
+                    title="Continue with Google"
                   />
-                  <input
-                    type="email"
-                    value={customGoogleEmail}
-                    onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                    placeholder="student@gmail.com / college email"
-                    className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+                )}
+              </div>
+
+              {/* OR Divider */}
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200"></div>
                 </div>
-                <div className="flex items-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleCompleteGoogleSignIn(customGoogleEmail, customGoogleName)}
-                    disabled={loading}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
-                  >
-                    <GoogleIcon className="w-4 h-4 bg-white p-0.5 rounded-full" />
-                    <span>Authenticate with Google Account</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowGoogleConfigGuide(false)}
-                    className="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg cursor-pointer"
-                  >
-                    Back
-                  </button>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-3 font-semibold text-slate-400 tracking-wider">
+                    or
+                  </span>
                 </div>
               </div>
-            </div>
-          ) : (
-            <>
+
               {/* Form: Email & Password */}
               <form onSubmit={mode === 'signin' ? handleEmailSignIn : handleEmailSignUp} className="space-y-3.5">
                 {mode === 'signup' && (
@@ -482,7 +635,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || isConnectingGoogle}
                   className="w-full mt-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                 >
                   {loading ? (
@@ -497,40 +650,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   )}
                 </button>
               </form>
-
-              {/* OR Divider */}
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-3 font-bold text-slate-400 tracking-wider">
-                    OR
-                  </span>
-                </div>
-              </div>
-
-              {/* Prominent "Continue with Google" Button */}
-              <button
-                type="button"
-                id="google-signin-btn"
-                onClick={handleContinueWithGoogle}
-                disabled={loading}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-semibold text-sm shadow-xs transition-all flex items-center justify-center gap-3 cursor-pointer hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-slate-300"
-              >
-                <GoogleIcon className="w-5 h-5 shrink-0" />
-                <span>Continue with Google</span>
-              </button>
-            </>
-          )}
             </>
           )}
 
-          {/* Privacy & No Default Data Policy Reminder */}
+          {/* Privacy & Account Isolation Policy */}
           <div className="mt-5 pt-4 border-t border-slate-100 flex items-start gap-2 text-[11px] text-slate-500">
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <p className="leading-normal">
-              <strong>Account Isolation:</strong> Your student data (CGPA, marks, skills, projects) is isolated to your private account. Google Sign-In only provides authentication; you enter your own real metrics during assessment.
+              <strong>Account Isolation:</strong> Your student metrics and diagnostic assessments are private to your CareerAI account.
             </p>
           </div>
         </div>
@@ -538,3 +665,4 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     </div>
   );
 };
+

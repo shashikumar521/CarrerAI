@@ -83,7 +83,7 @@ export const CareerAiAnimation: React.FC<CareerAiAnimationProps> = ({
         {!videoError ? (
           <video
             ref={videoRef}
-            className={`w-full h-full object-contain rounded-full transition-opacity duration-300 ${
+            className={`w-full h-full object-contain transition-opacity duration-300 ${
               videoLoaded ? 'opacity-100' : 'opacity-90'
             }`}
             autoPlay={autoPlay}

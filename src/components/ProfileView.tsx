@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   User,
   GraduationCap,
@@ -255,6 +255,85 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     });
   };
 
+  // Profile completion calculation & missing checklist
+  const completionDetails = useMemo(() => {
+    let score = 0;
+    const missing: { text: string; subtab: 'academic' | 'skills' | 'projects' | 'experience' | 'aspirations' }[] = [];
+
+    // Basic Identification (15%)
+    if (profile.name?.trim()) {
+      score += 15;
+    } else {
+      missing.push({ text: 'Add your full name', subtab: 'academic' });
+    }
+
+    // Education & Academic records (25%)
+    const hasCollege = Boolean(profile.college?.trim());
+    const hasBranch = Boolean(profile.branch?.trim());
+    const hasCgpa = Boolean(profile.cgpa && Number(profile.cgpa) > 0);
+    if (hasCollege && hasBranch && hasCgpa) {
+      score += 25;
+    } else {
+      if (!hasCollege) missing.push({ text: 'Add college name', subtab: 'academic' });
+      if (!hasBranch) missing.push({ text: 'Select engineering branch', subtab: 'academic' });
+      if (!hasCgpa) missing.push({ text: 'Enter current CGPA', subtab: 'academic' });
+      // partial credit
+      if (hasCollege) score += 8;
+      if (hasBranch) score += 8;
+      if (hasCgpa) score += 9;
+    }
+
+    // Skills (20%)
+    const skillCount = profile.skills?.length || 0;
+    if (skillCount >= 3) {
+      score += 20;
+    } else if (skillCount > 0) {
+      score += Math.round((skillCount / 3) * 20);
+      missing.push({
+        text: `Add ${3 - skillCount} more technical skill${3 - skillCount === 1 ? '' : 's'}`,
+        subtab: 'skills',
+      });
+    } else {
+      missing.push({ text: 'Add technical skills (at least 3)', subtab: 'skills' });
+    }
+
+    // Projects (20%)
+    const projectCount = profile.projects?.length || 0;
+    if (projectCount >= 1) {
+      score += 20;
+    } else {
+      missing.push({ text: 'Add 1 project', subtab: 'projects' });
+    }
+
+    // Certifications / Experience (10%)
+    const certCount = profile.certifications?.length || 0;
+    const internCount = profile.internships?.length || 0;
+    if (certCount > 0 || internCount > 0) {
+      score += 10;
+    } else {
+      missing.push({ text: 'Add certifications', subtab: 'experience' });
+    }
+
+    // Career Preferences / Target Roles (10%)
+    const roleCount = profile.targetRoles?.length || 0;
+    if (roleCount >= 1) {
+      score += 10;
+    } else {
+      missing.push({ text: 'Add career preference', subtab: 'aspirations' });
+    }
+
+    return {
+      percentage: Math.min(100, Math.round(score)),
+      missing,
+    };
+  }, [profile]);
+
+  const handleJumpToMissing = () => {
+    if (completionDetails.missing.length > 0) {
+      setActiveSubTab(completionDetails.missing[0].subtab);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Header & Actions */}
@@ -304,6 +383,127 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Clear</span>
           </button>
+        </div>
+      </div>
+
+      {/* Premium Profile Header & Completion Tracker */}
+      <div className="bg-gradient-to-br from-white via-indigo-50/20 to-slate-50 border border-slate-200 rounded-2xl p-6 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* Identity & Education */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white font-bold text-lg flex items-center justify-center shadow-xs">
+                {profile.name ? profile.name.charAt(0).toUpperCase() : 'S'}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                    {profile.name || 'Unassigned Student Profile'}
+                  </h2>
+                  <span
+                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                      completionDetails.percentage >= 80
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : completionDetails.percentage >= 50
+                        ? 'bg-amber-50 text-amber-800 border-amber-200'
+                        : 'bg-rose-50 text-rose-800 border-rose-200'
+                    }`}
+                  >
+                    Profile {completionDetails.percentage}% complete
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 mt-0.5">
+                  <span className="flex items-center gap-1 font-medium text-slate-700">
+                    <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+                    {profile.college || 'College not configured'}
+                  </span>
+                  <span>•</span>
+                  <span>{profile.branch || 'Branch unselected'}</span>
+                  {profile.cgpa && (
+                    <>
+                      <span>•</span>
+                      <span className="font-semibold text-slate-800">
+                        CGPA: {Number(profile.cgpa).toFixed(2)}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics Chips */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                <Code2 className="w-3.5 h-3.5 text-indigo-600" />
+                {profile.skills?.length || 0} Skills
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                <FolderGit2 className="w-3.5 h-3.5 text-emerald-600" />
+                {profile.projects?.length || 0} Projects
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                <Award className="w-3.5 h-3.5 text-amber-600" />
+                {(profile.certifications?.length || 0) + (profile.internships?.length || 0)} Certs &amp; Exp
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                <Target className="w-3.5 h-3.5 text-purple-600" />
+                {profile.targetRoles?.length || 0} Career Interests
+              </span>
+            </div>
+          </div>
+
+          {/* Completion Progress & Missing Items Checklist */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 lg:w-96 shrink-0 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-700">Profile Completion:</span>
+              <span className="font-bold text-indigo-600">{completionDetails.percentage}%</span>
+            </div>
+
+            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 rounded-full ${
+                  completionDetails.percentage >= 80
+                    ? 'bg-emerald-600'
+                    : completionDetails.percentage >= 50
+                    ? 'bg-indigo-600'
+                    : 'bg-amber-500'
+                }`}
+                style={{ width: `${completionDetails.percentage}%` }}
+              />
+            </div>
+
+            {completionDetails.missing.length > 0 ? (
+              <div className="space-y-1.5 pt-1 border-t border-slate-100">
+                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Missing:
+                </div>
+                <ul className="space-y-1">
+                  {completionDetails.missing.slice(0, 3).map((item, idx) => (
+                    <li
+                      key={idx}
+                      className="text-xs text-slate-600 flex items-start gap-1.5"
+                    >
+                      <span className="text-amber-500 font-bold">•</span>
+                      <span>{item.text}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={handleJumpToMissing}
+                  className="w-full mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                >
+                  <span>Complete Profile</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="pt-1 border-t border-slate-100 flex items-center gap-2 text-xs text-emerald-700 font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>All essential profile sections are fully completed!</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

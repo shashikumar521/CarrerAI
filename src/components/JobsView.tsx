@@ -30,7 +30,7 @@ import {
   DEMO_TESTING_OPPORTUNITIES,
 } from '../utils/jobsClient';
 import { NavTab } from './Navbar';
-import { CareerAiAnimation } from './CareerAiAnimation';
+import { useLoading } from '../context/LoadingContext';
 import {
   getCoursesForMissingSkills,
   LEARNING_PATH_STORAGE_KEY,
@@ -81,6 +81,9 @@ export const JobsView: React.FC<JobsViewProps> = ({
   // Selected job for full-screen / modal detail view
   const [selectedJobForModal, setSelectedJobForModal] = useState<LiveJob | null>(null);
 
+  // Centralized Global Loading System
+  const { startLoading, stopLoading } = useLoading();
+
   // Load provider status once
   useEffect(() => {
     fetchJobsProviderStatus().then((status) => setProviderInfo(status));
@@ -90,6 +93,10 @@ export const JobsView: React.FC<JobsViewProps> = ({
   const loadJobs = useCallback(async (refresh: boolean = false) => {
     setLoading(true);
     setError(null);
+    startLoading('jobs-live-feed', {
+      title: searchTerm ? `Searching jobs matching "${searchTerm}"...` : 'Retrieving Engineering Opportunities...',
+      subtitle: 'Querying live recruiter APIs, Adzuna feeds & evaluating skill match against your B.Tech profile',
+    });
 
     if (testingMode) {
       // Testing mode explicitly active
@@ -98,6 +105,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
       setRetrievedAt(new Date().toISOString());
       setIsCached(false);
       setLoading(false);
+      stopLoading('jobs-live-feed');
       return;
     }
 
@@ -120,8 +128,9 @@ export const JobsView: React.FC<JobsViewProps> = ({
       setJobs([]);
     } finally {
       setLoading(false);
+      stopLoading('jobs-live-feed');
     }
-  }, [searchTerm, locationQuery, testingMode]);
+  }, [searchTerm, locationQuery, testingMode, startLoading, stopLoading]);
 
   // Initial load
   useEffect(() => {
@@ -584,18 +593,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
         )}
       </div>
 
-      {/* CareerAI Official Loading Animation State */}
-      {loading && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 shadow-xs flex flex-col items-center justify-center text-center">
-          <CareerAiAnimation
-            size="lg"
-            loop={true}
-            transparentBg={true}
-            label={searchTerm ? `Searching jobs matching "${searchTerm}"...` : "Retrieving Real Engineering Opportunities..."}
-            sublabel="Querying live recruiter APIs, Adzuna feeds & evaluating skill match against your B.Tech profile"
-          />
-        </div>
-      )}
+      {/* Loading state is handled globally by the CareerAI Loading System */}
 
       {/* STRICT ERROR STATE (As required by rules) */}
       {!loading && error && (

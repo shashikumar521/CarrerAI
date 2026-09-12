@@ -217,25 +217,25 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
 
                   {/* Status Badge */}
                   <span
-                    className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-tight inline-flex items-center gap-1.5 ${
+                    className={`px-3 py-1 rounded-full text-xs font-bold tracking-tight inline-flex items-center gap-1.5 ${
                       status === 'eligible'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
                         : status === 'borderline'
-                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        ? 'bg-amber-50 text-amber-800 border border-amber-300'
                         : status === 'ineligible'
-                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        ? 'bg-rose-50 text-rose-800 border border-rose-300'
+                        : 'bg-slate-100 text-slate-700 border border-slate-200'
                     }`}
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    <span className="w-2 h-2 rounded-full bg-current" />
                     <span>
                       {status === 'eligible'
-                        ? 'Eligible'
+                        ? 'ELIGIBLE'
                         : status === 'borderline'
-                        ? 'Borderline'
+                        ? 'ALMOST ELIGIBLE'
                         : status === 'ineligible'
-                        ? 'Cutoff Gap'
-                        : 'Incomplete'}
+                        ? 'NOT YET ELIGIBLE'
+                        : 'INCOMPLETE'}
                     </span>
                   </span>
                 </div>
@@ -269,34 +269,51 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
                   <strong className="text-slate-800">Hiring Focus:</strong> {company.hiringFocus}
                 </p>
 
-                {/* Eligibility Checks List */}
-                <div className="space-y-1.5 mb-3.5 pt-2 border-t border-slate-100">
-                  {failedChecks.map((fail, idx) => (
-                    <div
-                      key={`fail-${idx}`}
-                      className="flex items-start gap-1.5 text-xs text-rose-700 font-medium"
-                    >
-                      <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
-                      <span>{fail}</span>
-                    </div>
-                  ))}
+                {/* Structured Eligibility Analysis: Why? / What is missing? / Next steps */}
+                <div className="space-y-3 pt-3 border-t border-slate-100 text-xs">
+                  {/* Why? */}
+                  <div>
+                    <span className="font-bold text-slate-900 block mb-0.5">Why?</span>
+                    <p className="text-slate-600 leading-relaxed text-[11px]">
+                      {status === 'eligible'
+                        ? `Your current academic score, CGPA (${profile.cgpa || '0'}), active backlogs (${profile.activeBacklogs || 0}), and engineering branch satisfy ${company.name}'s campus placement criteria.`
+                        : status === 'borderline'
+                        ? `You are near the qualification threshold for ${company.name}. With minor score improvement or specific technical project showcases, you can convert to eligible.`
+                        : `Your current profile does not satisfy ${company.name}'s required recruitment cutoff parameters.`}
+                    </p>
+                  </div>
 
-                  {passedChecks.slice(0, 2).map((pass, idx) => (
-                    <div
-                      key={`pass-${idx}`}
-                      className="flex items-start gap-1.5 text-xs text-emerald-700"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>{pass}</span>
-                    </div>
-                  ))}
+                  {/* What is missing? */}
+                  <div>
+                    <span className="font-bold text-slate-900 block mb-1">What is missing?</span>
+                    {failedChecks.length > 0 ? (
+                      <ul className="space-y-1">
+                        {failedChecks.map((fail, idx) => (
+                          <li
+                            key={`fail-${idx}`}
+                            className="flex items-start gap-1.5 text-rose-700 font-medium text-[11px]"
+                          >
+                            <span className="text-rose-500 font-bold">•</span>
+                            <span>{fail}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-emerald-700 font-medium text-[11px]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>All baseline cutoffs and requirements are fulfilled.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* What should I do next? */}
+                  <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100">
+                    <span className="font-bold text-indigo-950 block mb-0.5">Recommended Next Step:</span>
+                    <p className="text-indigo-900 text-[11px] leading-relaxed">
+                      {recommendation}
+                    </p>
+                  </div>
                 </div>
-              </div>
-
-              {/* Recommendation Strip */}
-              <div className="p-2.5 rounded-lg bg-indigo-50/60 border border-indigo-100 text-[11px] text-indigo-900 leading-relaxed">
-                <span className="font-bold block text-indigo-950 mb-0.5">Mentor Note:</span>
-                {recommendation}
               </div>
             </div>
           );

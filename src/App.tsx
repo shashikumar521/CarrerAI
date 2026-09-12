@@ -40,15 +40,17 @@ import { CardCursorManager } from './components/CardCursorManager';
 import { LEARNING_PATH_STORAGE_KEY } from './data/coursesDatabase';
 import { COURSE_PROGRESS_UPDATED_EVENT } from './utils/courseSkillService';
 import { ThemeProvider } from './context/ThemeContext';
+import { LoadingProvider, useLoading } from './context/LoadingContext';
 
 const STORAGE_KEY = 'careerai_student_profile_v1';
 const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
-const STARTUP_SESSION_KEY = 'careerai_startup_shown_v1';
 
 export function App() {
   return (
     <ThemeProvider>
-      <CareerAiAppMain />
+      <LoadingProvider>
+        <CareerAiAppMain />
+      </LoadingProvider>
     </ThemeProvider>
   );
 }
@@ -58,6 +60,19 @@ function CareerAiAppMain() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getActiveSession());
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+
+  // Centralized Global Loading & Intro System
+  const {
+    startLoading,
+    stopLoading,
+    isOverlayVisible,
+    title: loadingTitle,
+    subtitle: loadingSubtitle,
+    dismissAll,
+    isIntroActive,
+    completeIntro,
+    triggerIntro,
+  } = useLoading();
 
   // Assessment Submitted Flag
   const [assessmentSubmitted, setAssessmentSubmitted] = useState<boolean>(() => {
@@ -102,30 +117,6 @@ function CareerAiAppMain() {
   const [initialCounselorPrompt, setInitialCounselorPrompt] = useState<string>('');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Startup Animation State (can be replayed from footer, does not block initial view)
-  const [showStartupIntro, setShowStartupIntro] = useState<boolean>(false);
-
-  // Global Loading Screen State (for authentication, demo profile, assessment calculation)
-  const [globalLoading, setGlobalLoading] = useState<{
-    active: boolean;
-    title?: string;
-    subtitle?: string;
-    solidBg?: boolean;
-  }>({ active: false });
-
-  const handleStartupComplete = () => {
-    setShowStartupIntro(false);
-    try {
-      sessionStorage.setItem(STARTUP_SESSION_KEY, 'true');
-    } catch (e) {
-      console.warn(e);
-    }
-  };
-
-  const handleReplayIntro = () => {
-    setShowStartupIntro(true);
-  };
-
   // Persist profile changes to localStorage and user account registry
   useEffect(() => {
     try {
@@ -165,8 +156,7 @@ function CareerAiAppMain() {
 
   // Handler to load demo profile (Preview mode)
   const handleLoadDemo = () => {
-    setGlobalLoading({
-      active: true,
+    startLoading('demo-profile', {
       title: 'Loading Demo Student Profile...',
       subtitle: 'Evaluating 30+ company cutoffs, readiness metrics, and roadmap',
     });
@@ -206,7 +196,7 @@ function CareerAiAppMain() {
       } catch (e) {
         console.warn(e);
       }
-      setGlobalLoading({ active: false });
+      stopLoading('demo-profile');
     }, 600);
   };
 
@@ -236,8 +226,7 @@ function CareerAiAppMain() {
 
   // Submit assessment callback
   const handleSubmitAssessment = () => {
-    setGlobalLoading({
-      active: true,
+    startLoading('assessment-submit', {
       title: 'Analyzing Placement Readiness...',
       subtitle: 'Screening B.Tech criteria against 30+ recruiters & computing skill gaps',
     });
@@ -257,7 +246,7 @@ function CareerAiAppMain() {
       } catch (e) {
         console.warn(e);
       }
-      setGlobalLoading({ active: false });
+      stopLoading('assessment-submit');
       setCurrentTab('dashboard');
     }, 700);
   };
@@ -277,8 +266,7 @@ function CareerAiAppMain() {
 
   // Logout handler
   const handleLogout = () => {
-    setGlobalLoading({
-      active: true,
+    startLoading('logout', {
       title: 'Signing Out...',
       subtitle: 'Safely terminating session and protecting student profile data',
     });
@@ -295,14 +283,13 @@ function CareerAiAppMain() {
         console.warn(e);
       }
       setCurrentTab('dashboard');
-      setGlobalLoading({ active: false });
+      stopLoading('logout');
     }, 500);
   };
 
   // Auth success handler (Google Sign-In or Email Auth)
   const handleAuthSuccess = (record: AccountRecord, isNewUser: boolean) => {
-    setGlobalLoading({
-      active: true,
+    startLoading('auth', {
       title: isNewUser ? 'Creating Your CareerAI Account...' : 'Welcome Back to CareerAI!',
       subtitle: 'Synchronizing isolated student credentials & intelligence dashboard',
     });
@@ -320,13 +307,13 @@ function CareerAiAppMain() {
 
       setAuthModalOpen(false);
 
-      // If new user or assessment not yet submitted, guide to profile assessment
-      if (isNewUser || !record.assessmentSubmitted) {
+      // If new user, continue through existing new-user/profile setup flow; otherwise redirect to Dashboard
+      if (isNewUser) {
         setCurrentTab('profile');
       } else {
         setCurrentTab('dashboard');
       }
-      setGlobalLoading({ active: false });
+      stopLoading('auth');
     }, 750);
   };
 
@@ -376,7 +363,7 @@ function CareerAiAppMain() {
             setAuthModalOpen(true);
           }}
           onLogout={handleLogout}
-          onReplayIntro={handleReplayIntro}
+          onReplayIntro={triggerIntro}
         />
 
         {/* Main Content Area */}
@@ -479,7 +466,7 @@ function CareerAiAppMain() {
 
       {/* Professional Startup Footer */}
       <div className="relative z-10">
-        <Footer onReplayIntro={handleReplayIntro} />
+        <Footer onReplayIntro={triggerIntro} />
       </div>
     </div>
 
@@ -491,18 +478,14 @@ function CareerAiAppMain() {
         onAuthSuccess={handleAuthSuccess}
       />
 
-      {/* Startup Screen Animation (Fullscreen on initial website load/session) */}
-      {showStartupIntro && (
-        <CareerAiStartupIntro onComplete={handleStartupComplete} />
-      )}
-
-      {/* Global Branded Loading Screen */}
+      {/* Centralized Premium CareerAI Loading Screen & Intro */}
       <CareerAiLoadingScreen
-        show={globalLoading.active}
-        title={globalLoading.title}
-        subtitle={globalLoading.subtitle}
-        solidBg={globalLoading.solidBg}
-        onDismiss={() => setGlobalLoading({ active: false })}
+        show={isIntroActive || isOverlayVisible}
+        title={loadingTitle}
+        subtitle={loadingSubtitle}
+        isIntroMode={isIntroActive}
+        onComplete={completeIntro}
+        onDismiss={dismissAll}
       />
     </div>
   );

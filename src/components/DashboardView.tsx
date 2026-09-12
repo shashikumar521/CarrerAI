@@ -62,6 +62,7 @@ import {
   CORE_TECHNICAL_COMPETENCIES,
 } from '../utils/courseSkillService';
 import { calculateJobMatch } from '../utils/jobMatchCalculator';
+import { analyzeSkillGap } from '../utils/readinessCalculator';
 import {
   fetchLiveJobsFromApi,
   DEMO_TESTING_OPPORTUNITIES,
@@ -1420,6 +1421,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </div>
                     </div>
 
+                    {/* Why It Is Recommended */}
+                    <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-[11px] text-slate-700">
+                      <span className="font-semibold text-indigo-700 block mb-0.5">Why recommended:</span>
+                      <span>
+                        Matched based on your {profile.branch || 'Engineering'} profile, academic standing, and {evalResult.matchingSkills.length > 0 ? `${evalResult.matchingSkills.slice(0, 2).join(' & ')} skills.` : 'core technical prerequisites.'}
+                      </span>
+                    </div>
+
                     {/* Required Skills Chips */}
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {(job.requiredSkills || []).slice(0, 4).map((sk, idx) => (
@@ -1444,7 +1453,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       onClick={() => onNavigate('jobs')}
                       className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
                     >
-                      <span>View Opportunity</span>
+                      <span>View Job</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -1523,62 +1532,78 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           variants={cardStaggerContainer}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
         >
-          {TARGET_ROLE_DEFINITIONS.slice(0, 4).map((role) => (
-            <motion.div
-              key={role.id}
-              variants={cardItemAnimation}
-              className="bg-white border border-slate-200 hover:border-indigo-300 rounded-xl p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between group"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
-                    {role.hiringDemand} Demand
-                  </span>
-                  <span className="text-xs font-semibold text-emerald-600">
-                    {role.avgPackage}
-                  </span>
-                </div>
+          {TARGET_ROLE_DEFINITIONS.slice(0, 4).map((role) => {
+            const roleMatch = analyzeSkillGap(profile, role.id);
+            return (
+              <motion.div
+                key={role.id}
+                variants={cardItemAnimation}
+                className="bg-white border border-slate-200 hover:border-indigo-300 rounded-xl p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+                      {role.hiringDemand} Demand
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-600">
+                      {role.avgPackage}
+                    </span>
+                  </div>
 
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                    {role.title}
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
-                    {role.description}
-                  </p>
-                </div>
-
-                {/* Key Required Skills */}
-                <div className="space-y-1.5 pt-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Core Competencies
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {role.requiredSkills.slice(0, 3).map((sk, idx) => (
-                      <span
-                        key={idx}
-                        className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
-                      >
-                        {sk}
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                        {role.title}
+                      </h4>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                        {roleMatch.matchPercentage}% Fit
                       </span>
-                    ))}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
+                      {role.description}
+                    </p>
+                  </div>
+
+                  {/* Why recommended */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-[11px] text-slate-700">
+                    <span className="font-semibold text-indigo-700 block mb-0.5">Why recommended:</span>
+                    <span>
+                      Aligned with your {profile.branch || 'Engineering'} background and campus hiring trends for entry-level engineers.
+                    </span>
+                  </div>
+
+                  {/* Key Required Skills */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Core Competencies
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {role.requiredSkills.slice(0, 3).map((sk, idx) => (
+                        <span
+                          key={idx}
+                          className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                        >
+                          {sk}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Button */}
-              <div className="pt-4 mt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('skillgap')}
-                  className="w-full py-2 px-3 rounded-lg bg-slate-50 hover:bg-indigo-600 text-slate-700 hover:text-white text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                >
-                  <span>View Role Roadmap</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
+                {/* Action Button */}
+                <div className="pt-4 mt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('skillgap')}
+                    className="w-full py-2 px-3 rounded-lg bg-slate-50 hover:bg-indigo-600 text-slate-700 hover:text-white text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <span>Explore Role</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </motion.section>
 
