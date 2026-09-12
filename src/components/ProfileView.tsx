@@ -341,10 +341,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <div>
           <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <User className="w-6 h-6 text-indigo-600" />
-            <span>Student Profile Management</span>
+            <span>Profile</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Fill in your authentic academic records, skills, and projects. Data is automatically preserved in your browser.
+            Manage your academic metrics, skills, projects, and target career preferences.
           </p>
         </div>
 

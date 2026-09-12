@@ -113,9 +113,53 @@ function CareerAiAppMain() {
     return EMPTY_STUDENT_PROFILE;
   });
 
-  const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
+  const VALID_TABS: NavTab[] = [
+    'dashboard',
+    'profile',
+    'eligibility',
+    'skillgap',
+    'courses',
+    'jobs',
+    'counselor',
+    'resume',
+    'prep',
+  ];
+
+  const getTabFromHash = (): NavTab => {
+    if (typeof window === 'undefined') return 'dashboard';
+    const hash = window.location.hash.replace('#', '').toLowerCase() as NavTab;
+    return VALID_TABS.includes(hash) ? hash : 'dashboard';
+  };
+
+  const [currentTab, setCurrentTab] = useState<NavTab>(() => getTabFromHash());
   const [initialCounselorPrompt, setInitialCounselorPrompt] = useState<string>('');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Synchronize browser history and hash navigation
+  const handleSelectTab = (tab: NavTab) => {
+    setCurrentTab(tab);
+    if (typeof window !== 'undefined') {
+      const targetHash = `#${tab}`;
+      if (window.location.hash !== targetHash) {
+        window.history.pushState({ tab }, '', targetHash);
+      }
+      // Scroll to top when changing views
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const tab = getTabFromHash();
+      setCurrentTab(tab);
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
 
   // Persist profile changes to localStorage and user account registry
   useEffect(() => {
@@ -325,173 +369,185 @@ function CareerAiAppMain() {
   // Ask counselor with specific prompt from skill gap
   const handleAskCounselor = (prompt: string) => {
     setInitialCounselorPrompt(prompt);
-    setCurrentTab('counselor');
+    handleSelectTab('counselor');
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white print:bg-white print:min-h-0 print:p-0 print:m-0">
       {/* Subtle Animated CareerAI Brand Watermark Background (Layer 2 & 3) */}
-      <CareerAiWatermarkBackground />
+      <div className="print:hidden">
+        <CareerAiWatermarkBackground />
+      </div>
 
       {/* Premium Subtle Cursor Glow & Card Cursor Manager */}
-      <CursorGlow />
-      <CardCursorManager />
+      <div className="print:hidden">
+        <CursorGlow />
+        <CardCursorManager />
+      </div>
 
       {/* Modern Fixed Left Navigation Sidebar (Desktop + Mobile Slideover) */}
-      <Sidebar
-        currentTab={currentTab}
-        onSelectTab={setCurrentTab}
-        report={readinessReport}
-        isProfileEmpty={emptyProfileState}
-        eligibleCompanyCount={eligibleCompanyCount}
-        currentUser={currentUser}
-        assessmentSubmitted={assessmentSubmitted}
-        mobileOpen={mobileSidebarOpen}
-        onCloseMobile={() => setMobileSidebarOpen(false)}
-      />
-
-      {/* Main Content Column (with desktop left padding for the fixed sidebar) */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64">
-        {/* Top Header with Search, Notifications, Demo Profile toggle & User Avatar */}
-        <TopHeader
-          onToggleMobile={() => setMobileSidebarOpen(true)}
+      <div className="print:hidden">
+        <Sidebar
           currentTab={currentTab}
-          onSelectTab={setCurrentTab}
+          onSelectTab={handleSelectTab}
           report={readinessReport}
           isProfileEmpty={emptyProfileState}
-          onLoadDemo={handleLoadDemo}
-          onClearProfile={handleClearProfile}
+          eligibleCompanyCount={eligibleCompanyCount}
           currentUser={currentUser}
           assessmentSubmitted={assessmentSubmitted}
-          onOpenAuth={(mode) => {
-            setAuthModalMode(mode);
-            setAuthModalOpen(true);
-          }}
-          onLogout={handleLogout}
-          onReplayIntro={triggerIntro}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
         />
+      </div>
+
+      {/* Main Content Column (with desktop left padding for the fixed sidebar) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64 print:pl-0 print:m-0 print:min-h-0 print:w-full">
+        {/* Top Header with Search, Notifications, Demo Profile toggle & User Avatar */}
+        <div className="print:hidden">
+          <TopHeader
+            onToggleMobile={() => setMobileSidebarOpen(true)}
+            currentTab={currentTab}
+            onSelectTab={handleSelectTab}
+            report={readinessReport}
+            isProfileEmpty={emptyProfileState}
+            onLoadDemo={handleLoadDemo}
+            onClearProfile={handleClearProfile}
+            currentUser={currentUser}
+            assessmentSubmitted={assessmentSubmitted}
+            onOpenAuth={(mode) => {
+              setAuthModalMode(mode);
+              setAuthModalOpen(true);
+            }}
+            onLogout={handleLogout}
+            onReplayIntro={triggerIntro}
+          />
+        </div>
 
         {/* Main Content Area */}
-        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
           {currentTab === 'dashboard' && (
             <DashboardView
               profile={profile}
               report={readinessReport}
               isProfileEmpty={emptyProfileState}
               eligibilityResults={eligibilityResults}
-              onNavigate={setCurrentTab}
+              onNavigate={handleSelectTab}
               onLoadDemo={handleLoadDemo}
               currentUser={currentUser}
               assessmentSubmitted={assessmentSubmitted}
             />
           )}
 
-        {currentTab === 'profile' && (
-          <ProfileView
-            profile={profile}
-            onUpdateProfile={handleUpdateProfile}
-            onLoadDemo={handleLoadDemo}
-            onClearProfile={handleClearProfile}
-            currentUser={currentUser}
-            assessmentSubmitted={assessmentSubmitted}
-            onSubmitAssessment={handleSubmitAssessment}
-            onOpenAuth={(mode) => {
-              setAuthModalMode(mode);
-              setAuthModalOpen(true);
-            }}
-          />
+          {currentTab === 'profile' && (
+            <ProfileView
+              profile={profile}
+              onUpdateProfile={handleUpdateProfile}
+              onLoadDemo={handleLoadDemo}
+              onClearProfile={handleClearProfile}
+              currentUser={currentUser}
+              assessmentSubmitted={assessmentSubmitted}
+              onSubmitAssessment={handleSubmitAssessment}
+              onOpenAuth={(mode) => {
+                setAuthModalMode(mode);
+                setAuthModalOpen(true);
+              }}
+            />
+          )}
+
+          {currentTab === 'eligibility' && (
+            <EligibilityView
+              profile={profile}
+              eligibilityResults={eligibilityResults}
+              isProfileEmpty={emptyProfileState}
+              onNavigate={handleSelectTab}
+              onLoadDemo={handleLoadDemo}
+            />
+          )}
+
+          {currentTab === 'skillgap' && (
+            <SkillGapView
+              profile={profile}
+              isProfileEmpty={emptyProfileState}
+              onNavigate={handleSelectTab}
+              onLoadDemo={handleLoadDemo}
+              onAskCounselorWithPrompt={handleAskCounselor}
+            />
+          )}
+
+          {currentTab === 'courses' && (
+            <CoursesView
+              profile={profile}
+              isProfileEmpty={emptyProfileState}
+              onNavigateToTab={handleSelectTab}
+              onLoadDemoProfile={handleLoadDemo}
+            />
+          )}
+
+          {currentTab === 'jobs' && (
+            <JobsView
+              profile={profile}
+              currentUser={currentUser}
+              assessmentSubmitted={assessmentSubmitted}
+              onNavigate={handleSelectTab}
+              onLoadDemoProfile={handleLoadDemo}
+            />
+          )}
+
+          {currentTab === 'counselor' && (
+            <AiCounselorView
+              profile={profile}
+              isProfileEmpty={emptyProfileState}
+              initialPrompt={initialCounselorPrompt}
+              onClearInitialPrompt={() => setInitialCounselorPrompt('')}
+              onNavigate={handleSelectTab}
+              onLoadDemo={handleLoadDemo}
+            />
+          )}
+
+          {currentTab === 'resume' && (
+            <ResumeBuilderView
+              profile={profile}
+              isProfileEmpty={emptyProfileState}
+              onNavigate={handleSelectTab}
+              onLoadDemo={handleLoadDemo}
+            />
+          )}
+
+          {currentTab === 'prep' && <PrepHubView />}
+        </main>
+
+        {/* Crawlable Platform Overview for Users & Search Engines - strictly isolated to Dashboard */}
+        {currentTab === 'dashboard' && (
+          <div className="relative z-10">
+            <AboutPlatformInfo />
+          </div>
         )}
 
-        {currentTab === 'eligibility' && (
-          <EligibilityView
-            profile={profile}
-            eligibilityResults={eligibilityResults}
-            isProfileEmpty={emptyProfileState}
-            onNavigate={setCurrentTab}
-            onLoadDemo={handleLoadDemo}
-          />
-        )}
-
-        {currentTab === 'skillgap' && (
-          <SkillGapView
-            profile={profile}
-            isProfileEmpty={emptyProfileState}
-            onNavigate={setCurrentTab}
-            onLoadDemo={handleLoadDemo}
-            onAskCounselorWithPrompt={handleAskCounselor}
-          />
-        )}
-
-        {currentTab === 'courses' && (
-          <CoursesView
-            profile={profile}
-            isProfileEmpty={emptyProfileState}
-            onNavigateToTab={setCurrentTab}
-            onLoadDemoProfile={handleLoadDemo}
-          />
-        )}
-
-        {currentTab === 'jobs' && (
-          <JobsView
-            profile={profile}
-            currentUser={currentUser}
-            assessmentSubmitted={assessmentSubmitted}
-            onNavigate={setCurrentTab}
-            onLoadDemoProfile={handleLoadDemo}
-          />
-        )}
-
-        {currentTab === 'counselor' && (
-          <AiCounselorView
-            profile={profile}
-            isProfileEmpty={emptyProfileState}
-            initialPrompt={initialCounselorPrompt}
-            onClearInitialPrompt={() => setInitialCounselorPrompt('')}
-            onNavigate={setCurrentTab}
-            onLoadDemo={handleLoadDemo}
-          />
-        )}
-
-        {currentTab === 'resume' && (
-          <ResumeBuilderView
-            profile={profile}
-            isProfileEmpty={emptyProfileState}
-            onNavigate={setCurrentTab}
-            onLoadDemo={handleLoadDemo}
-          />
-        )}
-
-        {currentTab === 'prep' && <PrepHubView />}
-      </main>
-
-      {/* Crawlable Platform Overview for Users & Search Engines */}
-      <div className="relative z-10">
-        <AboutPlatformInfo />
+        {/* Professional Startup Footer */}
+        <div className="relative z-10 print:hidden">
+          <Footer onReplayIntro={triggerIntro} />
+        </div>
       </div>
-
-      {/* Professional Startup Footer */}
-      <div className="relative z-10">
-        <Footer onReplayIntro={triggerIntro} />
-      </div>
-    </div>
 
       {/* Unified Google & Email Authentication Modal */}
-      <AuthModal
-        isOpen={authModalOpen}
-        initialMode={authModalMode}
-        onClose={() => setAuthModalOpen(false)}
-        onAuthSuccess={handleAuthSuccess}
-      />
+      <div className="print:hidden">
+        <AuthModal
+          isOpen={authModalOpen}
+          initialMode={authModalMode}
+          onClose={() => setAuthModalOpen(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
 
-      {/* Centralized Premium CareerAI Loading Screen & Intro */}
-      <CareerAiLoadingScreen
-        show={isIntroActive || isOverlayVisible}
-        title={loadingTitle}
-        subtitle={loadingSubtitle}
-        isIntroMode={isIntroActive}
-        onComplete={completeIntro}
-        onDismiss={dismissAll}
-      />
+        {/* Centralized Premium CareerAI Loading Screen & Intro */}
+        <CareerAiLoadingScreen
+          show={isIntroActive || isOverlayVisible}
+          title={loadingTitle}
+          subtitle={loadingSubtitle}
+          isIntroMode={isIntroActive}
+          onComplete={completeIntro}
+          onDismiss={dismissAll}
+        />
+      </div>
     </div>
   );
 }

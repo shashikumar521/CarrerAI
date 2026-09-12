@@ -116,7 +116,7 @@ export const CareerAiWatermarkBackground: React.FC = () => {
     <div
       ref={containerRef}
       aria-hidden="true"
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none print:hidden"
     >
       {/* ------------------------------------------------------------- */}
       {/* LAYER 3: Extremely Subtle Soft Atmospheric Orbs & Blobs       */}

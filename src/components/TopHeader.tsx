@@ -136,17 +136,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   );
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 text-slate-900 select-none">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-slate-100 select-none transition-colors">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 gap-2 sm:gap-3">
           {/* Left: Mobile Toggle & Global Quick Search */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-lg">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0 max-w-lg">
             {/* Mobile Sidebar Hamburger Toggle */}
             <button
               type="button"
               onClick={onToggleMobile}
-              className="lg:hidden p-1.5 sm:p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl cursor-pointer shrink-0"
-              aria-label="Open mobile navigation"
+              className="lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer shrink-0 transition-colors"
+              aria-label="Open navigation drawer"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -160,11 +160,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
-                  placeholder="Search skills, companies, jobs..."
-                  className="w-full pl-8 sm:pl-9 pr-2 sm:pr-14 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs truncate"
+                  placeholder="Search skills, jobs..."
+                  className="w-full pl-8 sm:pl-9 pr-2 sm:pr-14 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700/80 focus:bg-white dark:focus:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 rounded-xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden transition-all shadow-2xs truncate"
                 />
                 <div className="absolute right-2.5 hidden sm:flex items-center gap-0.5 pointer-events-none">
-                  <kbd className="inline-block px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded">
+                  <kbd className="inline-block px-1.5 py-0.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded">
                     ⌘K
                   </kbd>
                 </div>
@@ -172,8 +172,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
               {/* Search Dropdown / Quick Jumps */}
               {searchFocused && (
-                <div className="absolute left-0 right-0 mt-2 w-full max-w-[calc(100vw-32px)] bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="absolute left-0 right-0 mt-2 w-full max-w-[calc(100vw-24px)] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                     Quick Jump to Module
                   </div>
                   <div className="space-y-1 mt-1">
@@ -188,17 +188,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                             setSearchFocused(false);
                             setSearchQuery('');
                           }}
-                          className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+                          className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shrink-0">
+                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/60 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors shrink-0">
                               <Icon className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">
+                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
                               {item.label}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0 ml-2">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0 ml-2">
                             {item.tag}
                           </span>
                         </button>
@@ -211,17 +211,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </div>
 
           {/* Right: Quick Demo Trigger, Notifications Pulse, and User Profile Menu */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Demo Data Quick Action */}
             {isProfileEmpty ? (
               <button
                 type="button"
                 id="header-load-demo-btn"
                 onClick={onLoadDemo}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-102"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-102"
                 title="Load sample 3rd year CSE profile for diagnostic testing"
               >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 <span>Load Demo</span>
               </button>
             ) : (
@@ -229,7 +229,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 type="button"
                 id="header-clear-profile-btn"
                 onClick={() => setShowClearConfirm(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 border border-slate-200 text-slate-600 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                 title="Reset profile"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -243,23 +243,23 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 type="button"
                 id="header-notifications-btn"
                 onClick={() => setNotifOpen(!notifOpen)}
-                className="relative p-1.5 sm:p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all cursor-pointer"
+                className="relative p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
                 {hasUnread && (
-                  <span className="w-2 h-2 rounded-full bg-indigo-600 ring-2 ring-white animate-pulse absolute top-1.5 right-1.5 pointer-events-none" />
+                  <span className="w-2 h-2 rounded-full bg-indigo-600 ring-2 ring-white dark:ring-slate-900 animate-pulse absolute top-2 right-2 pointer-events-none" />
                 )}
               </button>
 
               {/* Notification Dropdown Panel */}
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-28px)] sm:w-88 max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 py-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="flex items-center justify-between px-4 pb-2.5 border-b border-slate-100">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] sm:w-88 max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between px-4 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-900">Placement Updates</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Placement Updates</span>
                       {hasUnread && (
-                        <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700">
+                        <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
                           New
                         </span>
                       )}
@@ -268,42 +268,42 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <button
                         type="button"
                         onClick={handleMarkAllRead}
-                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer"
+                        className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                       >
                         Mark all read
                       </button>
                     )}
                   </div>
 
-                  <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
                     {notifications.map((n) => (
                       <div
                         key={n.id}
-                        className={`p-3.5 hover:bg-slate-50 transition-colors ${
-                          n.unread ? 'bg-indigo-50/25' : ''
+                        className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
+                          n.unread ? 'bg-indigo-50/30 dark:bg-indigo-950/30' : ''
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <h5 className="text-xs font-bold text-slate-900 leading-snug">
+                          <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug">
                             {n.title}
                           </h5>
-                          <span className="text-[10px] text-slate-400 shrink-0">{n.time}</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">{n.time}</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                           {n.desc}
                         </p>
                       </div>
                     ))}
                   </div>
 
-                  <div className="pt-2 px-3 border-t border-slate-100 text-center">
+                  <div className="pt-2 px-3 border-t border-slate-100 dark:border-slate-800 text-center">
                     <button
                       type="button"
                       onClick={() => {
                         setNotifOpen(false);
                         onSelectTab('eligibility');
                       }}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer inline-flex items-center gap-1"
+                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer inline-flex items-center gap-1"
                     >
                       <span>View All Eligibility Signals</span>
                     </button>
@@ -319,18 +319,18 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   type="button"
                   id="header-user-menu-btn"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                  className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:pl-2 sm:pr-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs min-h-[40px]"
                   aria-expanded={userDropdownOpen}
                 >
                   {currentUser.photoUrl ? (
                     <img
                       src={currentUser.photoUrl}
                       alt={currentUser.name}
-                      className="w-5 h-5 rounded-full object-cover border border-slate-200"
+                      className="w-6 h-6 rounded-full object-cover border border-slate-200 dark:border-slate-700"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold flex items-center justify-center text-[10px]">
+                    <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-bold flex items-center justify-center text-[11px]">
                       {currentUser.name.charAt(0).toUpperCase() || 'S'}
                     </div>
                   )}
@@ -345,30 +345,30 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
                 {/* Dropdown Menu */}
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-[calc(100vw-28px)] sm:w-64 max-w-xs bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-4 py-2.5 border-b border-slate-100">
-                      <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
-                      <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
-                      <div className="flex items-center gap-1.5 mt-2">
+                  <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] sm:w-64 max-w-xs bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{currentUser.name}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{currentUser.email}</p>
+                      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                         {currentUser.provider === 'google' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                             <GoogleIcon className="w-3 h-3" />
                             <span>Google Account</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                             <span>Email Account</span>
                           </span>
                         )}
 
                         {assessmentSubmitted ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                             <span>Assessed</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            <AlertCircle className="w-3 h-3 text-amber-600" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                             <span>Pending</span>
                           </span>
                         )}
@@ -382,9 +382,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                           onSelectTab('profile');
                           setUserDropdownOpen(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
                       >
-                        <User className="w-3.5 h-3.5 text-indigo-600" />
+                        <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                         <span>My Profile &amp; Assessment</span>
                       </button>
 
@@ -395,15 +395,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                             setUserDropdownOpen(false);
                             onReplayIntro();
                           }}
-                          className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                          className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
                         >
-                          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                           <span>Watch Brand Animation</span>
                         </button>
                       )}
                     </div>
 
-                    <div className="pt-1 border-t border-slate-100">
+                    <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
                       <button
                         type="button"
                         id="user-dropdown-logout-btn"
@@ -411,9 +411,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                           setUserDropdownOpen(false);
                           onLogout();
                         }}
-                        className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center gap-2 cursor-pointer"
                       >
-                        <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                        <LogOut className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                         <span>Sign Out</span>
                       </button>
                     </div>
@@ -421,12 +421,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <button
                   type="button"
                   id="header-signin-btn"
                   onClick={() => onOpenAuth('signin')}
-                  className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer shrink-0"
+                  className="px-2.5 sm:px-3 py-1.5 min-h-[36px] sm:min-h-[38px] text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl transition-colors cursor-pointer shrink-0"
                 >
                   Sign In
                 </button>
@@ -434,7 +434,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   type="button"
                   id="header-signup-btn"
                   onClick={() => onOpenAuth('signup')}
-                  className="px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5 hover:scale-102 shrink-0"
+                  className="px-2.5 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5 hover:scale-102 shrink-0"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Sign Up</span>

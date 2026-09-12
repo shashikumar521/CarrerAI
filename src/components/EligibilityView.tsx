@@ -70,10 +70,10 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
         <div>
           <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <Building2 className="w-6 h-6 text-indigo-600" />
-            <span>Campus Placement Company Eligibility Tracker</span>
+            <span>Eligibility Checker</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Real-time evaluation against B.Tech CGPA, backlogs, branch, and 10th/12th cutoffs across 30+ top recruiters.
+            Check your company cutoff eligibility across 30+ top recruiters.
           </p>
         </div>
 

@@ -378,10 +378,10 @@ export const PrepHubView: React.FC = () => {
         <div>
           <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <BookOpen className="w-6 h-6 text-indigo-600" />
-            <span>Structured Interview Preparation Hub</span>
+            <span>Interview Prep</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Organized modules across Technical, Behavioral, Role-Specific, and Company-Specific interview patterns.
+            Practice interviews and strengthen your confidence before placement rounds.
           </p>
         </div>
 

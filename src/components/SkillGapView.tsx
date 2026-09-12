@@ -137,10 +137,10 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
         <div>
           <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2.5">
             <GitBranch className="w-6 h-6 text-indigo-600" />
-            <span>Target Role Skill Gap Analyzer &amp; Roadmap</span>
+            <span>Skill Gap &amp; Roadmap</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Compare your current skillset with industry standards for top engineering roles to reveal missing skills and concrete learning timelines.
+            Identify your skill gaps and follow a personalized path toward placement readiness.
           </p>
         </div>
 

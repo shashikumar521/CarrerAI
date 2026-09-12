@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ResponsiveContainer,
   RadarChart,
@@ -96,6 +96,15 @@ export const PlacementRadarChart: React.FC<PlacementRadarChartProps> = ({
   const isDark = resolvedTheme === 'dark';
   const [showMethodology, setShowMethodology] = useState(false);
   const [selectedDimensionKey, setSelectedDimensionKey] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 640 : false));
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const analysis = calculatePlacementRadarAnalysis(profile);
   const {
@@ -107,10 +116,21 @@ export const PlacementRadarChart: React.FC<PlacementRadarChartProps> = ({
     heuristicRankBenchmark,
   } = analysis;
 
+  const SHORT_DIMENSION_LABELS: Record<string, string> = {
+    'Technical Fundamentals': 'Tech Stack',
+    'DSA & Problem Solving': 'DSA & Logic',
+    'Project Depth & Deployment': 'Projects',
+    'Core CS & Systems': 'Core CS',
+    'Academics & CGPA': 'Academics',
+    'Industry Experience': 'Experience',
+    'Soft Skills & Communication': 'Soft Skills',
+  };
+
   // Formatting for Recharts data
   const chartData = dimensions.map((d) => ({
     ...d,
-    // Provide short label on small screens if needed, otherwise full label
+    // Provide short concise label on small screens so radar labels never clip
+    radarLabel: isMobile ? (SHORT_DIMENSION_LABELS[d.dimension] || d.dimension) : d.dimension,
     shortDimension: d.dimension,
   }));
 
@@ -209,32 +229,32 @@ export const PlacementRadarChart: React.FC<PlacementRadarChartProps> = ({
       {/* 3. Main Visual Radar Chart & Detailed Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         {/* Radar Spider Canvas Container */}
-        <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 sm:p-4 flex flex-col items-center justify-center relative min-h-[340px]">
-          <div className="w-full h-[320px] sm:h-[350px]">
+        <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 sm:p-4 flex flex-col items-center justify-center relative min-h-[300px] sm:min-h-[340px] overflow-hidden">
+          <div className="w-full h-[280px] sm:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart
                 cx="50%"
                 cy="50%"
-                outerRadius="75%"
+                outerRadius={isMobile ? '58%' : '72%'}
                 data={chartData}
-                margin={{ top: 15, right: 25, bottom: 15, left: 25 }}
+                margin={isMobile ? { top: 8, right: 10, bottom: 8, left: 10 } : { top: 15, right: 25, bottom: 15, left: 25 }}
               >
                 <PolarGrid
                   stroke={isDark ? '#334155' : '#e2e8f0'}
                   strokeDasharray="3 3"
                 />
                 <PolarAngleAxis
-                  dataKey="shortDimension"
+                  dataKey="radarLabel"
                   tick={{
                     fill: isDark ? '#cbd5e1' : '#475569',
-                    fontSize: 11,
+                    fontSize: isMobile ? 9.5 : 11,
                     fontWeight: 600,
                   }}
                 />
                 <PolarRadiusAxis
                   angle={90}
                   domain={[0, 100]}
-                  tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 10 }}
+                  tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: isMobile ? 8 : 10 }}
                   stroke={isDark ? '#475569' : '#cbd5e1'}
                 />
                 <Radar
@@ -250,13 +270,13 @@ export const PlacementRadarChart: React.FC<PlacementRadarChartProps> = ({
             </ResponsiveContainer>
           </div>
 
-          <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-1">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400 shrink-0" />
               <span>Current Score (0–100)</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-0.5 border-b-2 border-dashed border-slate-400 dark:border-slate-500" />
+              <span className="w-2.5 h-0.5 border-b-2 border-dashed border-slate-400 dark:border-slate-500 shrink-0" />
               <span>Scale: 0 Min to 100 Max</span>
             </span>
           </div>
@@ -415,12 +435,13 @@ export const PlacementRadarChart: React.FC<PlacementRadarChartProps> = ({
                 All 7 dimensions combine via configurable coefficients summing to 100%:
               </p>
               <ul className="text-[10px] text-slate-600 dark:text-slate-400 space-y-0.5">
-                <li>• Technical Skills: <strong>{DEFAULT_RADAR_WEIGHTS.technicalSkills * 100}%</strong></li>
-                <li>• DSA / Problem Solving: <strong>{DEFAULT_RADAR_WEIGHTS.dsa * 100}%</strong></li>
-                <li>• Projects &amp; Repositories: <strong>{DEFAULT_RADAR_WEIGHTS.projects * 100}%</strong></li>
-                <li>• Aptitude &amp; Academics: <strong>{DEFAULT_RADAR_WEIGHTS.aptitude * 100}%</strong></li>
-                <li>• Resume ATS Audit: <strong>{DEFAULT_RADAR_WEIGHTS.resumeATS * 100}%</strong></li>
-                <li>• Communication &amp; Interview: <strong>20%</strong></li>
+                <li>• Technical Skills: <strong>{Math.round(DEFAULT_RADAR_WEIGHTS.technicalSkills * 100)}%</strong></li>
+                <li>• DSA &amp; Problem Solving: <strong>{Math.round(DEFAULT_RADAR_WEIGHTS.dsa * 100)}%</strong></li>
+                <li>• Projects &amp; Deployments: <strong>{Math.round(DEFAULT_RADAR_WEIGHTS.projects * 100)}%</strong></li>
+                <li>• Aptitude &amp; Academics: <strong>{Math.round(DEFAULT_RADAR_WEIGHTS.aptitude * 100)}%</strong></li>
+                <li>• Resume ATS Audit: <strong>{Math.round(DEFAULT_RADAR_WEIGHTS.resumeATS * 100)}%</strong></li>
+                <li>• Communication: <strong>{Math.round(DEFAULT_RADAR_WEIGHTS.communication * 100)}%</strong></li>
+                <li>• Interview Readiness: <strong>{Math.round(DEFAULT_RADAR_WEIGHTS.interviewReadiness * 100)}%</strong></li>
               </ul>
             </div>
           </div>

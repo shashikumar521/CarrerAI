@@ -478,8 +478,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
               >
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight flex flex-wrap items-center gap-2">
-                  <span className="break-words">
-                    {greetingFirstName ? `Hi, ${greetingFirstName}` : 'Hi there'}
+                  <span>Dashboard</span>
+                  <span className="text-slate-300 font-normal text-lg">|</span>
+                  <span className="text-indigo-600 font-semibold text-lg sm:text-xl">
+                    {greetingFirstName ? `Hi, ${greetingFirstName}` : 'Overview'}
                   </span>
                   <motion.span
                     initial={{ rotate: 0 }}
@@ -491,22 +493,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     👋
                   </motion.span>
                 </h1>
-                <p className="text-sm sm:text-base text-slate-600 font-normal mt-1 leading-relaxed max-w-2xl">
-                  Welcome back. Let’s build your skills, discover the right opportunities, and get you placement-ready.
+                <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1 leading-relaxed max-w-2xl">
+                  Comprehensive overview of your placement readiness, skills, and opportunities.
                 </p>
               </motion.div>
             </div>
           </div>
 
           {/* Compact Actions */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0 self-start md:self-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0 self-start md:self-auto w-full sm:w-auto">
             {!isAssessed ? (
               <>
                 <button
                   type="button"
                   id="welcome-enter-profile-btn"
                   onClick={() => onNavigate('profile')}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all hover:scale-102 active:scale-98 flex items-center gap-1.5 cursor-pointer"
+                  className="min-h-[44px] flex-1 sm:flex-initial px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all hover:scale-102 active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Rocket className="w-3.5 h-3.5" />
                   <span>Enter Profile</span>
@@ -516,7 +518,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   type="button"
                   id="welcome-load-demo-btn"
                   onClick={onLoadDemo}
-                  className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold text-xs rounded-xl transition-all hover:scale-102 flex items-center gap-1.5 cursor-pointer"
+                  className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold text-xs rounded-xl transition-all hover:scale-102 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Load Demo Data</span>
@@ -527,7 +529,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate('profile')}
-                  className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold text-xs rounded-xl transition-all hover:scale-102 flex items-center gap-1.5 cursor-pointer"
+                  className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold text-xs rounded-xl transition-all hover:scale-102 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <User className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Edit Profile</span>
@@ -535,7 +537,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate('jobs')}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all hover:scale-102 flex items-center gap-1.5 cursor-pointer"
+                  className="min-h-[44px] flex-1 sm:flex-initial px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all hover:scale-102 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Briefcase className="w-3.5 h-3.5" />
                   <span>Live Jobs</span>
@@ -699,9 +701,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     type="button"
                     id="career-readiness-start-btn"
                     onClick={() => onNavigate('profile')}
-                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer group"
+                    className="w-full min-h-[44px] py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer group"
                   >
-                    <span>Start Career</span>
+                    <span>Setup Career Profile</span>
                     <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                   </button>
                 ) : (
@@ -709,7 +711,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     type="button"
                     id="career-readiness-manage-btn"
                     onClick={() => onNavigate('profile')}
-                    className="w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 active:bg-slate-200 font-semibold text-xs rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer group"
+                    className="w-full min-h-[44px] py-2.5 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 active:bg-slate-200 font-semibold text-xs rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer group"
                   >
                     <User className="w-3.5 h-3.5 text-indigo-600" />
                     <span>Manage Profile &amp; Goals</span>
