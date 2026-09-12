@@ -395,7 +395,7 @@ export const PrepHubView: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* 4 Clear Categories as requested */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
             <button
               onClick={() => setActiveCategory('All')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -547,8 +547,8 @@ export const PrepHubView: React.FC = () => {
       </div>
 
       {/* Drill Questions Practice Section */}
-      <div id="drill-questions-section" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div id="drill-questions-section" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Terminal className="w-5 h-5 text-indigo-600" />
@@ -558,7 +558,7 @@ export const PrepHubView: React.FC = () => {
               Practice answering core questions with interviewer-validated model answers and key takeaways.
             </p>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 self-start sm:self-auto shrink-0">
             {drillQuestions.length} Questions Ready
           </span>
         </div>

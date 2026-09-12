@@ -467,7 +467,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
         </div>
 
         {/* Row 2: Secondary Dropdown Filters */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 pt-2 border-t border-slate-100">
           {/* Work Mode */}
           <div>
             <label className="text-[11px] font-semibold text-slate-500 block mb-1">Work Mode</label>
@@ -537,7 +537,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
 
         {/* Quick Skill Filter Pills based on Student Profile */}
         {studentSkillNames.length > 0 && (
-          <div className="pt-2 flex items-center gap-2 overflow-x-auto text-xs">
+          <div className="pt-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 text-xs">
             <span className="text-slate-500 font-medium shrink-0 flex items-center gap-1">
               <Tag className="w-3 h-3 text-slate-400" />
               Your Skills:
@@ -917,11 +917,11 @@ export const JobsView: React.FC<JobsViewProps> = ({
       {/* Detailed Job Modal */}
       {selectedJobForModal && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
           onClick={() => setSelectedJobForModal(null)}
         >
           <div
-            className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-xl relative"
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 shadow-xl relative my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">

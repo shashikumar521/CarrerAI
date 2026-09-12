@@ -14,7 +14,6 @@ import { CareerAiAnimation } from './CareerAiAnimation';
 import {
   signInWithEmail,
   signUpWithEmail,
-  handleGoogleAuthPayload,
   handleGoogleCredentialResponse,
 } from '../utils/authService';
 import { sendAdminLoginNotification } from '../utils/notificationService';
@@ -44,9 +43,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showTryAgain, setShowTryAgain] = useState(false);
+  const [isGsiRendered, setIsGsiRendered] = useState(false);
 
   const googleBtnContainerRef = useRef<HTMLDivElement | null>(null);
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
 
   useEffect(() => {
     setMode(initialMode);
@@ -58,7 +58,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   // Helper to ensure Google Identity Services SDK is loaded
   const ensureGoogleGsiLoaded = (): Promise<boolean> => {
-    if (typeof window !== 'undefined' && (window.google?.accounts?.id || window.google?.accounts?.oauth2)) {
+    if (typeof window !== 'undefined' && window.google?.accounts?.id) {
       return Promise.resolve(true);
     }
     return new Promise((resolve) => {
@@ -67,7 +67,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         let attempts = 0;
         const interval = setInterval(() => {
           attempts++;
-          if (window.google?.accounts?.id || window.google?.accounts?.oauth2) {
+          if (window.google?.accounts?.id) {
             clearInterval(interval);
             resolve(true);
           } else if (attempts >= 40) {
@@ -86,7 +86,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         let attempts = 0;
         const interval = setInterval(() => {
           attempts++;
-          if (window.google?.accounts?.id || window.google?.accounts?.oauth2) {
+          if (window.google?.accounts?.id) {
             clearInterval(interval);
             resolve(true);
           } else if (attempts >= 20) {
@@ -146,128 +146,76 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  // Initialize Google Identity Services when modal opens
+  // Initialize Google Identity Services and render official button when modal opens
   useEffect(() => {
     if (!isOpen) return;
 
-    if (!googleClientId || typeof googleClientId !== 'string' || !googleClientId.trim()) {
+    if (!googleClientId) {
       return;
     }
 
+    let isMounted = true;
+
     ensureGoogleGsiLoaded().then((loaded) => {
+      if (!isMounted) return;
+
       if (loaded && window.google?.accounts?.id) {
         try {
+          // Initialize Google Identity Services with exact single Client ID
           window.google.accounts.id.initialize({
-            client_id: googleClientId.trim(),
+            client_id: googleClientId,
             callback: handleGoogleCredentialCallback,
             auto_select: false,
             cancel_on_tap_outside: true,
+            context: 'signin',
+            ux_mode: 'popup',
+            itp_support: true,
           });
 
+          // Render official Google button into container
           if (googleBtnContainerRef.current) {
+            googleBtnContainerRef.current.innerHTML = '';
+            const parentWidth = googleBtnContainerRef.current.offsetWidth || 360;
+            const buttonWidth = Math.min(380, Math.max(240, parentWidth));
+
             window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
               type: 'standard',
               theme: 'outline',
               size: 'large',
               text: 'continue_with',
               shape: 'rectangular',
-              width: 360,
               logo_alignment: 'left',
+              width: buttonWidth,
             });
+            setIsGsiRendered(true);
+          }
+
+          // Safe debug output to verify Client ID and origin in production without exposing secrets
+          if (typeof window !== 'undefined') {
+            const currentOrigin = window.location.origin;
+            const maskedClientId =
+              googleClientId.length > 20
+                ? `${googleClientId.substring(0, 12)}...${googleClientId.slice(-20)}`
+                : googleClientId;
+            console.log(
+              `[CareerAI Auth] Google Identity Services initialized: ${maskedClientId} | Browser Origin: ${currentOrigin}`
+            );
+            if (currentOrigin.includes('run.app')) {
+              console.warn(
+                `[CareerAI Auth] Notice: Active browsing origin is an internal Cloud Run preview URL (${currentOrigin}). When deployed and opened at https://carrer-ai-kappa.vercel.app, the browser origin is https://carrer-ai-kappa.vercel.app.`
+              );
+            }
           }
         } catch (err) {
-          console.warn('Google Identity Services notice:', err);
+          console.warn('[CareerAI Auth] Google Identity Services notice:', err);
         }
       }
     });
-  }, [isOpen, googleClientId]);
 
-  // Fallback OAuth2 popup flow if GIS prompt or button overlay cannot open
-  const launchOAuth2Fallback = (clientId: string) => {
-    if (!window.google?.accounts?.oauth2) {
-      setIsConnectingGoogle(false);
-      setErrorMessage('Google Sign-In could not be completed. Please try again.');
-      setShowTryAgain(true);
-      return;
-    }
-
-    const tokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: 'email profile openid',
-      callback: async (response: any) => {
-        setIsConnectingGoogle(false);
-
-        if (response.error) {
-          if (response.error === 'popup_closed_by_user' || response.error === 'access_denied') {
-            return;
-          }
-          setErrorMessage('Google Sign-In could not be completed. Please try again.');
-          setShowTryAgain(true);
-          return;
-        }
-
-        if (!response.access_token) {
-          setErrorMessage('Google Sign-In could not be completed. Please try again.');
-          setShowTryAgain(true);
-          return;
-        }
-
-        try {
-          setLoading(true);
-          const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: {
-              Authorization: `Bearer ${response.access_token}`,
-            },
-          });
-
-          if (!res.ok) {
-            throw new Error('Profile fetch failed');
-          }
-
-          const googleUser = await res.json();
-          const authResult = handleGoogleAuthPayload({
-            name: googleUser.name || googleUser.given_name || 'Student',
-            email: googleUser.email,
-            photoUrl: googleUser.picture,
-            sub: googleUser.sub,
-          });
-
-          sendAdminLoginNotification({
-            name: googleUser.name || 'Google Student',
-            email: googleUser.email,
-            loginMethod: 'Google',
-            eventType: authResult.isNewUser ? 'registration' : 'login',
-          });
-
-          setSuccessMessage(
-            authResult.isNewUser
-              ? 'Google account connected! Loading your workspace...'
-              : 'Signed in successfully! Redirecting to Dashboard...'
-          );
-
-          setTimeout(() => {
-            setLoading(false);
-            onAuthSuccess(authResult.record, authResult.isNewUser);
-            onClose();
-          }, 500);
-        } catch (fetchErr) {
-          setLoading(false);
-          setErrorMessage('Google Sign-In could not be completed. Please try again.');
-          setShowTryAgain(true);
-        }
-      },
-      error_callback: (err: any) => {
-        setIsConnectingGoogle(false);
-        if (err?.type === 'popup_closed' || err?.error === 'popup_closed_by_user') {
-          return;
-        }
-        setErrorMessage('Google Sign-In could not be completed. Please try again.');
-        setShowTryAgain(true);
-      },
-    });
-
-    tokenClient.requestAccessToken({ prompt: 'select_account' });
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, googleClientId, mode]);
 
   // Handle Email/Password Sign In
   const handleEmailSignIn = (e: React.FormEvent) => {
@@ -343,16 +291,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  // Trigger Real Production Google OAuth Flow
+  // Trigger Real Production Google OAuth Flow using GIS popup/callback
   const handleContinueWithGoogle = async () => {
     setErrorMessage(null);
     setShowTryAgain(false);
 
-    // Requirement 10: If VITE_GOOGLE_CLIENT_ID is missing:
+    // If VITE_GOOGLE_CLIENT_ID is missing:
     // show a simple user-friendly message such as:
     // "Google Sign-In is temporarily unavailable. Please use email and password."
     // Do NOT show developer setup instructions.
-    if (!googleClientId || typeof googleClientId !== 'string' || !googleClientId.trim()) {
+    if (!googleClientId) {
       setErrorMessage('Google Sign-In is temporarily unavailable. Please use email and password.');
       return;
     }
@@ -361,34 +309,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       const isLoaded = await ensureGoogleGsiLoaded();
-      if (!isLoaded || (!window.google?.accounts?.id && !window.google?.accounts?.oauth2)) {
+      if (!isLoaded || !window.google?.accounts?.id) {
         setIsConnectingGoogle(false);
         setErrorMessage('Google Sign-In could not be completed. Please try again.');
         setShowTryAgain(true);
         return;
       }
 
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId.trim(),
-          callback: handleGoogleCredentialCallback,
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredentialCallback,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        context: 'signin',
+        ux_mode: 'popup',
+        itp_support: true,
+      });
 
-        window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isDismissedMoment()) {
-            setIsConnectingGoogle(false);
-            return;
-          }
-
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            launchOAuth2Fallback(googleClientId.trim());
-          }
+      if (googleBtnContainerRef.current) {
+        googleBtnContainerRef.current.innerHTML = '';
+        const parentWidth = googleBtnContainerRef.current.offsetWidth || 360;
+        const buttonWidth = Math.min(380, Math.max(240, parentWidth));
+        window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: buttonWidth,
         });
-      } else {
-        launchOAuth2Fallback(googleClientId.trim());
+        setIsGsiRendered(true);
       }
+
+      window.google.accounts.id.prompt((notification: any) => {
+        setIsConnectingGoogle(false);
+        if (notification.isDismissedMoment()) {
+          return;
+        }
+      });
     } catch (err) {
       setIsConnectingGoogle(false);
       setErrorMessage('Google Sign-In could not be completed. Please try again.');
@@ -515,35 +474,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               )}
 
-              {/* Prominent "Continue with Google" Button */}
-              <div className="relative w-full">
-                <button
-                  type="button"
-                  id="google-signin-btn"
-                  onClick={handleContinueWithGoogle}
-                  disabled={loading || isConnectingGoogle}
-                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-semibold text-sm shadow-xs transition-all flex items-center justify-center gap-3 cursor-pointer hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isConnectingGoogle ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-indigo-600 shrink-0" />
-                      <span>Connecting to Google...</span>
-                    </>
-                  ) : (
-                    <>
-                      <GoogleIcon className="w-5 h-5 shrink-0" />
-                      <span>Continue with Google</span>
-                    </>
-                  )}
-                </button>
+              {/* Prominent "Continue with Google" Container */}
+              <div className="w-full flex flex-col items-center justify-center">
+                {/* Official Google Identity Services Render Container */}
+                <div
+                  ref={googleBtnContainerRef}
+                  className={`w-full flex items-center justify-center min-h-[44px] ${
+                    isGsiRendered ? 'block' : 'hidden'
+                  }`}
+                />
 
-                {/* GIS Native Button Overlay for direct account chooser popup */}
-                {googleClientId && !loading && !isConnectingGoogle && (
-                  <div
-                    ref={googleBtnContainerRef}
-                    className="absolute inset-0 opacity-[0.001] overflow-hidden cursor-pointer flex items-center justify-center z-10"
-                    title="Continue with Google"
-                  />
+                {/* Fallback button shown before GIS button renders or if client ID unavailable */}
+                {!isGsiRendered && (
+                  <button
+                    type="button"
+                    id="google-signin-btn"
+                    onClick={handleContinueWithGoogle}
+                    disabled={loading || isConnectingGoogle}
+                    className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-semibold text-sm shadow-xs transition-all flex items-center justify-center gap-3 cursor-pointer hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isConnectingGoogle ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-indigo-600 shrink-0" />
+                        <span>Connecting to Google...</span>
+                      </>
+                    ) : (
+                      <>
+                        <GoogleIcon className="w-5 h-5 shrink-0" />
+                        <span>Continue with Google</span>
+                      </>
+                    )}
+                  </button>
                 )}
               </div>
 

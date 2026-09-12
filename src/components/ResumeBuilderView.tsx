@@ -307,7 +307,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
       </div>
 
       {/* Grid: Resume Canvas (Full Width for Premium Readability) */}
-      <div className="bg-white border border-slate-300 rounded-2xl p-8 sm:p-12 shadow-xs font-sans text-slate-900 text-xs leading-relaxed print:p-0 print:border-none print:shadow-none resume-sheet max-w-4xl mx-auto">
+      <div className="bg-white border border-slate-300 rounded-2xl p-4 sm:p-8 md:p-12 shadow-xs font-sans text-slate-900 text-xs leading-relaxed print:p-0 print:border-none print:shadow-none resume-sheet max-w-4xl mx-auto">
           {/* Header */}
           <div className="border-b-2 border-slate-900 pb-4 mb-5 text-center">
             <h1 className="text-[21px] font-semibold tracking-normal leading-[1.2] text-slate-900 uppercase">
@@ -345,7 +345,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
               Education
             </h2>
             <div className="space-y-2">
-              <div className="flex justify-between items-baseline">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1 sm:gap-4">
                 <div>
                   <span className="font-bold text-slate-900">
                     {profile.college || 'Engineering College / University'}
@@ -354,7 +354,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
                     Bachelor of Technology in {profile.branch || 'Your Branch'}
                   </p>
                 </div>
-                <div className="text-right text-[11px]">
+                <div className="sm:text-right text-[11px]">
                   <span className="font-bold text-slate-900">
                     CGPA: {profile.cgpa ? `${Number(profile.cgpa).toFixed(2)} / 10.0` : '—'}
                   </span>
@@ -427,7 +427,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
               <div className="space-y-3.5">
                 {profile.projects.map((p) => (
                   <div key={p.id}>
-                    <div className="flex justify-between items-baseline">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-0.5 sm:gap-4">
                       <div className="font-bold text-slate-900 text-xs">
                         {p.title}
                         {p.techStack && (

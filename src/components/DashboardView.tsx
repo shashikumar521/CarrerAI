@@ -482,7 +482,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Compact Actions */}
-          <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0 self-start md:self-auto">
             {!isAssessed ? (
               <>
                 <button
@@ -556,7 +556,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* 3 Overview Cards Layout with Consistent SaaS Dimensions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 items-stretch">
           {/* Card 1: Career Readiness with Circular Meter & Finish Glow */}
           <div className="bg-white border border-slate-200 hover:border-indigo-300 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
             <div>
@@ -722,7 +722,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Card 3: Academic & Profile Health */}
-          <div className="bg-white border border-slate-200 hover:border-indigo-300 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
+          <div className="bg-white border border-slate-200 hover:border-indigo-300 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all duration-200 flex flex-col justify-between md:col-span-2 lg:col-span-1">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
@@ -1617,14 +1617,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.24, ease: 'easeOut' }}
-              className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5"
+              className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 sm:space-y-5 my-auto max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
               <div className="flex items-start justify-between gap-3">

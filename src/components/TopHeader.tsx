@@ -138,34 +138,34 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 text-slate-900 select-none">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 gap-2 sm:gap-3">
           {/* Left: Mobile Toggle & Global Quick Search */}
-          <div className="flex items-center gap-3 flex-1 max-w-lg">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-lg">
             {/* Mobile Sidebar Hamburger Toggle */}
             <button
               type="button"
               onClick={onToggleMobile}
-              className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl cursor-pointer"
+              className="lg:hidden p-1.5 sm:p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl cursor-pointer shrink-0"
               aria-label="Open mobile navigation"
             >
               <Menu className="w-5 h-5" />
             </button>
 
             {/* Global Search Input with Command-K indicator */}
-            <div ref={searchContainerRef} className="relative flex-1">
+            <div ref={searchContainerRef} className="relative flex-1 min-w-0">
               <div className="relative flex items-center">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-2.5 sm:left-3 pointer-events-none shrink-0" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
-                  placeholder="Search skills, companies, jobs, cutoffs..."
-                  className="w-full pl-9 pr-14 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
+                  placeholder="Search skills, companies, jobs..."
+                  className="w-full pl-8 sm:pl-9 pr-2 sm:pr-14 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs truncate"
                 />
-                <div className="absolute right-2.5 flex items-center gap-0.5 pointer-events-none">
-                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded">
+                <div className="absolute right-2.5 hidden sm:flex items-center gap-0.5 pointer-events-none">
+                  <kbd className="inline-block px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded">
                     ⌘K
                   </kbd>
                 </div>
@@ -173,7 +173,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
               {/* Search Dropdown / Quick Jumps */}
               {searchFocused && (
-                <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute left-0 right-0 mt-2 w-full max-w-[calc(100vw-32px)] bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Quick Jump to Module
                   </div>
@@ -191,15 +191,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                           }}
                           className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-50 transition-colors cursor-pointer group"
                         >
-                          <div className="flex items-center gap-2.5">
-                            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shrink-0">
                               <Icon className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                            <span className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">
                               {item.label}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0 ml-2">
                             {item.tag}
                           </span>
                         </button>
@@ -212,7 +212,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </div>
 
           {/* Right: Quick Demo Trigger, Notifications Pulse, and User Profile Menu */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Demo Data Quick Action */}
             {isProfileEmpty ? (
               <button
@@ -250,7 +250,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 type="button"
                 id="header-notifications-btn"
                 onClick={() => setNotifOpen(!notifOpen)}
-                className="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all cursor-pointer"
+                className="relative p-1.5 sm:p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -261,7 +261,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
               {/* Notification Dropdown Panel */}
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white rounded-2xl shadow-xl border border-slate-200 py-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-28px)] sm:w-88 max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 py-3 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="flex items-center justify-between px-4 pb-2.5 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-900">Placement Updates</span>
@@ -352,7 +352,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
                 {/* Dropdown Menu */}
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 mt-2 w-[calc(100vw-28px)] sm:w-64 max-w-xs bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-4 py-2.5 border-b border-slate-100">
                       <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
                       <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
@@ -428,12 +428,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
                   id="header-signin-btn"
                   onClick={() => onOpenAuth('signin')}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
+                  className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer shrink-0"
                 >
                   Sign In
                 </button>
@@ -441,7 +441,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   type="button"
                   id="header-signup-btn"
                   onClick={() => onOpenAuth('signup')}
-                  className="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5 hover:scale-102"
+                  className="px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5 hover:scale-102 shrink-0"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Sign Up</span>

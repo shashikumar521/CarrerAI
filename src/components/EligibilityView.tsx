@@ -118,7 +118,7 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
           </div>
 
           {/* Status Filter Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
             <span className="text-xs font-semibold text-slate-500 mr-1 hidden md:inline">Status:</span>
             {['All', 'eligible', 'borderline', 'ineligible'].map((status) => {
               const label =
@@ -147,7 +147,7 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
         </div>
 
         {/* Tier Filter Buttons */}
-        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 overflow-x-auto">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 pt-2 border-t border-slate-100 overflow-x-auto pb-1 sm:pb-0">
           <span className="text-xs font-semibold text-slate-500 mr-1 shrink-0">Hiring Tier:</span>
           <button
             onClick={() => setSelectedTier('All')}
@@ -200,9 +200,9 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
             >
               <div>
                 {/* Top Strip */}
-                <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex flex-col xs:flex-row sm:flex-row items-start justify-between gap-2.5 sm:gap-3 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-semibold text-xs tracking-wider">
+                    <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-semibold text-xs tracking-wider shrink-0">
                       {company.logoBadge}
                     </div>
                     <div>
@@ -217,7 +217,7 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
 
                   {/* Status Badge */}
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold tracking-tight inline-flex items-center gap-1.5 ${
+                    className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold tracking-tight inline-flex items-center gap-1.5 shrink-0 self-start sm:self-auto whitespace-nowrap ${
                       status === 'eligible'
                         ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
                         : status === 'borderline'
@@ -241,7 +241,7 @@ export const EligibilityView: React.FC<EligibilityViewProps> = ({
                 </div>
 
                 {/* Package & Key Cutoffs Table */}
-                <div className="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs mb-3.5">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-[11px] sm:text-xs mb-3.5">
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-semibold block">
                       Typical CTC

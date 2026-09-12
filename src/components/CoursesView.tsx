@@ -729,7 +729,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 relative">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 relative">
                 {/* Step 1: Current Skills */}
                 <div className="bg-white border border-emerald-200 rounded-xl p-4 shadow-2xs space-y-1.5">
                   <div className="flex items-center justify-between">
