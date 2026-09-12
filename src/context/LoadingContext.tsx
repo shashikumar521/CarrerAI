@@ -60,15 +60,8 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     'Analyzing placement intelligence & career metrics'
   );
 
-  // First visit intro state: Check if intro was already seen in this session
-  const [isIntroActive, setIsIntroActive] = useState<boolean>(() => {
-    try {
-      if (typeof window === 'undefined') return false;
-      return sessionStorage.getItem(INTRO_SESSION_KEY) !== 'true';
-    } catch {
-      return false;
-    }
-  });
+  // Startup intro state: Always start active on fresh page load, refresh, or direct URL navigation
+  const [isIntroActive, setIsIntroActive] = useState<boolean>(true);
 
   const thresholdTimerRef = useRef<NodeJS.Timeout | null>(null);
   const visibleStartTimeRef = useRef<number | null>(null);

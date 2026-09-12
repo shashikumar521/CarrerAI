@@ -187,7 +187,7 @@ export const CareerAiLoadingScreen: React.FC<CareerAiLoadingScreenProps> = ({
       {show && (
         <motion.div
           key="careerai-premium-global-loading-system"
-          initial={{ opacity: 0 }}
+          initial={isIntroMode ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={transitionConfig}

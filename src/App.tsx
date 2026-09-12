@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { StudentProfile, AuthUser, AccountRecord } from './types';
 import {
   EMPTY_STUDENT_PROFILE,
@@ -30,7 +30,6 @@ import { AiCounselorView } from './components/AiCounselorView';
 import { ResumeBuilderView } from './components/ResumeBuilderView';
 import { PrepHubView } from './components/PrepHubView';
 import { AuthModal } from './components/AuthModal';
-import { AboutPlatformInfo } from './components/AboutPlatformInfo';
 import { Footer } from './components/Footer';
 import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
 import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
@@ -73,6 +72,23 @@ function CareerAiAppMain() {
     completeIntro,
     triggerIntro,
   } = useLoading();
+
+  // Startup Lifecycle: The dashboard is strictly mounted ONLY after the startup intro completes
+  // This guarantees zero dashboard cards, headings, or data flash before or behind the intro
+  const [dashboardMounted, setDashboardMounted] = useState<boolean>(() => !isIntroActive);
+
+  const handleIntroComplete = useCallback(() => {
+    setDashboardMounted(true);
+    completeIntro();
+  }, [completeIntro]);
+
+  const handleIntroDismiss = useCallback(() => {
+    if (isIntroActive) {
+      handleIntroComplete();
+    } else {
+      dismissAll();
+    }
+  }, [isIntroActive, handleIntroComplete, dismissAll]);
 
   // Assessment Submitted Flag
   const [assessmentSubmitted, setAssessmentSubmitted] = useState<boolean>(() => {
@@ -373,161 +389,158 @@ function CareerAiAppMain() {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white print:bg-white print:min-h-0 print:p-0 print:m-0">
-      {/* Subtle Animated CareerAI Brand Watermark Background (Layer 2 & 3) */}
-      <div className="print:hidden">
-        <CareerAiWatermarkBackground />
-      </div>
+    <div className={`relative min-h-screen ${dashboardMounted ? 'bg-slate-50 text-slate-900' : 'bg-[#070B14] text-white'} font-sans selection:bg-indigo-500 selection:text-white print:bg-white print:min-h-0 print:p-0 print:m-0`}>
+      {dashboardMounted && (
+        <>
+          {/* Subtle Animated CareerAI Brand Watermark Background (Layer 2 & 3) */}
+          <div className="print:hidden">
+            <CareerAiWatermarkBackground />
+          </div>
 
-      {/* Premium Subtle Cursor Glow & Card Cursor Manager */}
-      <div className="print:hidden">
-        <CursorGlow />
-        <CardCursorManager />
-      </div>
+          {/* Premium Subtle Cursor Glow & Card Cursor Manager */}
+          <div className="print:hidden">
+            <CursorGlow />
+            <CardCursorManager />
+          </div>
 
-      {/* Modern Fixed Left Navigation Sidebar (Desktop + Mobile Slideover) */}
-      <div className="print:hidden">
-        <Sidebar
-          currentTab={currentTab}
-          onSelectTab={handleSelectTab}
-          report={readinessReport}
-          isProfileEmpty={emptyProfileState}
-          eligibleCompanyCount={eligibleCompanyCount}
-          currentUser={currentUser}
-          assessmentSubmitted={assessmentSubmitted}
-          mobileOpen={mobileSidebarOpen}
-          onCloseMobile={() => setMobileSidebarOpen(false)}
-        />
-      </div>
-
-      {/* Main Content Column (with desktop left padding for the fixed sidebar) */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64 print:pl-0 print:m-0 print:min-h-0 print:w-full">
-        {/* Top Header with Search, Notifications, Demo Profile toggle & User Avatar */}
-        <div className="print:hidden">
-          <TopHeader
-            onToggleMobile={() => setMobileSidebarOpen(true)}
-            currentTab={currentTab}
-            onSelectTab={handleSelectTab}
-            report={readinessReport}
-            isProfileEmpty={emptyProfileState}
-            onLoadDemo={handleLoadDemo}
-            onClearProfile={handleClearProfile}
-            currentUser={currentUser}
-            assessmentSubmitted={assessmentSubmitted}
-            onOpenAuth={(mode) => {
-              setAuthModalMode(mode);
-              setAuthModalOpen(true);
-            }}
-            onLogout={handleLogout}
-            onReplayIntro={triggerIntro}
-          />
-        </div>
-
-        {/* Main Content Area */}
-        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
-          {currentTab === 'dashboard' && (
-            <DashboardView
-              profile={profile}
+          {/* Modern Fixed Left Navigation Sidebar (Desktop + Mobile Slideover) */}
+          <div className="print:hidden">
+            <Sidebar
+              currentTab={currentTab}
+              onSelectTab={handleSelectTab}
               report={readinessReport}
               isProfileEmpty={emptyProfileState}
-              eligibilityResults={eligibilityResults}
-              onNavigate={handleSelectTab}
-              onLoadDemo={handleLoadDemo}
+              eligibleCompanyCount={eligibleCompanyCount}
               currentUser={currentUser}
               assessmentSubmitted={assessmentSubmitted}
+              mobileOpen={mobileSidebarOpen}
+              onCloseMobile={() => setMobileSidebarOpen(false)}
             />
-          )}
-
-          {currentTab === 'profile' && (
-            <ProfileView
-              profile={profile}
-              onUpdateProfile={handleUpdateProfile}
-              onLoadDemo={handleLoadDemo}
-              onClearProfile={handleClearProfile}
-              currentUser={currentUser}
-              assessmentSubmitted={assessmentSubmitted}
-              onSubmitAssessment={handleSubmitAssessment}
-              onOpenAuth={(mode) => {
-                setAuthModalMode(mode);
-                setAuthModalOpen(true);
-              }}
-            />
-          )}
-
-          {currentTab === 'eligibility' && (
-            <EligibilityView
-              profile={profile}
-              eligibilityResults={eligibilityResults}
-              isProfileEmpty={emptyProfileState}
-              onNavigate={handleSelectTab}
-              onLoadDemo={handleLoadDemo}
-            />
-          )}
-
-          {currentTab === 'skillgap' && (
-            <SkillGapView
-              profile={profile}
-              isProfileEmpty={emptyProfileState}
-              onNavigate={handleSelectTab}
-              onLoadDemo={handleLoadDemo}
-              onAskCounselorWithPrompt={handleAskCounselor}
-            />
-          )}
-
-          {currentTab === 'courses' && (
-            <CoursesView
-              profile={profile}
-              isProfileEmpty={emptyProfileState}
-              onNavigateToTab={handleSelectTab}
-              onLoadDemoProfile={handleLoadDemo}
-            />
-          )}
-
-          {currentTab === 'jobs' && (
-            <JobsView
-              profile={profile}
-              currentUser={currentUser}
-              assessmentSubmitted={assessmentSubmitted}
-              onNavigate={handleSelectTab}
-              onLoadDemoProfile={handleLoadDemo}
-            />
-          )}
-
-          {currentTab === 'counselor' && (
-            <AiCounselorView
-              profile={profile}
-              isProfileEmpty={emptyProfileState}
-              initialPrompt={initialCounselorPrompt}
-              onClearInitialPrompt={() => setInitialCounselorPrompt('')}
-              onNavigate={handleSelectTab}
-              onLoadDemo={handleLoadDemo}
-            />
-          )}
-
-          {currentTab === 'resume' && (
-            <ResumeBuilderView
-              profile={profile}
-              isProfileEmpty={emptyProfileState}
-              onNavigate={handleSelectTab}
-              onLoadDemo={handleLoadDemo}
-            />
-          )}
-
-          {currentTab === 'prep' && <PrepHubView />}
-        </main>
-
-        {/* Crawlable Platform Overview for Users & Search Engines - strictly isolated to Dashboard */}
-        {currentTab === 'dashboard' && (
-          <div className="relative z-10">
-            <AboutPlatformInfo />
           </div>
-        )}
 
-        {/* Professional Startup Footer */}
-        <div className="relative z-10 print:hidden">
-          <Footer onReplayIntro={triggerIntro} />
-        </div>
-      </div>
+          {/* Main Content Column (with desktop left padding for the fixed sidebar) */}
+          <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64 print:pl-0 print:m-0 print:min-h-0 print:w-full">
+            {/* Top Header with Search, Notifications, Demo Profile toggle & User Avatar */}
+            <div className="print:hidden">
+              <TopHeader
+                onToggleMobile={() => setMobileSidebarOpen(true)}
+                currentTab={currentTab}
+                onSelectTab={handleSelectTab}
+                report={readinessReport}
+                isProfileEmpty={emptyProfileState}
+                onLoadDemo={handleLoadDemo}
+                onClearProfile={handleClearProfile}
+                currentUser={currentUser}
+                assessmentSubmitted={assessmentSubmitted}
+                onOpenAuth={(mode) => {
+                  setAuthModalMode(mode);
+                  setAuthModalOpen(true);
+                }}
+                onLogout={handleLogout}
+                onReplayIntro={triggerIntro}
+              />
+            </div>
+
+            {/* Main Content Area */}
+            <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
+              {currentTab === 'dashboard' && (
+                <DashboardView
+                  profile={profile}
+                  report={readinessReport}
+                  isProfileEmpty={emptyProfileState}
+                  eligibilityResults={eligibilityResults}
+                  onNavigate={handleSelectTab}
+                  onLoadDemo={handleLoadDemo}
+                  currentUser={currentUser}
+                  assessmentSubmitted={assessmentSubmitted}
+                />
+              )}
+
+              {currentTab === 'profile' && (
+                <ProfileView
+                  profile={profile}
+                  onUpdateProfile={handleUpdateProfile}
+                  onLoadDemo={handleLoadDemo}
+                  onClearProfile={handleClearProfile}
+                  currentUser={currentUser}
+                  assessmentSubmitted={assessmentSubmitted}
+                  onSubmitAssessment={handleSubmitAssessment}
+                  onOpenAuth={(mode) => {
+                    setAuthModalMode(mode);
+                    setAuthModalOpen(true);
+                  }}
+                />
+              )}
+
+              {currentTab === 'eligibility' && (
+                <EligibilityView
+                  profile={profile}
+                  eligibilityResults={eligibilityResults}
+                  isProfileEmpty={emptyProfileState}
+                  onNavigate={handleSelectTab}
+                  onLoadDemo={handleLoadDemo}
+                />
+              )}
+
+              {currentTab === 'skillgap' && (
+                <SkillGapView
+                  profile={profile}
+                  isProfileEmpty={emptyProfileState}
+                  onNavigate={handleSelectTab}
+                  onLoadDemo={handleLoadDemo}
+                  onAskCounselorWithPrompt={handleAskCounselor}
+                />
+              )}
+
+              {currentTab === 'courses' && (
+                <CoursesView
+                  profile={profile}
+                  isProfileEmpty={emptyProfileState}
+                  onNavigateToTab={handleSelectTab}
+                  onLoadDemoProfile={handleLoadDemo}
+                />
+              )}
+
+              {currentTab === 'jobs' && (
+                <JobsView
+                  profile={profile}
+                  currentUser={currentUser}
+                  assessmentSubmitted={assessmentSubmitted}
+                  onNavigate={handleSelectTab}
+                  onLoadDemoProfile={handleLoadDemo}
+                />
+              )}
+
+              {currentTab === 'counselor' && (
+                <AiCounselorView
+                  profile={profile}
+                  isProfileEmpty={emptyProfileState}
+                  initialPrompt={initialCounselorPrompt}
+                  onClearInitialPrompt={() => setInitialCounselorPrompt('')}
+                  onNavigate={handleSelectTab}
+                  onLoadDemo={handleLoadDemo}
+                />
+              )}
+
+              {currentTab === 'resume' && (
+                <ResumeBuilderView
+                  profile={profile}
+                  isProfileEmpty={emptyProfileState}
+                  onNavigate={handleSelectTab}
+                  onLoadDemo={handleLoadDemo}
+                />
+              )}
+
+              {currentTab === 'prep' && <PrepHubView />}
+            </main>
+
+            {/* Professional Startup Footer */}
+            <div className="relative z-10 print:hidden">
+              <Footer onReplayIntro={triggerIntro} />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Unified Google & Email Authentication Modal */}
       <div className="print:hidden">
@@ -544,8 +557,8 @@ function CareerAiAppMain() {
           title={loadingTitle}
           subtitle={loadingSubtitle}
           isIntroMode={isIntroActive}
-          onComplete={completeIntro}
-          onDismiss={dismissAll}
+          onComplete={handleIntroComplete}
+          onDismiss={handleIntroDismiss}
         />
       </div>
     </div>
