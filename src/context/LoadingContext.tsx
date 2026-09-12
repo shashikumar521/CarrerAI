@@ -74,6 +74,11 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const visibleStartTimeRef = useRef<number | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isOverlayVisibleRef = useRef(false);
+
+  useEffect(() => {
+    isOverlayVisibleRef.current = isOverlayVisible;
+  }, [isOverlayVisible]);
 
   // Clear all pending timers on unmount
   useEffect(() => {
@@ -98,6 +103,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       safetyTimeoutRef.current = null;
     }
     visibleStartTimeRef.current = null;
+    isOverlayVisibleRef.current = false;
     setActiveTasks(new Map());
     setIsOverlayVisible(false);
   }, []);
@@ -131,7 +137,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       // If overlay is already visible, just update messaging
-      if (isOverlayVisible) return;
+      if (isOverlayVisibleRef.current) return;
 
       // Start the delay threshold timer:
       // If the operation finishes within DELAY_THRESHOLD_MS, isOverlayVisible remains FALSE (instant feel!)
@@ -139,11 +145,12 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         thresholdTimerRef.current = setTimeout(() => {
           thresholdTimerRef.current = null;
           visibleStartTimeRef.current = Date.now();
+          isOverlayVisibleRef.current = true;
           setIsOverlayVisible(true);
         }, DELAY_THRESHOLD_MS);
       }
     },
-    [isOverlayVisible, dismissAll]
+    [dismissAll]
   );
 
   const stopLoading = useCallback(

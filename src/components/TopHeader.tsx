@@ -19,7 +19,6 @@ import {
 import { PlacementReadinessReport, AuthUser } from '../types';
 import { GoogleIcon } from './GoogleIcon';
 import { NavTab } from './Navbar';
-import { ThemeToggle } from './ThemeToggle';
 
 interface TopHeaderProps {
   onToggleMobile: () => void;
@@ -237,12 +236,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 <span>Reset</span>
               </button>
             )}
-
-            {/* Theme Toggle (☀ Light / 🌙 Dark) */}
-            <div className="flex items-center">
-              <ThemeToggle variant="pill" showLabels={true} className="hidden md:inline-flex" />
-              <ThemeToggle variant="button" showLabels={false} className="md:hidden inline-flex" />
-            </div>
 
             {/* Notifications Popover with Subtle Pulse Indicator */}
             <div className="relative" ref={notifDropdownRef}>

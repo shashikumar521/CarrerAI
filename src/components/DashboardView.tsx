@@ -388,22 +388,45 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   }, [skillCards]);
 
-  // Resolved display name for personalized login greeting
-  const greetingDisplayName = useMemo(() => {
-    const raw = currentUser?.name?.trim() || profile.name?.trim() || '';
-    if (!raw || raw.includes('@')) {
+  // Resolved first name for personalized hero greeting
+  const greetingFirstName = useMemo(() => {
+    // Priority: profile.name (user explicitly edited/entered in profile) -> currentUser.name (from Google or account registration)
+    const rawCandidate = profile?.name?.trim() || currentUser?.name?.trim() || '';
+    if (!rawCandidate) return null;
+
+    // Safety checks against invalid string representations
+    const lower = rawCandidate.toLowerCase();
+    if (
+      lower === 'undefined' ||
+      lower === 'null' ||
+      lower === '[object object]' ||
+      lower === 'nan' ||
+      rawCandidate.includes('@') // Avoid email strings as names
+    ) {
       return null;
     }
-    const tokens = raw.split(/\s+/).filter(Boolean);
+
+    // Extract first token
+    const tokens = rawCandidate.split(/\s+/).filter(Boolean);
     if (tokens.length === 0) return null;
-    // Prefer "Shashi" if present in tokens (as in demo profile or user example)
-    const preferred = tokens.find((t) => t.toLowerCase() === 'shashi');
-    if (preferred) {
-      return 'Shashi';
+
+    const firstToken = tokens[0];
+    // Clean any special characters, retaining valid name characters
+    const cleaned = firstToken.replace(/[^a-zA-Z0-9\-_'.]/g, '');
+    if (!cleaned) return null;
+
+    const cleanedLower = cleaned.toLowerCase();
+    if (
+      cleanedLower === 'undefined' ||
+      cleanedLower === 'null' ||
+      cleanedLower === 'object'
+    ) {
+      return null;
     }
-    const first = tokens[0];
-    return first.charAt(0).toUpperCase() + first.slice(1);
-  }, [currentUser?.name, profile.name]);
+
+    // Capitalize first letter properly
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }, [profile?.name, currentUser?.name]);
 
   return (
     <motion.div
@@ -413,7 +436,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       className="space-y-8 sm:space-y-10 text-slate-900 selection:bg-indigo-500 selection:text-white"
     >
       {/* ========================================================================= */}
-      {/* 1. WELCOME SECTION (Clean, Compact, Subtle Fade + Slide-up + Rocket)     */}
+      {/* 1. WELCOME SECTION (Clean, Compact, Subtle Fade + Slide-up)               */}
       {/* ========================================================================= */}
       <motion.section
         id="section-welcome"
@@ -422,14 +445,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         transition={{ duration: 0.4, ease: 'easeOut' }}
         className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-2xs p-5 sm:p-6"
       >
-        {/* Restored Subtle Floating Animated CareerAI Rocket in the Welcome / Hero Background */}
-        <div
-          aria-hidden="true"
-          className="absolute -top-1 right-2 sm:top-1 sm:right-6 md:right-8 lg:right-12 pointer-events-none select-none z-0 opacity-80 sm:opacity-90 transition-opacity"
-        >
-          <FloatingRocket />
-        </div>
-
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div
@@ -456,26 +471,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               </div>
 
-              {/* Personalized Login Greeting with Friendly Waving Animation */}
+              {/* Personalized Dynamic Greeting with Friendly Waving Animation */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
               >
-                <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2] flex items-center gap-2">
-                  <span>CareerAI – AI-Powered Career &amp; Placement Platform</span>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight flex flex-wrap items-center gap-2">
+                  <span className="break-words">
+                    {greetingFirstName ? `Hi, ${greetingFirstName}` : 'Hi there'}
+                  </span>
                   <motion.span
                     initial={{ rotate: 0 }}
                     animate={{ rotate: [0, 14, -10, 14, -6, 10, 0] }}
                     transition={{ duration: 0.75, ease: 'easeInOut', delay: 0.2 }}
-                    className="inline-block origin-bottom-right select-none"
+                    className="inline-block origin-bottom-right select-none shrink-0"
                     aria-hidden="true"
                   >
                     👋
                   </motion.span>
                 </h1>
-                <p className="text-sm sm:text-base text-slate-600 font-normal mt-1 leading-relaxed">
-                  {greetingDisplayName ? `Welcome, ${greetingDisplayName}! ` : ''}CareerAI is an AI-powered career and placement platform designed to help students track their skills, discover relevant jobs, identify skill gaps, find learning opportunities, and improve their career readiness.
+                <p className="text-sm sm:text-base text-slate-600 font-normal mt-1 leading-relaxed max-w-2xl">
+                  Welcome back. Let’s build your skills, discover the right opportunities, and get you placement-ready.
                 </p>
               </motion.div>
             </div>
@@ -623,44 +640,124 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     />
                   </svg>
 
-                  {/* Centered Score Counter with hover scale and subtle glow */}
+                  {/* Centered Score Counter / Rocket with hover scale and subtle glow */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center transition-all duration-300 group-hover/score:scale-105 group-hover/score:drop-shadow-[0_0_8px_rgba(99,102,241,0.25)]">
-                    <div className="flex items-baseline">
-                      <span className="text-4xl font-semibold text-slate-900 tracking-normal transition-colors duration-200 group-hover/score:text-indigo-600">
-                        {isAssessed ? animatedScore : '—'}
-                      </span>
-                      {isAssessed && <span className="text-base font-semibold text-indigo-600 ml-0.5">%</span>}
-                    </div>
-                    <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                      {isAssessed ? 'Ready Index' : 'Pending'}
-                    </span>
+                    {isAssessed ? (
+                      <>
+                        <div className="flex items-baseline">
+                          <span className="text-4xl font-semibold text-slate-900 tracking-normal transition-colors duration-200 group-hover/score:text-indigo-600">
+                            {animatedScore}
+                          </span>
+                          <span className="text-base font-semibold text-indigo-600 ml-0.5">%</span>
+                        </div>
+                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mt-0.5">
+                          Ready Index
+                        </span>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center -mt-1 select-none">
+                        {/* Centered authentic CareerAI rocket illustration */}
+                        <div className="flex items-center justify-center h-16 w-16 mb-0.5">
+                          <FloatingRocket size="circle" />
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                          PENDING
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <p className="text-[11px] text-slate-500 text-center mt-1 leading-snug">
-                  {isAssessed
-                    ? `Evaluated across CGPA (${cgpaValue.toFixed(2)}), ${backlogsCount} backlog(s), and ${profile.skills?.length || 0} skills.`
-                    : 'Submit your student assessment to generate your personalized placement index.'}
-                </p>
+                {/* Supporting Copy & Title */}
+                {!isAssessed ? (
+                  <div className="text-center mt-3 mb-1 px-1">
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                      Start your career journey
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                      Complete your profile and assessment to unlock your personalized career readiness score.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center mt-3 mb-1 px-1">
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                      {report.grade === 'Placement Ready'
+                        ? 'Placement Ready Profile'
+                        : 'Calibrated Career Profile'}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                      Evaluated across CGPA ({cgpaValue.toFixed(2)}), {backlogsCount} backlog(s), and {profile.skills?.length || 0} skills.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action CTA Button */}
+              <div className="mt-2.5 mb-4">
+                {!isAssessed ? (
+                  <button
+                    type="button"
+                    id="career-readiness-start-btn"
+                    onClick={() => onNavigate('profile')}
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer group"
+                  >
+                    <span>Start Career</span>
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    id="career-readiness-manage-btn"
+                    onClick={() => onNavigate('profile')}
+                    className="w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 active:bg-slate-200 font-semibold text-xs rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer group"
+                  >
+                    <User className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Manage Profile &amp; Goals</span>
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 text-slate-400" />
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Dimensional Sub-scores Mini Progress */}
-            <div className="pt-3 border-t border-slate-100 space-y-1.5">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium">Academics</span>
-                <span className="font-bold text-slate-800">{isAssessed ? `${report.academicScore}/25` : '—'}</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${isAssessed ? (report.academicScore / 25) * 100 : 0}%` }} />
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div>
+                <div className="flex items-center justify-between text-[11px] mb-1">
+                  <span className="text-slate-500 font-medium">Academics</span>
+                  <span className="font-bold text-slate-800">{isAssessed ? `${report.academicScore}/25` : '—'}</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-600 rounded-full transition-all duration-700"
+                    style={{ width: `${isAssessed ? (report.academicScore / 25) * 100 : 0}%` }}
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] pt-0.5">
-                <span className="text-slate-500 font-medium">Technical Depth</span>
-                <span className="font-bold text-slate-800">{isAssessed ? `${report.skillsScore}/30` : '—'}</span>
+              <div>
+                <div className="flex items-center justify-between text-[11px] mb-1">
+                  <span className="text-slate-500 font-medium">Technical Depth</span>
+                  <span className="font-bold text-slate-800">{isAssessed ? `${report.skillsScore}/30` : '—'}</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-700"
+                    style={{ width: `${isAssessed ? (report.skillsScore / 30) * 100 : 0}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${isAssessed ? (report.skillsScore / 30) * 100 : 0}%` }} />
+
+              <div>
+                <div className="flex items-center justify-between text-[11px] mb-1">
+                  <span className="text-slate-500 font-medium">Projects</span>
+                  <span className="font-bold text-slate-800">{isAssessed ? `${report.projectsScore}/25` : '—'}</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-500 rounded-full transition-all duration-700"
+                    style={{ width: `${isAssessed ? (report.projectsScore / 25) * 100 : 0}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>

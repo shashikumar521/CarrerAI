@@ -132,7 +132,7 @@ async function fetchFromRemotive(query?: string): Promise<NormalizedLiveJob[]> {
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 4500);
 
   try {
     const res = await fetch(url.toString(), {
@@ -169,7 +169,7 @@ async function fetchFromRemotive(query?: string): Promise<NormalizedLiveJob[]> {
         salary: item.salary && typeof item.salary === 'string' && item.salary.trim() ? item.salary.trim() : undefined,
         requiredSkills: skills.length > 0 ? skills : ['Software Engineering', 'Problem Solving', 'Git'],
         descriptionSummary: plainDesc.slice(0, 280) + (plainDesc.length > 280 ? '...' : ''),
-        fullDescription: plainDesc,
+        fullDescription: plainDesc.slice(0, 2500),
         postedDate: item.publication_date || new Date().toISOString(),
         source: 'Remotive Live Tech API',
         applyUrl: item.url, // Real application URL
@@ -184,9 +184,9 @@ async function fetchFromRemotive(query?: string): Promise<NormalizedLiveJob[]> {
 
 // Fetch from Arbeitnow API (Legitimate open European & global job board API)
 async function fetchFromArbeitnow(): Promise<NormalizedLiveJob[]> {
-  const url = 'https://arbeitnow.com/api/job-board-api';
+  const url = 'https://www.arbeitnow.com/api/job-board-api';
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 4500);
 
   try {
     const res = await fetch(url, {
@@ -226,7 +226,7 @@ async function fetchFromArbeitnow(): Promise<NormalizedLiveJob[]> {
         salary: undefined,
         requiredSkills: skills.length > 0 ? skills : ['Software Development', 'Git', 'Agile'],
         descriptionSummary: plainDesc.slice(0, 280) + (plainDesc.length > 280 ? '...' : ''),
-        fullDescription: plainDesc,
+        fullDescription: plainDesc.slice(0, 2500),
         postedDate: item.created_at ? new Date(item.created_at * 1000).toISOString() : new Date().toISOString(),
         source: 'Arbeitnow Job Board API',
         applyUrl: item.url, // Real application URL
@@ -355,34 +355,38 @@ export async function getLiveJobs(params: {
     }
   }
 
-  // 2. Default legitimate live provider: Remotive + Arbeitnow
+  // 2. Default legitimate live provider: Remotive + Arbeitnow (Concurrently fetched)
   const errors: string[] = [];
   let combinedJobs: NormalizedLiveJob[] = [];
   let activeSource = 'Remotive & Arbeitnow Live Tech APIs';
 
-  try {
-    const remotiveJobs = await fetchFromRemotive(params.query || params.role);
-    combinedJobs.push(...remotiveJobs);
-  } catch (err: any) {
-    errors.push(`Remotive: ${err?.message || 'Failed'}`);
+  const [remotiveResult, arbeitnowResult] = await Promise.allSettled([
+    fetchFromRemotive(params.query || params.role),
+    fetchFromArbeitnow(),
+  ]);
+
+  if (remotiveResult.status === 'fulfilled') {
+    combinedJobs.push(...remotiveResult.value);
+  } else {
+    errors.push(`Remotive: ${remotiveResult.reason?.message || 'Failed'}`);
   }
 
-  try {
-    const arbeitnowJobs = await fetchFromArbeitnow();
-    // Filter if query is provided
+  if (arbeitnowResult.status === 'fulfilled') {
+    const arbeitnowJobs = arbeitnowResult.value;
     if (params.query) {
       const q = params.query.toLowerCase();
-      const filtered = arbeitnowJobs.filter((j) =>
-        j.title.toLowerCase().includes(q) ||
-        j.company.toLowerCase().includes(q) ||
-        j.requiredSkills.some((s) => s.toLowerCase().includes(q))
+      const filtered = arbeitnowJobs.filter(
+        (j) =>
+          j.title.toLowerCase().includes(q) ||
+          j.company.toLowerCase().includes(q) ||
+          j.requiredSkills.some((s) => s.toLowerCase().includes(q))
       );
       combinedJobs.push(...filtered);
     } else {
       combinedJobs.push(...arbeitnowJobs);
     }
-  } catch (err: any) {
-    errors.push(`Arbeitnow: ${err?.message || 'Failed'}`);
+  } else {
+    errors.push(`Arbeitnow: ${arbeitnowResult.reason?.message || 'Failed'}`);
   }
 
   // If both failed and we have no jobs, throw an error so server returns proper 503
@@ -398,6 +402,7 @@ export async function getLiveJobs(params: {
     if (!seen.has(key)) {
       seen.add(key);
       uniqueJobs.push(job);
+      if (uniqueJobs.length >= 60) break;
     }
   }
 

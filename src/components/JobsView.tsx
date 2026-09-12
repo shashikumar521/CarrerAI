@@ -89,50 +89,66 @@ export const JobsView: React.FC<JobsViewProps> = ({
     fetchJobsProviderStatus().then((status) => setProviderInfo(status));
   }, []);
 
-  // Fetch live jobs
-  const loadJobs = useCallback(async (refresh: boolean = false) => {
-    setLoading(true);
-    setError(null);
-    startLoading('jobs-live-feed', {
-      title: searchTerm ? `Searching jobs matching "${searchTerm}"...` : 'Retrieving Engineering Opportunities...',
-      subtitle: 'Querying live recruiter APIs, Adzuna feeds & evaluating skill match against your B.Tech profile',
-    });
-
-    if (testingMode) {
-      // Testing mode explicitly active
-      setJobs(DEMO_TESTING_OPPORTUNITIES);
-      setDataSource('Demo Opportunities — Not live job listings');
-      setRetrievedAt(new Date().toISOString());
-      setIsCached(false);
-      setLoading(false);
+  // Cleanup loading state on unmount
+  useEffect(() => {
+    return () => {
       stopLoading('jobs-live-feed');
-      return;
-    }
+    };
+  }, [stopLoading]);
 
-    try {
-      const res = await fetchLiveJobsFromApi({
-        query: searchTerm.trim() || undefined,
-        location: locationQuery.trim() || undefined,
-        refresh,
+  // Fetch live jobs
+  const loadJobs = useCallback(
+    async (refresh: boolean = false, query?: string, location?: string) => {
+      setLoading(true);
+      setError(null);
+      const activeQuery = (query !== undefined ? query : searchTerm).trim();
+      const activeLocation = (location !== undefined ? location : locationQuery).trim();
+
+      startLoading('jobs-live-feed', {
+        title: activeQuery
+          ? `Searching jobs matching "${activeQuery}"...`
+          : 'Retrieving Engineering Opportunities...',
+        subtitle:
+          'Querying live recruiter APIs, Adzuna feeds & evaluating skill match against your B.Tech profile',
       });
 
-      setJobs(res.jobs);
-      setDataSource(res.source);
-      setRetrievedAt(res.retrievedAt);
-      setIsCached(res.cached);
-    } catch (err: any) {
-      console.error('Jobs fetch error:', err);
-      // STRICT REQUIREMENT:
-      // "If the jobs API fails: Show: 'Live job data is temporarily unavailable.' Provide a Retry button. Do NOT silently replace failed live data with fake jobs."
-      setError(err?.message || 'Live job data is temporarily unavailable.');
-      setJobs([]);
-    } finally {
-      setLoading(false);
-      stopLoading('jobs-live-feed');
-    }
-  }, [searchTerm, locationQuery, testingMode, startLoading, stopLoading]);
+      if (testingMode) {
+        // Testing mode explicitly active
+        setJobs(DEMO_TESTING_OPPORTUNITIES);
+        setDataSource('Demo Opportunities — Not live job listings');
+        setRetrievedAt(new Date().toISOString());
+        setIsCached(false);
+        setLoading(false);
+        stopLoading('jobs-live-feed');
+        return;
+      }
 
-  // Initial load
+      try {
+        const res = await fetchLiveJobsFromApi({
+          query: activeQuery || undefined,
+          location: activeLocation || undefined,
+          refresh,
+        });
+
+        setJobs(res.jobs);
+        setDataSource(res.source);
+        setRetrievedAt(res.retrievedAt);
+        setIsCached(res.cached);
+      } catch (err: any) {
+        console.error('Jobs fetch error:', err);
+        // STRICT REQUIREMENT:
+        // "If the jobs API fails: Show: 'Live job data is temporarily unavailable.' Provide a Retry button. Do NOT silently replace failed live data with fake jobs."
+        setError(err?.message || 'Live job data is temporarily unavailable.');
+        setJobs([]);
+      } finally {
+        setLoading(false);
+        stopLoading('jobs-live-feed');
+      }
+    },
+    [testingMode, startLoading, stopLoading]
+  );
+
+  // Initial load once on mount
   useEffect(() => {
     loadJobs(false);
   }, [loadJobs]);

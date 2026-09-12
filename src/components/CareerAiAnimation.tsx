@@ -57,18 +57,83 @@ export const CareerAiAnimation: React.FC<CareerAiAnimationProps> = ({
     fullscreen: 'w-64 h-64 sm:w-80 sm:h-80 md:w-[380px] md:h-[380px] lg:w-[420px] lg:h-[420px]',
   }[size];
 
-  // Try playing video on mount
+  const playPromiseRef = useRef<Promise<void> | null>(null);
+  const isPlayingIntentRef = useRef<boolean>(false);
+
+  // Safe video playback lifecycle management
   useEffect(() => {
     const video = videoRef.current;
-    if (video && autoPlay) {
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.warn('CareerAI video autoplay note:', err?.message || err);
-          // Autoplay policy might require user gesture, keep fallback ready
-        });
+    if (!video) return;
+
+    let isMounted = true;
+
+    if (autoPlay) {
+      isPlayingIntentRef.current = true;
+      const promise = video.play();
+      if (promise !== undefined) {
+        playPromiseRef.current = promise;
+        promise
+          .then(() => {
+            if (!isPlayingIntentRef.current && isMounted && videoRef.current) {
+              try {
+                videoRef.current.pause();
+              } catch {
+                // ignore
+              }
+            }
+          })
+          .catch((err: any) => {
+            // Standard benign HTML5 video cancellation when interrupted
+            if (
+              err?.name === 'AbortError' ||
+              err?.message?.includes('interrupted') ||
+              err?.message?.includes('pause')
+            ) {
+              return;
+            }
+            if (err?.name === 'NotAllowedError') {
+              return;
+            }
+            console.warn('CareerAI video autoplay note:', err?.message || err);
+          })
+          .finally(() => {
+            playPromiseRef.current = null;
+          });
+      }
+    } else {
+      isPlayingIntentRef.current = false;
+      if (playPromiseRef.current) {
+        playPromiseRef.current
+          .then(() => {
+            if (!isPlayingIntentRef.current && videoRef.current) {
+              try {
+                videoRef.current.pause();
+              } catch {
+                // ignore
+              }
+            }
+          })
+          .catch(() => {});
+      } else {
+        try {
+          video.pause();
+        } catch {
+          // ignore
+        }
       }
     }
+
+    return () => {
+      isMounted = false;
+      isPlayingIntentRef.current = false;
+      if (videoRef.current) {
+        try {
+          videoRef.current.pause();
+        } catch {
+          // ignore
+        }
+      }
+    };
   }, [autoPlay]);
 
   return (
@@ -86,7 +151,6 @@ export const CareerAiAnimation: React.FC<CareerAiAnimationProps> = ({
             className={`w-full h-full object-contain transition-opacity duration-300 ${
               videoLoaded ? 'opacity-100' : 'opacity-90'
             }`}
-            autoPlay={autoPlay}
             loop={loop}
             muted
             playsInline

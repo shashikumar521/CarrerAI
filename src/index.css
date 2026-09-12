@@ -286,6 +286,15 @@ nav button,
   line-height: 1.4 !important;
 }
 
+[id^="sidebar-nav-item-"] {
+  text-align: left !important;
+}
+
+[id^="sidebar-nav-item-"] div,
+[id^="sidebar-nav-item-"] span {
+  text-align: left !important;
+}
+
 label,
 legend {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;

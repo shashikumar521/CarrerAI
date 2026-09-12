@@ -44,7 +44,14 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
   const missingKeywords = useMemo(() => {
     const userSkills = (profile.skills || []).map((s) => s.name.toLowerCase());
     const projectText = (profile.projects || [])
-      .map((p) => `${p.title} ${p.techStack.join(' ')} ${p.description}`)
+      .map((p) => {
+        const stackStr = Array.isArray(p.techStack)
+          ? p.techStack.join(' ')
+          : typeof p.techStack === 'string'
+          ? p.techStack
+          : '';
+        return `${p.title || ''} ${stackStr} ${p.description || ''}`;
+      })
       .join(' ')
       .toLowerCase();
 
@@ -432,7 +439,7 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
                         {p.title}
                         {p.techStack && (
                           <span className="font-normal text-slate-600 text-[11px] ml-2">
-                            | {p.techStack}
+                            | {Array.isArray(p.techStack) ? p.techStack.join(', ') : p.techStack}
                           </span>
                         )}
                       </div>

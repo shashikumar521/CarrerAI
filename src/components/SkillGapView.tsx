@@ -24,6 +24,7 @@ import {
 } from '../utils/courseSkillService';
 import { analyzeSkillGap } from '../utils/readinessCalculator';
 import { EmptyStateBanner } from './EmptyStateBanner';
+import { PlacementRadarChart } from './PlacementRadarChart';
 import { NavTab } from './Navbar';
 
 interface SkillGapViewProps {
@@ -160,6 +161,9 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
           description="Because no skills have been added to your profile yet, the skill match currently reads 0%. Enter your technical proficiencies in the Student Profile tab or load sample data."
         />
       )}
+
+      {/* Prominent Placement Readiness Radar Chart (Spider Chart) */}
+      <PlacementRadarChart profile={profile} onNavigateToTab={onNavigate} />
 
       {/* Role Selection Horizontal Tabs */}
       <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xs flex items-center gap-2 overflow-x-auto">

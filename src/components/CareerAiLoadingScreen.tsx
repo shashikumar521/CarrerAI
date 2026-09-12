@@ -60,30 +60,92 @@ export const CareerAiLoadingScreen: React.FC<CareerAiLoadingScreenProps> = ({
   }, [show, isIntroMode, onComplete, onDismiss]);
 
   // Video playback lifecycle management
+  const playPromiseRef = useRef<Promise<void> | null>(null);
+  const isPlayingIntentRef = useRef<boolean>(false);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    if (show) {
-      // Autoplay muted when active
-      video.currentTime = 0;
-      if (!prefersReducedMotion) {
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise.catch((err) => {
-            console.warn('CareerAI video autoplay note:', err?.message || err);
-          });
-        }
-      }
-    } else {
-      // Pause and reset when hidden to conserve CPU/GPU
+    let isMounted = true;
+
+    if (show && !prefersReducedMotion) {
+      isPlayingIntentRef.current = true;
       try {
-        video.pause();
         video.currentTime = 0;
       } catch {
         // ignore
       }
+
+      const promise = video.play();
+      if (promise !== undefined) {
+        playPromiseRef.current = promise;
+        promise
+          .then(() => {
+            if (!isPlayingIntentRef.current && isMounted && videoRef.current) {
+              try {
+                videoRef.current.pause();
+                videoRef.current.currentTime = 0;
+              } catch {
+                // ignore
+              }
+            }
+          })
+          .catch((err: any) => {
+            // AbortError is a standard benign HTML5 video lifecycle cancellation when pause() is requested during play()
+            if (
+              err?.name === 'AbortError' ||
+              err?.message?.includes('interrupted') ||
+              err?.message?.includes('pause')
+            ) {
+              return;
+            }
+            // If browser prevents autoplay without interaction
+            if (err?.name === 'NotAllowedError') {
+              return;
+            }
+            console.warn('CareerAI video autoplay note:', err?.message || err);
+          })
+          .finally(() => {
+            playPromiseRef.current = null;
+          });
+      }
+    } else {
+      isPlayingIntentRef.current = false;
+      if (playPromiseRef.current) {
+        playPromiseRef.current
+          .then(() => {
+            if (!isPlayingIntentRef.current && videoRef.current) {
+              try {
+                videoRef.current.pause();
+                videoRef.current.currentTime = 0;
+              } catch {
+                // ignore
+              }
+            }
+          })
+          .catch(() => {});
+      } else {
+        try {
+          video.pause();
+          video.currentTime = 0;
+        } catch {
+          // ignore
+        }
+      }
     }
+
+    return () => {
+      isMounted = false;
+      isPlayingIntentRef.current = false;
+      if (videoRef.current) {
+        try {
+          videoRef.current.pause();
+        } catch {
+          // ignore
+        }
+      }
+    };
   }, [show, prefersReducedMotion]);
 
   // Fallback safety timeout: Never leave user stuck on screen
@@ -165,7 +227,6 @@ export const CareerAiLoadingScreen: React.FC<CareerAiLoadingScreenProps> = ({
                   className={`w-full h-full object-contain transition-opacity duration-500 ${
                     videoLoaded ? 'opacity-100' : 'opacity-90'
                   }`}
-                  autoPlay={true}
                   muted={true}
                   playsInline={true}
                   loop={!isIntroMode}

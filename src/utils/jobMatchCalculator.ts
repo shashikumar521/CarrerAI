@@ -99,7 +99,7 @@ export function calculateJobMatch(
   const projects = profile.projects || [];
   if (projects.length > 0) {
     for (const p of projects) {
-      const pStack = (p.techStack || '').toLowerCase();
+      const pStack = (Array.isArray(p.techStack) ? p.techStack.join(' ') : (p.techStack || '')).toLowerCase();
       const pTitle = (p.title || '').toLowerCase();
       for (const mSkill of matchingSkills) {
         if (pStack.includes(normalizeSkill(mSkill)) || pTitle.includes(normalizeSkill(mSkill))) {

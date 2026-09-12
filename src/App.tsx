@@ -254,6 +254,11 @@ function CareerAiAppMain() {
   // Profile update handler
   const handleUpdateProfile = (updated: StudentProfile) => {
     setProfile(updated);
+    if (currentUser && updated.name?.trim() && updated.name.trim() !== currentUser.name) {
+      const updatedUser: AuthUser = { ...currentUser, name: updated.name.trim() };
+      setCurrentUser(updatedUser);
+      setActiveSession(updatedUser);
+    }
     if (!isProfileEmpty(updated)) {
       setAssessmentSubmitted(true);
       try {

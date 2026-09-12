@@ -97,17 +97,20 @@ export const AiCounselorView: React.FC<AiCounselorViewProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          prompt: query,
           message: query,
           studentProfile: profile,
+          conversationHistory: messages.map((m) => ({ sender: m.sender, text: m.text })),
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || `Server returned ${response.status}`);
       }
 
       const data = await response.json();
-      const reply = data.reply || 'No response generated.';
+      const reply = data.reply || data.response || 'No response generated.';
 
       const assistantMessage: Message = {
         id: `reply-${Date.now()}`,

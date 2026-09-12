@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 
 export interface FloatingRocketProps {
   className?: string;
+  size?: 'default' | 'circle';
 }
 
 /**
@@ -18,7 +19,11 @@ export interface FloatingRocketProps {
  * - Strictly pointer-events-none and non-obstructive: never covers text, buttons, or cards.
  * - Respects prefers-reduced-motion.
  */
-export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }) => {
+export const FloatingRocket: React.FC<FloatingRocketProps> = ({
+  className = '',
+  size = 'default',
+}) => {
+  const isCircle = size === 'circle';
   const containerRef = useRef<HTMLDivElement>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [cursorOffset, setCursorOffset] = useState<{ x: number; y: number; rotate: number }>({
@@ -49,15 +54,16 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
       const dy = e.clientY - rocketCenterY;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      const threshold = 220;
+      const threshold = isCircle ? 120 : 220;
       if (dist < threshold && dist > 0) {
         isNear = true;
         // Smooth falloff factor
         const proximity = Math.pow(1 - dist / threshold, 1.4);
-        // Very gentle movement (approx 3-5px) and tiny banking rotation (approx 1.5-2.2 deg)
-        const offsetX = (dx / dist) * -4.5 * proximity;
-        const offsetY = (dy / dist) * -4.5 * proximity;
-        const rotateOffset = (dx / threshold) * 2.2 * proximity;
+        // Scaled movement for circle containment vs open banner
+        const multiplier = isCircle ? -2.0 : -4.5;
+        const offsetX = (dx / dist) * multiplier * proximity;
+        const offsetY = (dy / dist) * multiplier * proximity;
+        const rotateOffset = (dx / threshold) * (isCircle ? 1.0 : 2.2) * proximity;
 
         setCursorOffset({
           x: offsetX,
@@ -76,7 +82,7 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
       mq.removeEventListener('change', handler);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, isCircle]);
 
   return (
     <div
@@ -107,6 +113,12 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
           animate={
             prefersReducedMotion
               ? { y: 0, x: 0, rotate: 0 }
+              : isCircle
+              ? {
+                  y: [0, -3, -0.5, -4, -1, -3, 0],
+                  x: [0, 1, -0.8, 1, -0.5, 0],
+                  rotate: [0, 0.8, -0.8, 0.8, 0],
+                }
               : {
                   // Gentle heave with occasional upward drift and smooth recovery
                   y: [0, -10, -3, -18, -6, -24, -8, 0],
@@ -118,7 +130,7 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
             prefersReducedMotion
               ? { duration: 0 }
               : {
-                  duration: 9.5,
+                  duration: isCircle ? 6.5 : 9.5,
                   repeat: Infinity,
                   ease: 'easeInOut',
                 }
@@ -126,7 +138,13 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
           className="relative flex flex-col items-center"
         >
         {/* Ambient Subtle Glow behind Rocket (Soft in light mode, slightly brighter accent in dark mode) */}
-        <div className="absolute -inset-2 bg-indigo-400/10 dark:bg-indigo-500/25 rounded-full blur-md pointer-events-none transition-colors duration-300" />
+        <div
+          className={`absolute ${
+            isCircle
+              ? '-inset-1 blur-sm bg-indigo-400/15 dark:bg-indigo-500/20'
+              : '-inset-2 blur-md bg-indigo-400/10 dark:bg-indigo-500/25'
+          } rounded-full pointer-events-none transition-colors duration-300`}
+        />
 
         {/* ------------------------------------------------------------- */}
         {/* CAREERAI HIGH-CRAFT VECTOR ROCKET SVG                         */}
@@ -135,7 +153,11 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
           viewBox="0 0 80 110"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-14 h-20 sm:w-18 sm:h-24 md:w-20 md:h-28 lg:w-22 lg:h-30 drop-shadow-sm dark:drop-shadow-[0_4px_12px_rgba(99,102,241,0.25)] transition-all"
+          className={
+            isCircle
+              ? 'w-9 h-12 sm:w-10 sm:h-13 drop-shadow-xs dark:drop-shadow-[0_2px_8px_rgba(99,102,241,0.25)] transition-all'
+              : 'w-14 h-20 sm:w-18 sm:h-24 md:w-20 md:h-28 lg:w-22 lg:h-30 drop-shadow-sm dark:drop-shadow-[0_4px_12px_rgba(99,102,241,0.25)] transition-all'
+          }
         >
           <defs>
             {/* Fuselage Gradient: Clean white to light slate */}
@@ -253,7 +275,11 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
         {/* ------------------------------------------------------------- */}
         {/* SOFT SUBTLE EXHAUST FLAME & TRAIL                             */}
         {/* ------------------------------------------------------------- */}
-        <div className="relative -mt-4 sm:-mt-5 flex flex-col items-center">
+        <div
+          className={`relative ${
+            isCircle ? '-mt-2.5' : '-mt-4 sm:-mt-5'
+          } flex flex-col items-center`}
+        >
           {/* Outer Plume Flame */}
           <motion.div
             animate={
@@ -274,7 +300,11 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
                     ease: 'easeInOut',
                   }
             }
-            className="w-4 h-7 sm:w-5 sm:h-9 origin-top rounded-b-full bg-gradient-to-b from-amber-200 via-orange-500 to-indigo-500/0 blur-[0.5px]"
+            className={`${
+              isCircle
+                ? 'w-2.5 h-4 blur-[0.3px]'
+                : 'w-4 h-7 sm:w-5 sm:h-9 blur-[0.5px]'
+            } origin-top rounded-b-full bg-gradient-to-b from-amber-200 via-orange-500 to-indigo-500/0`}
           />
 
           {/* Inner Hot Core Flame */}
@@ -296,11 +326,13 @@ export const FloatingRocket: React.FC<FloatingRocketProps> = ({ className = '' }
                     ease: 'easeInOut',
                   }
             }
-            className="absolute top-0 w-2 h-4 sm:w-2.5 sm:h-5 origin-top rounded-b-full bg-gradient-to-b from-white via-sky-300 to-indigo-600/0"
+            className={`absolute top-0 ${
+              isCircle ? 'w-1.5 h-2.5' : 'w-2 h-4 sm:w-2.5 sm:h-5'
+            } origin-top rounded-b-full bg-gradient-to-b from-white via-sky-300 to-indigo-600/0`}
           />
 
           {/* Fading Subtle Trail Vapor Particles (Drifting downward smoothly) */}
-          {!prefersReducedMotion && (
+          {!prefersReducedMotion && !isCircle && (
             <div className="absolute top-5 flex flex-col items-center pointer-events-none">
               <motion.div
                 animate={{

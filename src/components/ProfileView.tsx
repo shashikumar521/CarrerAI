@@ -1173,7 +1173,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         <h5 className="text-sm font-bold text-slate-900">{proj.title}</h5>
                         {proj.techStack && (
                           <span className="inline-block mt-0.5 px-2 py-0.5 rounded-sm bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">
-                            Stack: {proj.techStack}
+                            Stack: {Array.isArray(proj.techStack) ? proj.techStack.join(', ') : proj.techStack}
                           </span>
                         )}
                         <p className="text-xs text-slate-600 mt-2 leading-relaxed">

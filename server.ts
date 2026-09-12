@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -139,10 +140,13 @@ app.get('/sitemap.xml', (req, res) => {
 // AI Career Counselor endpoint
 app.post('/api/gemini/counselor', async (req, res) => {
   try {
-    const { prompt, studentProfile, conversationHistory } = req.body;
+    const rawPrompt = req.body?.prompt || req.body?.message || req.body?.query;
+    const prompt = typeof rawPrompt === 'string' ? rawPrompt.trim() : '';
+    const studentProfile = req.body?.studentProfile || req.body?.profile;
+    const conversationHistory = req.body?.conversationHistory || req.body?.history || [];
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
+      return res.status(400).json({ error: 'Prompt or message is required' });
     }
 
     const ai = getGenAI();
@@ -179,7 +183,11 @@ ${profileSummary}
     if (!ai) {
       // Intelligent mock/fallback response if API key is not configured
       const fallbackResponse = generateLocalCounselorGuidance(prompt, studentProfile);
-      return res.json({ response: fallbackResponse, source: 'offline_counselor' });
+      return res.json({
+        response: fallbackResponse,
+        reply: fallbackResponse,
+        source: 'offline_counselor',
+      });
     }
 
     // Call Gemini 3.8 Flash model
@@ -193,13 +201,21 @@ ${profileSummary}
     });
 
     const replyText = response.text || 'I could not generate a response. Please try asking again.';
-    return res.json({ response: replyText, source: 'gemini-3.8-flash' });
+    return res.json({
+      response: replyText,
+      reply: replyText,
+      source: 'gemini-3.8-flash',
+    });
   } catch (error: any) {
     console.error('Gemini Counselor error:', error);
     // Fallback gracefully so the UI never breaks
-    const fallbackResponse = generateLocalCounselorGuidance(req.body.prompt, req.body.studentProfile);
+    const rawPrompt = req.body?.prompt || req.body?.message || req.body?.query;
+    const prompt = typeof rawPrompt === 'string' ? rawPrompt.trim() : '';
+    const studentProfile = req.body?.studentProfile || req.body?.profile;
+    const fallbackResponse = generateLocalCounselorGuidance(prompt, studentProfile);
     return res.json({
       response: fallbackResponse,
+      reply: fallbackResponse,
       source: 'offline_fallback',
       warning: error?.message || 'Server error, rendered expert offline response',
     });
@@ -230,10 +246,21 @@ function generateLocalCounselorGuidance(query: string, profile: any): string {
 
 // Start Server with Vite Middleware
 async function startServer() {
+  const httpServer = http.createServer(app);
+
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
+    const isHmrDisabled = process.env.DISABLE_HMR === 'true';
+
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: isHmrDisabled
+          ? false
+          : {
+              server: httpServer,
+            },
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -245,7 +272,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`CareerAI server listening at http://0.0.0.0:${PORT}`);
   });
 }
