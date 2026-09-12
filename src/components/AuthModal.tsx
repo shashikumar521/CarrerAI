@@ -202,7 +202,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             );
             if (currentOrigin.includes('run.app')) {
               console.warn(
-                `[CareerAI Auth] Notice: Active browsing origin is an internal Cloud Run preview URL (${currentOrigin}). When deployed and opened at https://carrer-ai-kappa.vercel.app, the browser origin is https://carrer-ai-kappa.vercel.app.`
+                `[CareerAI Auth] Notice: Active browsing origin is ${currentOrigin}. In production, ensure this origin is listed in authorized JavaScript origins in Google Cloud Console.`
               );
             }
           }
