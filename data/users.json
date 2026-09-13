@@ -16,5 +16,17 @@
     "name": "Sudarshan Shashikumar",
     "email": "sudarsishashikumar521@gmail.com",
     "registeredAt": "2026-09-13T11:07:41.361Z"
+  },
+  {
+    "id": "usr_ananya_456",
+    "name": "Ananya Sharma",
+    "email": "ananya.sharma@example.com",
+    "registeredAt": "2026-09-13T11:16:23.899Z"
+  },
+  {
+    "id": "usr_priya_789",
+    "name": "CareerAI Student",
+    "email": "priya.patel@example.com",
+    "registeredAt": "2026-09-13T11:16:30.600Z"
   }
 ]

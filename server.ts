@@ -273,6 +273,7 @@ app.post(['/api/feedback', '/feedback'], async (req, res) => {
 
     // Security: Only authenticated users can submit ratings
     if (!effectiveUserId || !effectiveUserEmail) {
+      console.warn('[Feedback API] Authentication failed: Missing authenticated user session');
       return res.status(401).json({
         success: false,
         error: 'Authentication required. Please sign in to submit feedback.',
@@ -282,6 +283,7 @@ app.post(['/api/feedback', '/feedback'], async (req, res) => {
     // Security: Validate the rating server-side (must be integer 1 to 5)
     const numRating = Number(rating);
     if (!Number.isInteger(numRating) || numRating < 1 || numRating > 5) {
+      console.warn(`[Feedback API] Validation failed: Rating must be an integer between 1 and 5, received: ${rating}`);
       return res.status(400).json({
         success: false,
         error: 'Rating must be an integer between 1 and 5.',
@@ -305,6 +307,8 @@ app.post(['/api/feedback', '/feedback'], async (req, res) => {
       timestamp: typeof timestamp === 'string' ? timestamp : undefined,
     });
 
+    console.log(`[Feedback API] Insert succeeded: Record ${record.id} permanently saved (Rating: ${record.rating}/5, Status: ${record.status})`);
+
     // Email Notification to ADMIN_EMAIL
     // If email notification fails, the user's rating is still saved.
     // Do not show user a failed-rating message. Log safely on server.
@@ -318,20 +322,22 @@ app.post(['/api/feedback', '/feedback'], async (req, res) => {
         page: record.page,
         timestamp: record.createdAt,
       }).catch((emailErr) => {
-        console.error('[Admin Notification Error] Asynchronous email dispatch failed:', emailErr);
+        console.error('[Feedback API] Email notification failed (feedback safely stored):', emailErr?.message || emailErr);
       });
     }
 
     return res.json({
       success: true,
+      message: 'Feedback submitted successfully',
       feedback: record,
-      message: 'Thank you for your feedback! ❤️',
     });
   } catch (error: any) {
-    console.error('Feedback submission error:', error);
+    console.error('[Feedback API] Insert failed / Database error:', error?.message || error);
     return res.status(500).json({
       success: false,
-      error: 'Failed to submit feedback. Please try again.',
+      error: error?.message?.includes('Database')
+        ? error.message
+        : 'Failed to submit feedback. Please try again.',
     });
   }
 });

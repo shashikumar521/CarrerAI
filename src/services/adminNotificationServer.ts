@@ -33,7 +33,7 @@ const deduplicationCache = new Map<string, number>();
 const DEDUP_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
 
 // Clean up expired cache items periodically
-setInterval(() => {
+const dedupCleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, timestamp] of deduplicationCache.entries()) {
     if (now - timestamp > DEDUP_WINDOW_MS) {
@@ -41,6 +41,9 @@ setInterval(() => {
     }
   }
 }, 60 * 1000);
+if (dedupCleanupTimer.unref) {
+  dedupCleanupTimer.unref();
+}
 
 /**
  * Creates or retrieves the Nodemailer transport based on environment variables.

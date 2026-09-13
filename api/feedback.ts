@@ -39,7 +39,7 @@ export default async function handler(req: any, res: any) {
 
       // Validate authenticated user is required
       if (!effectiveUserId || !effectiveUserEmail) {
-        console.warn(`[Feedback API] 401 Unauthorized: Missing user session credentials`);
+        console.warn('[Feedback API] Authentication failed: Missing authenticated user session');
         return res.status(401).json({
           success: false,
           error: 'Authentication required. Please sign in to submit feedback.',
@@ -49,7 +49,7 @@ export default async function handler(req: any, res: any) {
       // Validate rating must be integer 1 to 5
       const numRating = Number(rating);
       if (!Number.isInteger(numRating) || numRating < 1 || numRating > 5) {
-        console.warn(`[Feedback API] 400 Bad Request: Invalid rating value ${rating}`);
+        console.warn(`[Feedback API] Validation failed: Rating must be an integer between 1 and 5, received: ${rating}`);
         return res.status(400).json({
           success: false,
           error: 'Rating must be an integer between 1 and 5.',
@@ -73,7 +73,7 @@ export default async function handler(req: any, res: any) {
         timestamp: typeof timestamp === 'string' ? timestamp : undefined,
       });
 
-      console.log(`[Feedback API] Feedback record ${record.id} permanently saved (Rating: ${record.rating}/5, Status: ${record.status})`);
+      console.log(`[Feedback API] Insert succeeded: Record ${record.id} permanently saved (Rating: ${record.rating}/5, Status: ${record.status})`);
 
       // Dispatch single admin email notification asynchronously
       // Critical: Database save does NOT depend on email delivery
@@ -87,21 +87,23 @@ export default async function handler(req: any, res: any) {
           page: record.page,
           timestamp: record.createdAt,
         }).catch((emailErr) => {
-          console.error('[Feedback API Error] Admin email dispatch failed (feedback is safely stored):', emailErr?.message || emailErr);
+          console.error('[Feedback API] Email notification failed (feedback safely stored):', emailErr?.message || emailErr);
         });
       }
 
       // Return success response with saved record
       return res.status(200).json({
         success: true,
+        message: 'Feedback submitted successfully',
         feedback: record,
-        message: 'Thank you for your feedback! ❤️',
       });
     } catch (error: any) {
-      console.error('[Feedback API Error] 500 Unhandled error in POST /api/feedback:', error?.message || error);
+      console.error('[Feedback API] Insert failed / Database error:', error?.message || error);
       return res.status(500).json({
         success: false,
-        error: 'An error occurred while saving your feedback. Please try again.',
+        error: error?.message?.includes('Database')
+          ? error.message
+          : 'Failed to submit feedback. Please try again.',
       });
     }
   }

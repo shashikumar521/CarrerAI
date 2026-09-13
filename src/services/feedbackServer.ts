@@ -338,13 +338,17 @@ export function saveFeedbackRecord(input: {
 
   // Persist permanently to disk / storage
   const filePath = getFeedbackFilePath();
-  if (filePath) {
-    try {
-      fs.writeFileSync(filePath, JSON.stringify(records, null, 2), 'utf-8');
-      console.log(`[Feedback DB] Successfully saved rating ${record.rating}/5 from ${record.userName} (${record.userEmail})`);
-    } catch (err) {
-      console.error('[Feedback DB Error] Failed to write feedback to disk:', err);
-    }
+  if (!filePath) {
+    console.error('[Feedback API] Database connection failed: No writable storage path available');
+    throw new Error('Database connection failed: Storage is not available');
+  }
+
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(records, null, 2), 'utf-8');
+    console.log(`[Feedback DB] Successfully saved rating ${record.rating}/5 from ${record.userName} (${record.userEmail})`);
+  } catch (err: any) {
+    console.error('[Feedback API] Insert failed: Failed to write feedback to disk:', err?.message || err);
+    throw new Error('Database insert failed: Unable to persist feedback record');
   }
 
   return { record, isDuplicate: false };

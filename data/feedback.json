@@ -1,5 +1,49 @@
 [
   {
+    "id": "fb_1789298190601_qn9om",
+    "userId": "usr_priya_789",
+    "userName": "CareerAI Student",
+    "userEmail": "priya.patel@example.com",
+    "rating": 5,
+    "comment": "Super fast and intuitive interface!",
+    "page": "Dashboard",
+    "createdAt": "2026-09-13T11:16:30.601Z",
+    "status": "New Feedback"
+  },
+  {
+    "id": "fb_1789298183899_qy719",
+    "userId": "usr_ananya_456",
+    "userName": "Ananya Sharma",
+    "userEmail": "ananya.sharma@example.com",
+    "rating": 5,
+    "comment": "The resume feedback was extraordinarily helpful for my campus interview.",
+    "page": "Dashboard",
+    "createdAt": "2026-09-13T11:16:23.899Z",
+    "status": "New Feedback"
+  },
+  {
+    "id": "fb_1789297738798_fpt57",
+    "userId": "usr_test_api",
+    "userName": "Asha Nair",
+    "userEmail": "asha@example.com",
+    "rating": 5,
+    "comment": "Amazing mock interviews",
+    "page": "Interviews",
+    "createdAt": "2026-09-13T11:08:58.798Z",
+    "status": "New Feedback"
+  },
+  {
+    "id": "fb_1789297730046_0xh74",
+    "userId": "usr_test_api",
+    "userName": "Asha Nair",
+    "userEmail": "asha@example.com",
+    "rating": 5,
+    "comment": "Amazing mock interviews",
+    "page": "Interviews",
+    "createdAt": "2026-09-13T11:08:50.046Z",
+    "status": "New Feedback"
+  },
+  {
     "id": "fb_1789297661361_oxe4q",
     "userId": "usr_sudarshan_real",
     "userName": "Sudarshan Shashikumar",
