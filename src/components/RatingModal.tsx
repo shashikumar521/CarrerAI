@@ -69,6 +69,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-user-email': currentUser.email || '',
+          'x-user-id': currentUser.id || '',
         },
         body: JSON.stringify({
           userId: currentUser.id,
@@ -80,9 +82,15 @@ export const RatingModal: React.FC<RatingModalProps> = ({
         }),
       });
 
-      const data = await response.json();
+      let data: any = null;
+      try {
+        const text = await response.text();
+        data = text ? JSON.parse(text) : {};
+      } catch (parseErr) {
+        console.error('[RatingModal] Non-JSON response from feedback server:', parseErr, 'Status:', response.status);
+      }
 
-      if (response.ok && data.success) {
+      if (response.ok && data?.success) {
         setSubmitted(true);
         if (onFeedbackSubmitted) {
           onFeedbackSubmitted();
@@ -92,7 +100,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           onClose();
         }, 2800);
       } else {
-        setErrorMessage(data.error || 'Failed to submit rating. Please try again.');
+        const serverError = data?.error || (response.status === 404 ? 'Feedback endpoint not found on server' : 'Failed to submit rating. Please try again.');
+        setErrorMessage(serverError);
       }
     } catch (err: any) {
       console.error('Rating submission network error:', err);

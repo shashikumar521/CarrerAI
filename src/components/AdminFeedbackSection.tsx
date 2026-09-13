@@ -21,6 +21,7 @@ interface FeedbackItem {
   comment: string;
   page: string;
   createdAt: string;
+  status?: string;
 }
 
 interface FeedbackStats {
@@ -368,9 +369,14 @@ export const AdminFeedbackSection: React.FC<AdminFeedbackSectionProps> = ({
                           {item.page || 'Dashboard'}
                         </span>
                       </div>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                        &#10004; Verified Submission
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                          {item.status || 'New Feedback'}
+                        </span>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                          &#10004; Verified Submission
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );

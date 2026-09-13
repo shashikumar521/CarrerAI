@@ -10,5 +10,11 @@
     "name": "Test Student",
     "email": "teststudent@example.com",
     "registeredAt": "2026-09-13T10:41:33.747Z"
+  },
+  {
+    "id": "usr_sudarshan_real",
+    "name": "Sudarshan Shashikumar",
+    "email": "sudarsishashikumar521@gmail.com",
+    "registeredAt": "2026-09-13T11:07:41.361Z"
   }
 ]

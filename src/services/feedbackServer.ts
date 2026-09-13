@@ -10,6 +10,7 @@ export interface FeedbackRecord {
   comment: string;
   page: string;
   createdAt: string;
+  status: string;
 }
 
 export interface FeedbackStats {
@@ -85,8 +86,30 @@ export function getFeedbackRecords(): FeedbackRecord[] {
         const raw = fs.readFileSync(filePath, 'utf-8');
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          inMemoryFeedback = parsed;
+          inMemoryFeedback = parsed.map((item) => ({
+            ...item,
+            status: item.status || 'New Feedback',
+          }));
           return inMemoryFeedback;
+        }
+      } else {
+        // If writable fallback path in /tmp doesn't have the file yet, seed from bundled data
+        const bundledPath = path.join(process.cwd(), 'data', 'feedback.json');
+        if (fs.existsSync(bundledPath)) {
+          const raw = fs.readFileSync(bundledPath, 'utf-8');
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            try {
+              fs.writeFileSync(filePath, raw, 'utf-8');
+            } catch {
+              // ignore write error on seed
+            }
+            inMemoryFeedback = parsed.map((item) => ({
+              ...item,
+              status: item.status || 'New Feedback',
+            }));
+            return inMemoryFeedback;
+          }
         }
       }
     } catch (err) {
@@ -101,7 +124,10 @@ export function getFeedbackRecords(): FeedbackRecord[] {
       const raw = fs.readFileSync(primaryFile, 'utf-8');
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        inMemoryFeedback = parsed;
+        inMemoryFeedback = parsed.map((item) => ({
+          ...item,
+          status: item.status || 'New Feedback',
+        }));
         return inMemoryFeedback;
       }
     } catch {
@@ -299,6 +325,7 @@ export function saveFeedbackRecord(input: {
     comment: cleanComment,
     page: cleanPage,
     createdAt: recordCreatedAt,
+    status: 'New Feedback',
   };
 
   const records = getFeedbackRecords();
