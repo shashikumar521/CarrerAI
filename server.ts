@@ -4,7 +4,24 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { getLiveJobs } from './src/services/jobsApiServer';
-import { sendAdminLoginEmail } from './src/services/adminNotificationServer';
+import {
+  sendAdminLoginEmail,
+  sendAdminRatingEmail,
+} from './src/services/adminNotificationServer';
+import {
+  saveFeedbackRecord,
+  getFeedbackRecords,
+  getFeedbackStats,
+  registerServerUser,
+  getVerifiedServerUser,
+} from './src/services/feedbackServer';
+import {
+  getUserNotificationsServer,
+  saveUserNotificationsServer,
+  markNotificationsReadServer,
+  deleteNotificationServer,
+  clearAllNotificationsServer,
+} from './src/services/userNotificationServer';
 
 dotenv.config();
 
@@ -94,8 +111,14 @@ app.post('/api/notify/login', async (req, res) => {
       return res.status(400).json({ success: false, error: 'User email is required' });
     }
 
+    // Register verified authenticated user server-side
+    registerServerUser({
+      name: typeof name === 'string' ? name.trim() : undefined,
+      email: email.trim().toLowerCase(),
+    });
+
     const result = await sendAdminLoginEmail({
-      name: typeof name === 'string' ? name : 'Anonymous User',
+      name: typeof name === 'string' ? name.trim() : '',
       email: email.trim().toLowerCase(),
       loginMethod: loginMethod === 'Google' ? 'Google' : 'Email',
       eventType: eventType === 'registration' ? 'registration' : 'login',
@@ -113,16 +136,238 @@ app.post('/api/notify/login', async (req, res) => {
   }
 });
 
+// =========================================================================
+// USER NOTIFICATIONS API (Personalized & Scoped by Authenticated User)
+// =========================================================================
+
+// Retrieve notifications for authenticated user
+app.get('/api/notifications', (req, res) => {
+  try {
+    const userEmail = (
+      (req.headers['x-user-email'] as string) ||
+      (req.query.email as string) ||
+      ''
+    ).trim().toLowerCase();
+
+    if (!userEmail) {
+      return res.status(401).json({ success: false, notifications: [], error: 'Authentication required' });
+    }
+
+    const notifications = getUserNotificationsServer(userEmail);
+    return res.json({ success: true, notifications });
+  } catch (error: any) {
+    console.error('[User Notifications API] GET error:', error);
+    return res.status(500).json({ success: false, notifications: [], error: 'Failed to retrieve notifications' });
+  }
+});
+
+// Save or sync notifications for authenticated user
+app.post('/api/notifications', (req, res) => {
+  try {
+    const userEmail = (
+      (req.headers['x-user-email'] as string) ||
+      req.body?.userEmail ||
+      ''
+    ).trim().toLowerCase();
+
+    if (!userEmail) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const items = Array.isArray(req.body?.notifications) ? req.body.notifications : [];
+    const updated = saveUserNotificationsServer(userEmail, items);
+    return res.json({ success: true, notifications: updated });
+  } catch (error: any) {
+    console.error('[User Notifications API] POST error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to save notifications' });
+  }
+});
+
+// Mark notification(s) as read
+app.patch('/api/notifications/read', (req, res) => {
+  try {
+    const userEmail = (
+      (req.headers['x-user-email'] as string) ||
+      req.body?.userEmail ||
+      ''
+    ).trim().toLowerCase();
+
+    if (!userEmail) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const ids = Array.isArray(req.body?.notificationIds) ? req.body.notificationIds : undefined;
+    const updated = markNotificationsReadServer(userEmail, ids);
+    return res.json({ success: true, notifications: updated });
+  } catch (error: any) {
+    console.error('[User Notifications API] PATCH read error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update read state' });
+  }
+});
+
+// Delete a single notification
+app.delete('/api/notifications/:id', (req, res) => {
+  try {
+    const userEmail = (
+      (req.headers['x-user-email'] as string) ||
+      (req.query.email as string) ||
+      ''
+    ).trim().toLowerCase();
+
+    if (!userEmail) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const notifId = req.params.id;
+    const updated = deleteNotificationServer(userEmail, notifId);
+    return res.json({ success: true, notifications: updated });
+  } catch (error: any) {
+    console.error('[User Notifications API] DELETE item error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to delete notification' });
+  }
+});
+
+// Clear all notifications
+app.delete('/api/notifications', (req, res) => {
+  try {
+    const userEmail = (
+      (req.headers['x-user-email'] as string) ||
+      (req.query.email as string) ||
+      ''
+    ).trim().toLowerCase();
+
+    if (!userEmail) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    clearAllNotificationsServer(userEmail);
+    return res.json({ success: true, notifications: [] });
+  } catch (error: any) {
+    console.error('[User Notifications API] DELETE all error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to clear notifications' });
+  }
+});
+
+// User Rating & Feedback Submission Endpoint
+// Strictly allows authenticated users to submit 1-5 star rating and optional feedback
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { userId, userName, userEmail, rating, comment, page } = req.body;
+
+    // Security: Only authenticated users can submit ratings
+    if (!userId || !userEmail || typeof userEmail !== 'string') {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required. Please sign in to submit feedback.',
+      });
+    }
+
+    // Security: Validate the rating server-side (must be integer 1 to 5)
+    const numRating = Number(rating);
+    if (!Number.isInteger(numRating) || numRating < 1 || numRating > 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Rating must be an integer between 1 and 5.',
+      });
+    }
+
+    // Sanitize feedback text & retrieve verified user name server-side
+    const cleanUserId = String(userId).trim();
+    const cleanEmail = userEmail.trim().toLowerCase();
+    const verifiedUser = getVerifiedServerUser(cleanEmail) || getVerifiedServerUser(cleanUserId);
+    const resolvedName = (verifiedUser?.name || userName || '').trim() || 'CareerAI Student';
+
+    // Save rating permanently in CareerAI database
+    const { record, isDuplicate } = saveFeedbackRecord({
+      userId: cleanUserId,
+      userName: resolvedName,
+      userEmail: cleanEmail,
+      rating: numRating,
+      comment: typeof comment === 'string' ? comment : '',
+      page: typeof page === 'string' ? page : 'Dashboard',
+    });
+
+    // Email Notification to ADMIN_EMAIL
+    // If email notification fails, the user's rating is still saved.
+    // Do not show user a failed-rating message. Log safely on server.
+    if (!isDuplicate) {
+      sendAdminRatingEmail({
+        userId: record.userId,
+        userName: record.userName,
+        userEmail: record.userEmail,
+        rating: record.rating,
+        comment: record.comment,
+        page: record.page,
+        timestamp: record.createdAt,
+      }).catch((emailErr) => {
+        console.error('[Admin Notification Error] Asynchronous email dispatch failed:', emailErr);
+      });
+    }
+
+    return res.json({
+      success: true,
+      feedback: record,
+      message: 'Thank you for your feedback! ❤️',
+    });
+  } catch (error: any) {
+    console.error('Feedback submission error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to submit feedback. Please try again.',
+    });
+  }
+});
+
+// Admin-Only User Feedback Retrieval
+// Normal users must NOT be able to access admin feedback
+app.get('/api/feedback', (req, res) => {
+  const adminEmail = (process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || '').trim().toLowerCase();
+  const reqEmail = (
+    (req.headers['x-user-email'] as string) ||
+    (req.query.email as string) ||
+    ''
+  ).trim().toLowerCase();
+
+  if (!adminEmail || !reqEmail || reqEmail !== adminEmail) {
+    return res.status(403).json({
+      success: false,
+      error: 'Access denied: Administrator privileges required.',
+    });
+  }
+
+  const feedbacks = getFeedbackRecords();
+  const stats = getFeedbackStats();
+
+  return res.json({
+    success: true,
+    stats,
+    feedback: feedbacks,
+  });
+});
+
+// Administrator Status Check Endpoint (Never exposes ADMIN_EMAIL to the client)
+app.post('/api/auth/check-admin', (req, res) => {
+  const adminEmail = (process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || '').trim().toLowerCase();
+  const userEmail = (req.body?.email || '').trim().toLowerCase();
+
+  if (!adminEmail || !userEmail) {
+    return res.json({ isAdmin: false });
+  }
+
+  return res.json({ isAdmin: userEmail === adminEmail });
+});
+
 // Admin Notification Status (masked, for diagnostics without exposing credentials)
 app.get('/api/notify/status', (req, res) => {
   const hasGmail = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
   const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || 'sudarsishashikumar521@gmail.com';
+  const adminEmail = (process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || '').trim();
 
   res.json({
     emailServiceConfigured: hasGmail || hasSmtp,
     provider: hasGmail ? 'Gmail SMTP' : hasSmtp ? 'Custom SMTP' : 'Console Simulator',
-    recipient: adminEmail.replace(/(.{3})(.*)(@.*)/, '$1***$3'),
+    recipientConfigured: Boolean(adminEmail),
+    recipient: adminEmail ? adminEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3') : 'Unset (reads from ADMIN_EMAIL)',
   });
 });
 

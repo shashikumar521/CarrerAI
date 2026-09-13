@@ -47,11 +47,13 @@ import {
   getUserLearningPath,
   updateCourseProgress,
   enrollInCourse,
+  startCourseLearning,
   COURSE_PROGRESS_UPDATED_EVENT,
   SkillProgressCardData,
   CORE_TECHNICAL_COMPETENCIES,
 } from '../utils/courseSkillService';
 import { FloatingRocket } from './FloatingRocket';
+import { AdminFeedbackSection } from './AdminFeedbackSection';
 
 interface DashboardViewProps {
   profile: StudentProfile;
@@ -62,6 +64,8 @@ interface DashboardViewProps {
   onLoadDemo: () => void;
   currentUser?: AuthUser | null;
   assessmentSubmitted?: boolean;
+  isAdmin?: boolean;
+  onOpenRating?: () => void;
 }
 
 /**
@@ -189,6 +193,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onLoadDemo,
   currentUser,
   assessmentSubmitted = false,
+  isAdmin = false,
+  onOpenRating,
 }) => {
   const isAssessed = !isProfileEmpty && assessmentSubmitted;
 
@@ -371,6 +377,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       className="space-y-8 sm:space-y-10 text-slate-900 selection:bg-indigo-500 selection:text-white"
     >
       {/* ========================================================================= */}
+      {/* ADMIN-ONLY USER RATINGS & FEEDBACK SECTION                                */}
+      {/* Rendered only if currentUser is verified as administrator                */}
+      {/* ========================================================================= */}
+      {isAdmin && currentUser && (
+        <AdminFeedbackSection currentUser={currentUser} isAdmin={isAdmin} />
+      )}
+
+      {/* ========================================================================= */}
       {/* 1. WELCOME SECTION (Clean, Compact, Subtle Fade + Slide-up)               */}
       {/* ========================================================================= */}
       <motion.section
@@ -479,6 +493,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </>
+            )}
+
+            {currentUser && onOpenRating && (
+              <button
+                type="button"
+                id="welcome-rate-careerai-btn"
+                onClick={onOpenRating}
+                className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs rounded-xl transition-all hover:scale-102 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Rate CareerAI & Feedback"
+              >
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                <span>Rate CareerAI</span>
+              </button>
             )}
           </div>
         </div>
@@ -1225,9 +1252,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               </span>
                             )}
                           </div>
-                          <span className="text-xs font-semibold text-indigo-600">
-                            {c.progressPercentage}%
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-indigo-600">
+                              {c.progressPercentage}%
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => startCourseLearning(c.courseId)}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200 transition-colors cursor-pointer"
+                              title="Open official course in new tab"
+                            >
+                              <span>Open</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
 
                         {/* Interactive Slider */}
@@ -1245,46 +1283,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           />
                         </div>
 
-                        {/* Quick Activity Completion Buttons */}
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateCourseProgress(
-                                c.courseId,
-                                Math.min(100, c.progressPercentage + 10)
-                              )
-                            }
-                            className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold rounded-md transition-colors cursor-pointer border border-indigo-200"
-                          >
-                            +10% Lesson
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateCourseProgress(
-                                c.courseId,
-                                Math.min(100, c.progressPercentage + 25)
-                              )
-                            }
-                            className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold rounded-md transition-colors cursor-pointer border border-indigo-200"
-                          >
-                            +25% Quiz
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateCourseProgress(c.courseId, 100)}
-                            className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold rounded-md transition-colors cursor-pointer border border-emerald-200"
-                          >
-                            100% (Master)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateCourseProgress(c.courseId, 0)}
-                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold rounded-md transition-colors cursor-pointer border border-slate-200"
-                          >
-                            Reset 0%
-                          </button>
+                        {/* Quick Progress Buttons: 0%, 25%, 50%, 75%, 100% */}
+                        <div className="grid grid-cols-5 gap-1 pt-1">
+                          {[0, 25, 50, 75, 100].map((step) => {
+                            const isCurrent = c.progressPercentage === step;
+                            return (
+                              <button
+                                key={step}
+                                type="button"
+                                onClick={() => updateCourseProgress(c.courseId, step)}
+                                className={`py-1 text-[11px] font-bold rounded-md transition-all cursor-pointer text-center ${
+                                  isCurrent
+                                    ? step === 100
+                                      ? 'bg-emerald-600 text-white shadow-2xs'
+                                      : 'bg-indigo-600 text-white shadow-2xs'
+                                    : 'bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 border border-slate-200'
+                                }`}
+                              >
+                                {step === 100 ? '100% ✓' : `${step}%`}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -1314,12 +1333,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <button
                             type="button"
                             onClick={() => {
-                              enrollInCourse(recId, 0);
+                              startCourseLearning(recId);
                             }}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer hover:-translate-y-0.5"
                           >
                             <Plus className="w-3.5 h-3.5" />
-                            <span>Start Learning Course (0% - Started)</span>
+                            <span>Start Learning Course</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </button>
                         )}
                         <button

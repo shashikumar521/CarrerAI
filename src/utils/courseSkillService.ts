@@ -1,10 +1,87 @@
 import { CourseRecommendation, StudentProfile, UserLearningPathItem } from '../types';
 import { REAL_WORLD_COURSES, LEARNING_PATH_STORAGE_KEY } from '../data/coursesDatabase';
+import { getActiveSession, getAccountByEmail, saveAccountToRegistry } from './authService';
 
 /**
  * Event name dispatched when any course progress or active learning item changes.
  */
 export const COURSE_PROGRESS_UPDATED_EVENT = 'careerai-course-progress-updated';
+
+/**
+ * Known official education and certification provider domains.
+ */
+const KNOWN_PROVIDER_DOMAINS = [
+  'netacad.com',
+  'skillsforall.com',
+  'cisco.com',
+  'education.oracle.com',
+  'oracle.com',
+  'skillbuilder.aws',
+  'aws.amazon.com',
+  'amazon.com',
+  'learn.microsoft.com',
+  'microsoft.com',
+  'cloudskillsboost.google',
+  'cloud.google.com',
+  'google.com',
+  'skillsbuild.org',
+  'ibm.com',
+  'nvidia.com',
+  'coursera.org',
+  'edx.org',
+  'swayam.gov.in',
+  'udacity.com',
+];
+
+/**
+ * Validates that an official course URL is real, safe, non-placeholder,
+ * and belongs to an official industry provider.
+ */
+export function isOfficialCourseUrlValid(url?: string, provider?: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+
+  const lower = trimmed.toLowerCase();
+  const disallowedTokens = [
+    'example.com',
+    'localhost',
+    'placeholder',
+    'dummy',
+    'test.com',
+    'fake',
+    'todo',
+    'null',
+    'undefined',
+  ];
+  if (disallowedTokens.some((t) => lower.includes(t))) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+    if (!parsed.hostname || !parsed.hostname.includes('.')) {
+      return false;
+    }
+    const hostname = parsed.hostname.toLowerCase();
+    return KNOWN_PROVIDER_DOMAINS.some(
+      (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
+export interface StartCourseResult {
+  success: boolean;
+  url?: string;
+  error?: string;
+  courseTitle?: string;
+  provider?: string;
+}
 
 /**
  * Technical Competency Skill Definition with Rule-Based Course Mapping
@@ -315,25 +392,40 @@ export function isCourseAssociatedWithSkill(
 }
 
 /**
- * Read the current learning path from localStorage.
+ * Read the current learning path from localStorage, with automatic restore from user account registry.
  */
 export function getUserLearningPath(): UserLearningPathItem[] {
   try {
     const saved = localStorage.getItem(LEARNING_PATH_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed;
       }
     }
   } catch (e) {
     console.warn('Failed to parse learning path from localStorage', e);
   }
+
+  // Multi-session fallback: check if the authenticated account has an existing learning path
+  try {
+    const active = getActiveSession();
+    if (active) {
+      const record = getAccountByEmail(active.email);
+      if (record?.learningPath && Array.isArray(record.learningPath) && record.learningPath.length > 0) {
+        localStorage.setItem(LEARNING_PATH_STORAGE_KEY, JSON.stringify(record.learningPath));
+        return record.learningPath;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to sync learning path from account:', err);
+  }
+
   return [];
 }
 
 /**
- * Save updated learning path to localStorage and notify all listeners.
+ * Save updated learning path to localStorage, sync to authenticated user account, and notify all listeners.
  */
 export function saveUserLearningPath(items: UserLearningPathItem[]): void {
   try {
@@ -341,9 +433,97 @@ export function saveUserLearningPath(items: UserLearningPathItem[]): void {
     window.dispatchEvent(
       new CustomEvent(COURSE_PROGRESS_UPDATED_EVENT, { detail: items })
     );
+
+    // Sync to user account record for persistent multi-session restoration
+    const active = getActiveSession();
+    if (active) {
+      const record = getAccountByEmail(active.email);
+      if (record) {
+        saveAccountToRegistry({
+          ...record,
+          learningPath: items,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
   } catch (e) {
     console.warn('Failed to save learning path to localStorage', e);
   }
+}
+
+/**
+ * Verifies official destination, opens course in a new browser tab, and marks it as started/in-progress.
+ */
+export function startCourseLearning(courseId: string): StartCourseResult {
+  const course = REAL_WORLD_COURSES.find((c) => c.id === courseId);
+  if (!course) {
+    return {
+      success: false,
+      error: 'Course not found in CareerAI catalog.',
+    };
+  }
+
+  if (!isOfficialCourseUrlValid(course.officialUrl, course.provider)) {
+    return {
+      success: false,
+      error: 'Unable to open this course right now. Please try again later.',
+    };
+  }
+
+  // Open official course page in a new browser tab safely
+  try {
+    if (typeof window !== 'undefined') {
+      window.open(course.officialUrl, '_blank', 'noopener,noreferrer');
+    }
+  } catch (err) {
+    console.error('Failed to open window for course URL:', err);
+    return {
+      success: false,
+      error: 'Unable to open this course right now. Please try again later.',
+    };
+  }
+
+  // Retrieve current learning path and update / enroll
+  const items = getUserLearningPath();
+  const existingIdx = items.findIndex((i) => i.courseId === courseId);
+  const now = new Date().toISOString();
+
+  if (existingIdx >= 0) {
+    const existing = items[existingIdx];
+    const currentProg = existing.progressPercentage ?? 0;
+    items[existingIdx] = {
+      ...existing,
+      courseTitle: course.title,
+      provider: course.provider,
+      officialUrl: course.officialUrl,
+      status: existing.status === 'completed' ? 'completed' : 'in-progress',
+      progressPercentage: currentProg,
+      startedAt: existing.startedAt || now,
+      lastUpdatedAt: now,
+    };
+  } else {
+    items.push({
+      courseId: course.id,
+      courseTitle: course.title,
+      provider: course.provider,
+      officialUrl: course.officialUrl,
+      status: 'in-progress',
+      progressPercentage: 0,
+      startedAt: now,
+      savedAt: now,
+      lastUpdatedAt: now,
+      orderIndex: items.length,
+    });
+  }
+
+  saveUserLearningPath([...items]);
+
+  return {
+    success: true,
+    url: course.officialUrl,
+    courseTitle: course.title,
+    provider: course.provider,
+  };
 }
 
 /**
@@ -352,31 +532,42 @@ export function saveUserLearningPath(items: UserLearningPathItem[]): void {
 export function updateCourseProgress(courseId: string, progressPercentage: number): void {
   const items = getUserLearningPath();
   const clamped = Math.max(0, Math.min(100, Math.round(progressPercentage)));
+  const now = new Date().toISOString();
   let found = false;
 
   const updatedItems = items.map((item) => {
     if (item.courseId === courseId) {
       found = true;
+      const course = REAL_WORLD_COURSES.find((c) => c.id === courseId);
       return {
         ...item,
+        courseTitle: item.courseTitle || course?.title,
+        provider: item.provider || course?.provider,
+        officialUrl: item.officialUrl || course?.officialUrl,
         progressPercentage: clamped,
         status: clamped >= 100 ? ('completed' as const) : ('in-progress' as const),
-        completedAt: clamped >= 100 ? new Date().toISOString() : item.completedAt,
+        completedAt: clamped >= 100 ? (item.completedAt || now) : undefined,
+        startedAt: item.startedAt || now,
+        lastUpdatedAt: now,
       };
     }
     return item;
   });
 
   if (!found) {
-    // If not already in learning path, enroll it as an active course
+    // If not already in learning path, enroll it with full course metadata
     const course = REAL_WORLD_COURSES.find((c) => c.id === courseId);
     updatedItems.push({
       courseId,
       courseTitle: course?.title,
+      provider: course?.provider,
+      officialUrl: course?.officialUrl,
       status: clamped >= 100 ? 'completed' : 'in-progress',
       progressPercentage: clamped,
-      savedAt: new Date().toISOString(),
-      completedAt: clamped >= 100 ? new Date().toISOString() : undefined,
+      startedAt: now,
+      savedAt: now,
+      lastUpdatedAt: now,
+      completedAt: clamped >= 100 ? now : undefined,
       orderIndex: updatedItems.length,
     });
   }
@@ -391,21 +582,33 @@ export function enrollInCourse(courseId: string, initialProgress: number = 0): v
   const items = getUserLearningPath();
   const clamped = Math.max(0, Math.min(100, Math.round(initialProgress)));
   const existingIndex = items.findIndex((i) => i.courseId === courseId);
+  const course = REAL_WORLD_COURSES.find((c) => c.id === courseId);
+  const now = new Date().toISOString();
 
   if (existingIndex >= 0) {
     items[existingIndex] = {
       ...items[existingIndex],
-      status: 'in-progress',
+      courseTitle: items[existingIndex].courseTitle || course?.title,
+      provider: items[existingIndex].provider || course?.provider,
+      officialUrl: items[existingIndex].officialUrl || course?.officialUrl,
+      status: clamped >= 100 ? 'completed' : 'in-progress',
       progressPercentage: items[existingIndex].progressPercentage ?? clamped,
+      startedAt: items[existingIndex].startedAt || now,
+      lastUpdatedAt: now,
+      completedAt: clamped >= 100 ? (items[existingIndex].completedAt || now) : undefined,
     };
   } else {
-    const course = REAL_WORLD_COURSES.find((c) => c.id === courseId);
     items.push({
       courseId,
       courseTitle: course?.title,
-      status: 'in-progress',
+      provider: course?.provider,
+      officialUrl: course?.officialUrl,
+      status: clamped >= 100 ? 'completed' : 'in-progress',
       progressPercentage: clamped,
-      savedAt: new Date().toISOString(),
+      startedAt: now,
+      savedAt: now,
+      lastUpdatedAt: now,
+      completedAt: clamped >= 100 ? now : undefined,
       orderIndex: items.length,
     });
   }
@@ -417,19 +620,20 @@ export function enrollInCourse(courseId: string, initialProgress: number = 0): v
  * Calculates skill progress dynamically from the user's currently active learning courses.
  *
  * Rules:
- * 1. Only includes CURRENTLY ACTIVE / CURRENTLY LEARNING courses (status === 'in-progress' or 'active').
- * 2. Excludes completed, abandoned, or unrelated courses.
- * 3. If multiple active courses match: calculates the average completion percentage.
- * 4. If no active course matches: returns displayPercent "No active course", percent 0, and level "No Active Course".
+ * 1. Includes CURRENTLY ACTIVE / IN-PROGRESS courses and COMPLETED courses.
+ * 2. Completed courses represent 100% mastery.
+ * 3. Excludes abandoned or unrelated courses.
+ * 4. If multiple active courses match: calculates the average completion percentage.
+ * 5. If no active course matches: returns displayPercent "No active course", percent 0, and level "No Active Course".
  */
 export function calculateSkillProgress(
   skillName: string,
   category: string,
   learningPath: UserLearningPathItem[]
 ): SkillProgressCardData {
-  // 1. Filter ONLY currently active / in-progress courses
+  // 1. Filter active or completed courses
   const activeItems = learningPath.filter(
-    (item) => item.status === 'in-progress' || (item as any).status === 'active'
+    (item) => item.status === 'in-progress' || item.status === 'completed' || (item as any).status === 'active'
   );
 
   // 2. Find matching active courses
@@ -443,8 +647,10 @@ export function calculateSkillProgress(
   for (const item of activeItems) {
     const details = resolveCourseDetails(item.courseId, item.courseTitle);
     if (isCourseAssociatedWithSkill(details, skillName)) {
-      // Default to 0% if progressPercentage was not explicitly recorded
-      const percent = Math.max(0, Math.min(100, Math.round(item.progressPercentage ?? 0)));
+      // If marked completed, guaranteed 100%
+      const percent = item.status === 'completed'
+        ? 100
+        : Math.max(0, Math.min(100, Math.round(item.progressPercentage ?? 0)));
       matchingActiveCourses.push({
         courseId: item.courseId,
         title: details.title,

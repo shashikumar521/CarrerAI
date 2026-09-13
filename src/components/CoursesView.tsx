@@ -31,6 +31,8 @@ import {
   Zap,
   Tag,
   AlertCircle,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 import {
   StudentProfile,
@@ -50,7 +52,14 @@ import {
   calculateLearningProgressMetrics,
 } from '../data/coursesDatabase';
 import { TARGET_ROLE_DEFINITIONS as TARGET_ROLES } from '../data/mockDatabase';
-import { COURSE_PROGRESS_UPDATED_EVENT } from '../utils/courseSkillService';
+import {
+  COURSE_PROGRESS_UPDATED_EVENT,
+  startCourseLearning,
+  isOfficialCourseUrlValid,
+  updateCourseProgress,
+  getUserLearningPath,
+  saveUserLearningPath,
+} from '../utils/courseSkillService';
 
 interface CoursesViewProps {
   profile: StudentProfile;
@@ -78,6 +87,19 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
   // Navigation / sub-tab state
   const [activeTab, setActiveTab] = useState<CourseTab>('recommended');
 
+  // Feedback Toast notification
+  const [feedbackToast, setFeedbackToast] = useState<{
+    type: 'success' | 'error' | 'info';
+    message: string;
+  } | null>(null);
+
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    setFeedbackToast({ type, message });
+    setTimeout(() => {
+      setFeedbackToast((curr) => (curr?.message === message ? null : curr));
+    }, 4500);
+  };
+
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<string>('All');
@@ -90,34 +112,9 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
     profile.targetRoles?.[0] || 'Software Development Engineer (SDE)'
   );
 
-  // My Learning Path stored state
+  // My Learning Path stored state with account & local sync
   const [learningPath, setLearningPath] = useState<UserLearningPathItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(LEARNING_PATH_STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('Failed to parse learning path from storage', e);
-    }
-    // Default seed items if empty to help students immediately get started
-    return [
-      {
-        courseId: 'aws-cloud-practitioner',
-        status: 'in-progress',
-        savedAt: new Date().toISOString(),
-        targetCompletionDate: '2026-10-15',
-        orderIndex: 0,
-      },
-      {
-        courseId: 'cisco-python-essentials',
-        status: 'completed',
-        savedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        certificateCredentialId: 'OPENEDG-PY-88210',
-        orderIndex: 1,
-      },
-    ];
+    return getUserLearningPath();
   });
 
   // Target date editing modal/state
@@ -126,55 +123,74 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
   const [editingCredentialId, setEditingCredentialId] = useState<string | null>(null);
   const [newCredentialText, setNewCredentialText] = useState<string>('');
 
-  // Save learning path updates to localStorage and notify global listeners
+  // Synchronize if learning path is updated anywhere (storage event or custom event)
   useEffect(() => {
-    try {
-      localStorage.setItem(LEARNING_PATH_STORAGE_KEY, JSON.stringify(learningPath));
-      window.dispatchEvent(
-        new CustomEvent(COURSE_PROGRESS_UPDATED_EVENT, { detail: learningPath })
-      );
-    } catch (e) {
-      console.warn('Failed to save learning path to storage', e);
-    }
-  }, [learningPath]);
-
-  // Synchronize if learning path updated elsewhere (e.g. Dashboard modal)
-  useEffect(() => {
-    const handleExternalUpdate = () => {
+    const handleSync = (e?: any) => {
       try {
-        const saved = localStorage.getItem(LEARNING_PATH_STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            setLearningPath(parsed);
-          }
+        if (e && e.detail && Array.isArray(e.detail)) {
+          setLearningPath(e.detail);
+        } else {
+          setLearningPath(getUserLearningPath());
         }
-      } catch (e) {
-        console.warn(e);
+      } catch (err) {
+        console.warn('Learning path sync error:', err);
       }
     };
 
-    window.addEventListener('storage', handleExternalUpdate);
+    window.addEventListener(COURSE_PROGRESS_UPDATED_EVENT, handleSync);
+    window.addEventListener('storage', handleSync);
     return () => {
-      window.removeEventListener('storage', handleExternalUpdate);
+      window.removeEventListener(COURSE_PROGRESS_UPDATED_EVENT, handleSync);
+      window.removeEventListener('storage', handleSync);
     };
   }, []);
 
+  // Handler to start or continue learning a course with destination validation
+  const handleStartLearningCourse = (courseId: string) => {
+    const course = REAL_WORLD_COURSES.find((c) => c.id === courseId);
+    if (!course) {
+      showToast('error', 'Course details not found in CareerAI catalog.');
+      return;
+    }
+
+    if (!isOfficialCourseUrlValid(course.officialUrl, course.provider)) {
+      showToast('error', 'Unable to open this course right now. Please try again later.');
+      return;
+    }
+
+    const result = startCourseLearning(courseId);
+    if (result.success) {
+      const updatedList = getUserLearningPath();
+      setLearningPath(updatedList);
+      const item = updatedList.find((i) => i.courseId === courseId);
+      const isCompleted = item?.status === 'completed';
+
+      if (isCompleted) {
+        showToast(
+          'success',
+          `Re-opened official course on ${course.provider}. Status: Completed ✓`
+        );
+      } else {
+        showToast(
+          'success',
+          `Opened official course on ${course.provider}. Marked as In Progress — track your progress below as you complete modules.`
+        );
+      }
+    } else {
+      showToast('error', result.error || 'Unable to open this course right now. Please try again later.');
+    }
+  };
+
+  // Handler to update self-reported course progress percentage
   const handleUpdateCourseProgress = (courseId: string, newPercent: number) => {
     const clamped = Math.max(0, Math.min(100, Math.round(newPercent)));
-    setLearningPath((prev) =>
-      prev.map((item) => {
-        if (item.courseId === courseId) {
-          return {
-            ...item,
-            progressPercentage: clamped,
-            status: clamped >= 100 ? 'completed' : 'in-progress',
-            completedAt: clamped >= 100 ? new Date().toISOString() : item.completedAt,
-          };
-        }
-        return item;
-      })
-    );
+    updateCourseProgress(courseId, clamped);
+    const updated = getUserLearningPath();
+    setLearningPath(updated);
+
+    if (clamped >= 100) {
+      showToast('success', 'Course marked as Completed (100%)! Career readiness & skill mastery updated.');
+    }
   };
 
   // Providers list
@@ -458,6 +474,37 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
 
   return (
     <div className="space-y-8">
+      {/* Toast Notification Banner */}
+      {feedbackToast && (
+        <div
+          className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-xs font-semibold shadow-xs animate-in fade-in transition-all ${
+            feedbackToast.type === 'success'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+              : feedbackToast.type === 'error'
+              ? 'bg-rose-50 border-rose-300 text-rose-900'
+              : 'bg-indigo-50 border-indigo-300 text-indigo-900'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedbackToast.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : feedbackToast.type === 'error' ? (
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+            )}
+            <span>{feedbackToast.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFeedbackToast(null)}
+            className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header & Mission Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-100 pb-6">
@@ -530,7 +577,9 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     {mostRecentCourse.item.status === 'completed' ? 'Completed Course' : 'Active Course'}
                   </span>
                   <span className="text-xs text-indigo-200 font-medium">
-                    {mostRecentCourse.item.status === 'completed' ? '100% Complete' : `${mostRecentCourse.item.progressPercentage ?? 45}% Progress`}
+                    {mostRecentCourse.item.status === 'completed'
+                      ? '100% Complete'
+                      : `${mostRecentCourse.item.progressPercentage ?? 0}% Progress`}
                   </span>
                 </div>
                 <h3 className="font-bold text-sm sm:text-base text-white">
@@ -542,15 +591,14 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
               </div>
             </div>
 
-            <a
-              href={mostRecentCourse.course.officialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => handleStartLearningCourse(mostRecentCourse.course.id)}
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-100 text-indigo-950 font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
             >
               <span>{mostRecentCourse.item.status === 'completed' ? 'Review Course' : 'Continue Learning'}</span>
-              <ArrowRight className="w-4 h-4 text-indigo-600" />
-            </a>
+              <ExternalLink className="w-4 h-4 text-indigo-600" />
+            </button>
           </div>
         )}
 
@@ -1108,52 +1156,51 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                                     />
                                   </div>
 
-                                  {item.status !== 'completed' && (
-                                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                                      <div className="flex items-center gap-1.5">
-                                        <button
-                                          type="button"
-                                          onClick={() => handleUpdateCourseProgress(course.id, Math.max(0, (item.progressPercentage ?? 0) - 10))}
-                                          className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-200 cursor-pointer"
-                                          title="Decrease 10%"
-                                        >
-                                          -10%
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleUpdateCourseProgress(course.id, Math.min(100, (item.progressPercentage ?? 0) + 10))}
-                                          className="px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold border border-indigo-200 cursor-pointer"
-                                          title="Complete 10% lesson"
-                                        >
-                                          +10% Lesson
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleUpdateCourseProgress(course.id, Math.min(100, (item.progressPercentage ?? 0) + 25))}
-                                          className="px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold border border-indigo-200 cursor-pointer"
-                                          title="Complete 25% module/quiz"
-                                        >
-                                          +25% Quiz
-                                        </button>
-                                      </div>
-
-                                      <div className="flex items-center gap-2">
-                                        <input
-                                          type="range"
-                                          min="0"
-                                          max="100"
-                                          step="1"
-                                          value={item.progressPercentage ?? 0}
-                                          onChange={(e) => handleUpdateCourseProgress(course.id, Number(e.target.value))}
-                                          className="w-24 accent-indigo-600 cursor-pointer"
-                                          title="Adjust course progress"
-                                        />
-                                        <span className="text-[11px] font-bold text-slate-600 w-8 text-right">
-                                          {item.progressPercentage ?? 0}%
-                                        </span>
-                                      </div>
+                                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                    <div className="flex items-center gap-1">
+                                      {[0, 25, 50, 75, 100].map((step) => {
+                                        const isCurrent =
+                                          item.status === 'completed'
+                                            ? step === 100
+                                            : (item.progressPercentage ?? 0) === step;
+                                        return (
+                                          <button
+                                            key={step}
+                                            type="button"
+                                            onClick={() => handleUpdateCourseProgress(course.id, step)}
+                                            className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                                              isCurrent
+                                                ? step === 100
+                                                 ? 'bg-emerald-600 text-white shadow-2xs'
+                                                 : 'bg-indigo-600 text-white shadow-2xs'
+                                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600'
+                                            }`}
+                                            title={`Set progress to ${step}%`}
+                                          >
+                                            {step}%
+                                          </button>
+                                        );
+                                      })}
                                     </div>
-                                  )}
+
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value={item.status === 'completed' ? 100 : (item.progressPercentage ?? 0)}
+                                        onChange={(e) =>
+                                          handleUpdateCourseProgress(course.id, Number(e.target.value))
+                                        }
+                                        className="w-24 accent-indigo-600 cursor-pointer"
+                                        title="Adjust course progress"
+                                      />
+                                      <span className="text-[11px] font-bold text-slate-600 w-8 text-right">
+                                        {item.status === 'completed' ? 100 : (item.progressPercentage ?? 0)}%
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 {/* Target Completion Date & Credential ID */}
@@ -1227,15 +1274,20 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                                     </div>
                                   )}
 
-                                  <a
-                                    href={course.officialUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
-                                  >
-                                    <span>Open Provider</span>
-                                    <ExternalLink className="w-3 h-3" />
-                                  </a>
+                                  {isOfficialCourseUrlValid(course.officialUrl, course.provider) ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleStartLearningCourse(course.id)}
+                                      className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                                    >
+                                      <span>Open Course ({course.provider})</span>
+                                      <ExternalLink className="w-3 h-3" />
+                                    </button>
+                                  ) : (
+                                    <span className="text-[11px] text-slate-400 font-medium">
+                                      Destination unavailable
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -1634,21 +1686,67 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Progress Bar (if in progress or completed) */}
+                    {/* Progress & Milestone Tracking (if in progress or completed) */}
                     {(isInProgress || isCompleted) && (
-                      <div className="space-y-1 pt-1">
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-slate-600">Course Progress</span>
-                          <span className={`font-bold ${isCompleted ? 'text-emerald-700' : 'text-indigo-600'}`}>
-                            {currentProgress}%
+                          <span className="font-bold text-slate-700">Learning Progress</span>
+                          <span
+                            className={`font-bold text-xs ${
+                              isCompleted ? 'text-emerald-700' : 'text-indigo-600'
+                            }`}
+                          >
+                            {currentProgress}% {isCompleted && '✓'}
                           </span>
                         </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+
+                        {/* Visual Bar */}
+                        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all duration-500 ${
+                            className={`h-full rounded-full transition-all duration-300 ${
                               isCompleted ? 'bg-emerald-600' : 'bg-indigo-600'
                             }`}
                             style={{ width: `${currentProgress}%` }}
+                          />
+                        </div>
+
+                        {/* Preset Progress Steps: 0%, 25%, 50%, 75%, 100% */}
+                        <div className="grid grid-cols-5 gap-1 pt-0.5">
+                          {[0, 25, 50, 75, 100].map((step) => {
+                            const isCurrent = currentProgress === step;
+                            return (
+                              <button
+                                key={step}
+                                type="button"
+                                onClick={() => handleUpdateCourseProgress(course.id, step)}
+                                className={`py-1 px-0.5 text-[11px] font-bold rounded-md transition-all cursor-pointer text-center ${
+                                  isCurrent
+                                    ? step === 100
+                                      ? 'bg-emerald-600 text-white shadow-2xs'
+                                      : 'bg-indigo-600 text-white shadow-2xs'
+                                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'
+                                }`}
+                                title={`Set course progress to ${step}%`}
+                              >
+                                {step}%
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Interactive Slider for fine adjustment */}
+                        <div className="pt-0.5">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value={currentProgress}
+                            onChange={(e) =>
+                              handleUpdateCourseProgress(course.id, Number(e.target.value))
+                            }
+                            className="w-full accent-indigo-600 cursor-pointer h-1.5"
+                            title="Fine-tune progress percentage"
                           />
                         </div>
                       </div>
@@ -1680,28 +1778,36 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
 
                   {/* Actions Bar */}
                   <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
-                    {/* Official Link Button */}
-                    <a
-                      href={course.officialUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-2xs ${
-                        isCompleted
-                          ? 'bg-emerald-600 hover:bg-emerald-700'
-                          : isInProgress
-                          ? 'bg-indigo-600 hover:bg-indigo-700'
-                          : 'bg-indigo-600 hover:bg-indigo-700'
-                      }`}
-                    >
-                      <span>
-                        {isCompleted
-                          ? 'Review Course'
-                          : isInProgress
-                          ? 'Continue Learning'
-                          : 'Start Course'}
-                      </span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                    {/* Start / Continue Learning Button with Validation */}
+                    {isOfficialCourseUrlValid(course.officialUrl, course.provider) ? (
+                      <button
+                        type="button"
+                        onClick={() => handleStartLearningCourse(course.id)}
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-2xs ${
+                          isCompleted
+                            ? 'bg-emerald-600 hover:bg-emerald-700'
+                            : isInProgress
+                            ? 'bg-indigo-600 hover:bg-indigo-700'
+                            : 'bg-indigo-600 hover:bg-indigo-700'
+                        }`}
+                      >
+                        <span>
+                          {isCompleted
+                            ? 'Review Course'
+                            : isInProgress
+                            ? 'Continue Learning'
+                            : 'Start Learning'}
+                        </span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <div
+                        className="flex-1 py-2 px-3 text-center text-xs font-medium text-slate-400 bg-slate-100 rounded-xl cursor-not-allowed border border-slate-200"
+                        title="This course does not currently have a verified destination."
+                      >
+                        Destination Unavailable
+                      </div>
+                    )}
 
                     {/* Add to Learning Path Toggle */}
                     <button

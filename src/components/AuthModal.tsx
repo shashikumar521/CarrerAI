@@ -121,8 +121,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
+      const resolvedName =
+        authResult.record.profile?.name?.trim() ||
+        authResult.record.user?.name?.trim() ||
+        '';
+
       sendAdminLoginNotification({
-        name: authResult.record.user.name || 'Google Student',
+        name: resolvedName,
         email: authResult.record.user.email,
         loginMethod: 'Google',
         eventType: authResult.isNewUser ? 'registration' : 'login',
@@ -233,8 +238,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(false);
 
     if (result.success && result.record) {
+      const resolvedName =
+        result.record.profile?.name?.trim() ||
+        result.record.user?.name?.trim() ||
+        '';
+
       sendAdminLoginNotification({
-        name: result.record.user.name || 'Student',
+        name: resolvedName,
         email: result.record.user.email,
         loginMethod: 'Email',
         eventType: 'login',
@@ -275,8 +285,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(false);
 
     if (result.success && result.record) {
+      const resolvedName =
+        result.record.profile?.name?.trim() ||
+        result.record.user?.name?.trim() ||
+        fullName.trim();
+
       sendAdminLoginNotification({
-        name: result.record.user.name || 'Student',
+        name: resolvedName,
         email: result.record.user.email,
         loginMethod: 'Email',
         eventType: 'registration',

@@ -47,7 +47,7 @@ export async function sendAdminLoginNotification(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: params.name || 'Anonymous User',
+        name: typeof params.name === 'string' ? params.name.trim() : '',
         email: normalizedEmail,
         loginMethod: params.loginMethod,
         eventType: params.eventType || 'login',

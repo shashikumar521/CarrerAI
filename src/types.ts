@@ -159,11 +159,33 @@ export interface AuthUser {
   createdAt: string;
 }
 
+export interface UserNotification {
+  id: string;
+  userId: string;
+  type:
+    | 'course_start'
+    | 'course_milestone'
+    | 'course_completion'
+    | 'continue_learning'
+    | 'skill_progress'
+    | 'platform';
+  title: string;
+  message: string;
+  courseId?: string;
+  courseTitle?: string;
+  progress?: number;
+  skill?: string;
+  createdAt: string;
+  read: boolean;
+}
+
 export interface AccountRecord {
   user: AuthUser;
   password?: string;
   profile: StudentProfile;
   assessmentSubmitted: boolean;
+  learningPath?: UserLearningPathItem[];
+  notifications?: UserNotification[];
   updatedAt: string;
 }
 
@@ -267,9 +289,13 @@ export interface RealWorldProject {
 export interface UserLearningPathItem {
   courseId: string;
   courseTitle?: string;
+  provider?: string;
+  officialUrl?: string;
   status: 'not-started' | 'in-progress' | 'completed' | 'abandoned';
   progressPercentage?: number; // 0 to 100 actual completion percentage
+  startedAt?: string;
   savedAt: string;
+  lastUpdatedAt?: string;
   completedAt?: string;
   targetCompletionDate?: string;
   certificateCredentialId?: string;

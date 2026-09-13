@@ -191,9 +191,15 @@ export function decodeGoogleCredential(credential: string): {
     );
     const parsed = JSON.parse(jsonPayload);
     if (!parsed || !parsed.email || !parsed.sub) return null;
+    const derivedName = (
+      parsed.name ||
+      [parsed.given_name, parsed.family_name].filter(Boolean).join(' ') ||
+      ''
+    ).trim();
+
     return {
       email: parsed.email,
-      name: parsed.name || parsed.given_name || 'Student',
+      name: derivedName,
       picture: parsed.picture,
       sub: parsed.sub,
       given_name: parsed.given_name,
@@ -263,16 +269,27 @@ export function handleGoogleAuthPayload(googleData: {
   const existing = getAccountByEmail(normalized);
 
   if (existing) {
-    // Existing user: Update photo or name if changed from Google, but preserve all student assessment data
+    // Existing user: Preserve existing profile or user name, or use Google display name
+    const resolvedName =
+      existing.profile?.name?.trim() ||
+      existing.user.name?.trim() ||
+      googleData.name.trim();
+
     const updatedUser: AuthUser = {
       ...existing.user,
-      name: existing.user.name || googleData.name,
+      name: resolvedName,
       photoUrl: googleData.photoUrl || existing.user.photoUrl,
+    };
+
+    const updatedProfile: StudentProfile = {
+      ...existing.profile,
+      name: existing.profile?.name?.trim() || resolvedName,
     };
 
     const updatedRecord: AccountRecord = {
       ...existing,
       user: updatedUser,
+      profile: updatedProfile,
       updatedAt: new Date().toISOString(),
     };
 

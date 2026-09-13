@@ -30,6 +30,7 @@ import { AiCounselorView } from './components/AiCounselorView';
 import { ResumeBuilderView } from './components/ResumeBuilderView';
 import { PrepHubView } from './components/PrepHubView';
 import { AuthModal } from './components/AuthModal';
+import { RatingModal } from './components/RatingModal';
 import { Footer } from './components/Footer';
 import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
 import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
@@ -43,6 +44,18 @@ import { LoadingProvider, useLoading } from './context/LoadingContext';
 
 const STORAGE_KEY = 'careerai_student_profile_v1';
 const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
+
+const TAB_NAMES: Record<NavTab, string> = {
+  dashboard: 'Dashboard',
+  profile: 'Profile & Assessment',
+  eligibility: 'Eligibility Checker',
+  skillgap: 'Skill Gap & Roadmap',
+  courses: 'Courses & Certifications',
+  jobs: 'Jobs & Internships',
+  counselor: 'AI Counselor',
+  resume: 'Resume & ATS',
+  prep: 'Interview Prep',
+};
 
 export function App() {
   return (
@@ -59,6 +72,39 @@ function CareerAiAppMain() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getActiveSession());
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+
+  // User Rating & Feedback Modal State
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+
+  // Administrator Verification State (computed securely via server endpoint)
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser?.email) {
+      setIsAdmin(false);
+      return;
+    }
+    let isMounted = true;
+    fetch('/api/auth/check-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentUser.email }),
+    })
+      .then((res) => (res.ok ? res.json() : { isAdmin: false }))
+      .then((data) => {
+        if (isMounted) {
+          setIsAdmin(Boolean(data?.isAdmin));
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsAdmin(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser?.email]);
 
   // Centralized Global Loading & Intro System
   const {
@@ -344,6 +390,10 @@ function CareerAiAppMain() {
       try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(ASSESSMENT_SUBMITTED_KEY);
+        localStorage.removeItem(LEARNING_PATH_STORAGE_KEY);
+        window.dispatchEvent(
+          new CustomEvent(COURSE_PROGRESS_UPDATED_EVENT, { detail: [] })
+        );
       } catch (e) {
         console.warn(e);
       }
@@ -368,6 +418,18 @@ function CareerAiAppMain() {
         setProfile(record.profile);
       } else {
         setProfile(EMPTY_STUDENT_PROFILE);
+      }
+
+      // Restore user's persistent learning path from their account record
+      if (record.learningPath && Array.isArray(record.learningPath) && record.learningPath.length > 0) {
+        try {
+          localStorage.setItem(LEARNING_PATH_STORAGE_KEY, JSON.stringify(record.learningPath));
+          window.dispatchEvent(
+            new CustomEvent(COURSE_PROGRESS_UPDATED_EVENT, { detail: record.learningPath })
+          );
+        } catch (e) {
+          console.warn('Failed to sync learning path on login:', e);
+        }
       }
 
       setAuthModalOpen(false);
@@ -415,6 +477,8 @@ function CareerAiAppMain() {
               assessmentSubmitted={assessmentSubmitted}
               mobileOpen={mobileSidebarOpen}
               onCloseMobile={() => setMobileSidebarOpen(false)}
+              onOpenRating={() => setRatingModalOpen(true)}
+              isAdmin={isAdmin}
             />
           </div>
 
@@ -438,6 +502,8 @@ function CareerAiAppMain() {
                 }}
                 onLogout={handleLogout}
                 onReplayIntro={triggerIntro}
+                onOpenRating={() => setRatingModalOpen(true)}
+                isAdmin={isAdmin}
               />
             </div>
 
@@ -453,6 +519,8 @@ function CareerAiAppMain() {
                   onLoadDemo={handleLoadDemo}
                   currentUser={currentUser}
                   assessmentSubmitted={assessmentSubmitted}
+                  isAdmin={isAdmin}
+                  onOpenRating={() => setRatingModalOpen(true)}
                 />
               )}
 
@@ -549,6 +617,14 @@ function CareerAiAppMain() {
           initialMode={authModalMode}
           onClose={() => setAuthModalOpen(false)}
           onAuthSuccess={handleAuthSuccess}
+        />
+
+        {/* User Rating & Feedback Modal */}
+        <RatingModal
+          isOpen={ratingModalOpen}
+          onClose={() => setRatingModalOpen(false)}
+          currentUser={currentUser}
+          currentPage={TAB_NAMES[currentTab] || currentTab}
         />
 
         {/* Centralized Premium CareerAI Loading Screen & Intro */}

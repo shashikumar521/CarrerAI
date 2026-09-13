@@ -15,10 +15,13 @@ import {
   Briefcase,
   GitBranch,
   Award,
+  Star,
+  ShieldCheck,
 } from 'lucide-react';
 import { PlacementReadinessReport, AuthUser } from '../types';
 import { GoogleIcon } from './GoogleIcon';
 import { NavTab } from './Navbar';
+import { NotificationPanel } from './NotificationPanel';
 
 interface TopHeaderProps {
   onToggleMobile: () => void;
@@ -33,15 +36,8 @@ interface TopHeaderProps {
   onOpenAuth: (mode: 'signin' | 'signup') => void;
   onLogout: () => void;
   onReplayIntro?: () => void;
-}
-
-interface NotificationItem {
-  id: string;
-  title: string;
-  desc: string;
-  time: string;
-  unread: boolean;
-  category: 'company' | 'skill' | 'job';
+  onOpenRating?: () => void;
+  isAdmin?: boolean;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -55,6 +51,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenAuth,
   onLogout,
   onReplayIntro,
+  onOpenRating,
+  isAdmin,
 }) => {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,34 +61,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
   // Notification state
   const [notifOpen, setNotifOpen] = useState(false);
-  const [hasUnread, setHasUnread] = useState(true);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: '1',
-      title: 'Amazon & Google Cutoffs Updated',
-      desc: 'Campus recruitment requirements for 2025/2026 graduated cohorts have been calibrated.',
-      time: '10m ago',
-      unread: true,
-      category: 'company',
-    },
-    {
-      id: '2',
-      title: 'Skill Progress Milestone Reached',
-      desc: 'Python & SQL competencies ready for SDE-1 placement rounds.',
-      time: '1h ago',
-      unread: true,
-      category: 'skill',
-    },
-    {
-      id: '3',
-      title: 'New High-Match Job Openings',
-      desc: '4 verified frontend and full-stack positions aligned with your active profile.',
-      time: '3h ago',
-      unread: false,
-      category: 'job',
-    },
-  ]);
-  const notifDropdownRef = useRef<HTMLDivElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // User dropdown state
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -105,9 +76,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
         setUserDropdownOpen(false);
       }
-      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target as Node)) {
-        setNotifOpen(false);
-      }
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
         setSearchFocused(false);
       }
@@ -115,12 +83,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Mark all notifications as read
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-    setHasUnread(false);
-  };
 
   // Search quick jump items
   const quickSearchItems = [
@@ -237,80 +199,48 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               </button>
             )}
 
-            {/* Notifications Popover with Subtle Pulse Indicator */}
-            <div className="relative" ref={notifDropdownRef}>
+            {/* Notifications Trigger & Responsive Panel */}
+            <div className="relative">
               <button
                 type="button"
                 id="header-notifications-btn"
                 onClick={() => setNotifOpen(!notifOpen)}
                 className="relative p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all cursor-pointer"
                 aria-label="Notifications"
+                aria-expanded={notifOpen}
               >
                 <Bell className="w-4 h-4" />
-                {hasUnread && (
-                  <span className="w-2 h-2 rounded-full bg-indigo-600 ring-2 ring-white dark:ring-slate-900 animate-pulse absolute top-2 right-2 pointer-events-none" />
+                {unreadCount > 0 && (
+                  <span className="min-w-[17px] h-[17px] px-1 rounded-full bg-indigo-600 text-white text-[10px] font-bold ring-2 ring-white dark:ring-slate-900 flex items-center justify-center absolute -top-0.5 -right-0.5 pointer-events-none shadow-xs">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
               </button>
 
-              {/* Notification Dropdown Panel */}
-              {notifOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] sm:w-88 max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="flex items-center justify-between px-4 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Placement Updates</span>
-                      {hasUnread && (
-                        <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
-                          New
-                        </span>
-                      )}
-                    </div>
-                    {hasUnread && (
-                      <button
-                        type="button"
-                        onClick={handleMarkAllRead}
-                        className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
-                      >
-                        Mark all read
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
-                    {notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
-                          n.unread ? 'bg-indigo-50/30 dark:bg-indigo-950/30' : ''
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug">
-                            {n.title}
-                          </h5>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">{n.time}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                          {n.desc}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="pt-2 px-3 border-t border-slate-100 dark:border-slate-800 text-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNotifOpen(false);
-                        onSelectTab('eligibility');
-                      }}
-                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer inline-flex items-center gap-1"
-                    >
-                      <span>View All Eligibility Signals</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+              <NotificationPanel
+                isOpen={notifOpen}
+                onClose={() => setNotifOpen(false)}
+                currentUser={currentUser}
+                onSelectTab={onSelectTab}
+                onOpenAuth={onOpenAuth}
+                onUnreadCountChange={setUnreadCount}
+              />
             </div>
+
+            {/* Non-intrusive Rate CareerAI / Feedback Button for Logged-In Users */}
+            {currentUser && onOpenRating && (
+              <button
+                type="button"
+                id="header-rate-careerai-btn"
+                onClick={onOpenRating}
+                className="px-2.5 sm:px-3 py-1.5 min-h-[38px] text-xs font-bold text-amber-800 dark:text-amber-200 bg-amber-50 hover:bg-amber-100/90 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/80 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs shrink-0"
+                title="Rate CareerAI & Feedback"
+              >
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0" />
+                <span className="hidden sm:inline">Rate CareerAI</span>
+                <span className="sm:hidden">Rate</span>
+              </button>
+            )}
 
             {/* User Account / Profile Avatar Menu */}
             {currentUser ? (
@@ -399,6 +329,39 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                         >
                           <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                           <span>Watch Brand Animation</span>
+                        </button>
+                      )}
+
+                      {onOpenRating && (
+                        <button
+                          type="button"
+                          id="user-dropdown-rate-btn"
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            onOpenRating();
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                          <span>Rate CareerAI &amp; Feedback</span>
+                        </button>
+                      )}
+
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          id="user-dropdown-admin-feedback-btn"
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            onSelectTab('dashboard');
+                            setTimeout(() => {
+                              document.getElementById('admin-feedback-section')?.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 flex items-center gap-2 cursor-pointer"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                          <span>Admin: User Feedback</span>
                         </button>
                       )}
                     </div>
