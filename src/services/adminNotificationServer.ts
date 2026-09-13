@@ -1,4 +1,5 @@
 import nodemailer, { type Transporter } from 'nodemailer';
+import { getVerifiedServerUser } from './feedbackServer';
 
 export interface LoginNotificationPayload {
   name: string;
@@ -45,23 +46,28 @@ setInterval(() => {
  * Creates or retrieves the Nodemailer transport based on environment variables.
  */
 function getEmailTransporter(): Transporter | null {
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailPass = process.env.GMAIL_APP_PASSWORD;
+  const gmailUser = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
+  const gmailPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || '').trim().replace(/\s+/g, '');
 
   if (gmailUser && gmailPass) {
     return nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: gmailUser,
         pass: gmailPass,
       },
+      tls: {
+        rejectUnauthorized: true,
+      },
     });
   }
 
-  const smtpHost = process.env.SMTP_HOST;
+  const smtpHost = (process.env.SMTP_HOST || '').trim();
   const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  const smtpUser = (process.env.SMTP_USER || '').trim();
+  const smtpPass = (process.env.SMTP_PASS || '').trim();
   const smtpSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
 
   if (smtpHost && smtpUser && smtpPass) {
@@ -72,6 +78,9 @@ function getEmailTransporter(): Transporter | null {
       auth: {
         user: smtpUser,
         pass: smtpPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
   }
@@ -107,11 +116,17 @@ function formatLoginTime(timestamp?: string): string {
 export async function sendAdminLoginEmail(
   payload: LoginNotificationPayload
 ): Promise<NotificationResult> {
+  const safeEmail = (payload.email || '').trim().toLowerCase();
+  
   // Use actual authenticated user's registered/profile name
+  // Fallback to server registry if payload name is blank
   // If a name is genuinely unavailable, display: "Not available" instead of guessing
-  const rawName = typeof payload.name === 'string' ? payload.name.trim() : '';
+  const verifiedUser = safeEmail ? getVerifiedServerUser(safeEmail) : null;
+  const rawName = (typeof payload.name === 'string' && payload.name.trim().length > 0)
+    ? payload.name.trim()
+    : (verifiedUser?.name || '').trim();
+
   const displayName = rawName.length > 0 ? rawName : 'Not available';
-  const safeEmail = (payload.email || 'Not available').trim().toLowerCase();
   const loginMethodDisplay = payload.loginMethod === 'Google' ? 'Google' : 'Email/Password';
   const loginTime = formatLoginTime(payload.timestamp);
 
@@ -138,26 +153,20 @@ export async function sendAdminLoginEmail(
     ''
   ).trim();
 
-  // Email subject makes it immediately clear which user logged in
+  // Email subject matches requirements
   const subject =
     displayName !== 'Not available'
       ? `CareerAI – New User Login: ${displayName}`
       : 'CareerAI – New User Login';
 
-  // Plain-text content matching exact format requested
+  // Plain-text content matching exact required structure
   const textContent = `CareerAI – New User Login
 
-New user login detected
-
 Name: ${displayName}
-Email: ${safeEmail}
+Email: ${safeEmail || 'Not available'}
 Login Method: ${loginMethodDisplay}
 Login Time: ${loginTime}
-Status: Successful Login
-
---------------------------------------------------
-This is an automated administrative notification from CareerAI.
-No sensitive authentication credentials, passwords, or tokens are ever stored or transmitted.`;
+Status: Successful Login`;
 
   // HTML content cleanly formatted
   const htmlContent = `
@@ -241,26 +250,27 @@ No sensitive authentication credentials, passwords, or tokens are ever stored or
     const transporter = getEmailTransporter();
 
     if (!transporter) {
-      // If SMTP credentials are not yet set in .env, log simulated delivery safely to server logs
+      // Determine what variables are missing for clear server diagnostics
+      const missingVars: string[] = [];
+      if (!process.env.GMAIL_USER && !process.env.SMTP_USER) missingVars.push('GMAIL_USER');
+      if (!process.env.GMAIL_APP_PASSWORD && !process.env.SMTP_PASS) missingVars.push('GMAIL_APP_PASSWORD');
+      if (!adminEmail) missingVars.push('ADMIN_EMAIL');
+
+      console.warn(
+        `[Admin Login Notification] SMTP transporter not configured (missing: ${missingVars.join(', ') || 'credentials'}). Simulated notification logged safely:`
+      );
       console.log('----------------------------------------------------');
-      console.log('📧 [Admin Login Notification - Delivery Notice]');
-      console.log(`To Admin: ${adminEmail || '(ADMIN_EMAIL environment variable not set)'}`);
+      console.log('📧 [Admin Login Notification]');
+      console.log(`To Admin: ${adminEmail || '(ADMIN_EMAIL missing)'}`);
       console.log(`Subject: ${subject}`);
       console.log('');
-      console.log('CareerAI – New User Login');
-      console.log('');
-      console.log('New user login detected');
-      console.log('');
-      console.log(`Name: ${displayName}`);
-      console.log(`Email: ${safeEmail}`);
-      console.log(`Login Method: ${loginMethodDisplay}`);
-      console.log(`Login Time: ${loginTime}`);
-      console.log('Status: Successful Login');
+      console.log(textContent);
       console.log('----------------------------------------------------');
 
       return {
         success: true,
         simulated: true,
+        note: missingVars.length > 0 ? `Missing environment variables: ${missingVars.join(', ')}` : 'SMTP transporter not configured',
       };
     }
 
@@ -274,9 +284,10 @@ No sensitive authentication credentials, passwords, or tokens are ever stored or
     }
 
     // Live email dispatch
+    const senderAccount = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
     const fromAddress =
       process.env.SMTP_FROM ||
-      `"CareerAI Security" <${process.env.SMTP_USER || process.env.GMAIL_USER || 'notifications@careerai.com'}>`;
+      (senderAccount ? `"CareerAI" <${senderAccount}>` : '"CareerAI Security" <notifications@careerai.com>');
 
     const info = await transporter.sendMail({
       from: fromAddress,

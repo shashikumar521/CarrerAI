@@ -28,6 +28,17 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Permissive CORS middleware for browser clients and preflight requests
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-user-email, x-user-id');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(express.json());
 // Serve public assets (videos, images, icons, manifest)
 app.use(express.static(path.join(process.cwd(), 'public')));
@@ -51,12 +62,12 @@ function getGenAI(): GoogleGenAI | null {
 }
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: 'ok', service: 'CareerAI API' });
 });
 
 // Real Live Jobs API Endpoint
-app.get('/api/jobs', async (req, res) => {
+app.get(['/api/jobs', '/jobs'], async (req, res) => {
   try {
     const { query, location, role, refresh } = req.query;
     const result = await getLiveJobs({
@@ -88,7 +99,7 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 // Jobs API Provider Status (never exposes raw secrets, only whether configured)
-app.get('/api/jobs/status', (req, res) => {
+app.get(['/api/jobs/status', '/jobs/status'], (req, res) => {
   const hasAdzuna = Boolean(process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY);
   const hasRapidApi = Boolean(process.env.RAPIDAPI_KEY);
 
@@ -103,9 +114,9 @@ app.get('/api/jobs/status', (req, res) => {
 // Admin Login Notification Endpoint
 // Receives user authentication metadata and sends email to administrator
 // Strictly excludes sensitive data (no passwords, tokens, or hashes)
-app.post('/api/notify/login', async (req, res) => {
+app.post(['/api/notify/login', '/notify/login'], async (req, res) => {
   try {
-    const { name, email, loginMethod, eventType, timestamp } = req.body;
+    const { name, email, loginMethod, eventType, timestamp } = req.body || {};
 
     if (!email || typeof email !== 'string') {
       return res.status(400).json({ success: false, error: 'User email is required' });
@@ -141,7 +152,7 @@ app.post('/api/notify/login', async (req, res) => {
 // =========================================================================
 
 // Retrieve notifications for authenticated user
-app.get('/api/notifications', (req, res) => {
+app.get(['/api/notifications', '/notifications'], (req, res) => {
   try {
     const userEmail = (
       (req.headers['x-user-email'] as string) ||
@@ -162,7 +173,7 @@ app.get('/api/notifications', (req, res) => {
 });
 
 // Save or sync notifications for authenticated user
-app.post('/api/notifications', (req, res) => {
+app.post(['/api/notifications', '/notifications'], (req, res) => {
   try {
     const userEmail = (
       (req.headers['x-user-email'] as string) ||
@@ -184,7 +195,7 @@ app.post('/api/notifications', (req, res) => {
 });
 
 // Mark notification(s) as read
-app.patch('/api/notifications/read', (req, res) => {
+app.patch(['/api/notifications/read', '/notifications/read'], (req, res) => {
   try {
     const userEmail = (
       (req.headers['x-user-email'] as string) ||
@@ -206,7 +217,7 @@ app.patch('/api/notifications/read', (req, res) => {
 });
 
 // Delete a single notification
-app.delete('/api/notifications/:id', (req, res) => {
+app.delete(['/api/notifications/:id', '/notifications/:id'], (req, res) => {
   try {
     const userEmail = (
       (req.headers['x-user-email'] as string) ||
@@ -228,7 +239,7 @@ app.delete('/api/notifications/:id', (req, res) => {
 });
 
 // Clear all notifications
-app.delete('/api/notifications', (req, res) => {
+app.delete(['/api/notifications', '/notifications'], (req, res) => {
   try {
     const userEmail = (
       (req.headers['x-user-email'] as string) ||
@@ -250,12 +261,18 @@ app.delete('/api/notifications', (req, res) => {
 
 // User Rating & Feedback Submission Endpoint
 // Strictly allows authenticated users to submit 1-5 star rating and optional feedback
-app.post('/api/feedback', async (req, res) => {
+app.post(['/api/feedback', '/feedback'], async (req, res) => {
   try {
-    const { userId, userName, userEmail, rating, comment, page } = req.body;
+    const { userId, userName, userEmail, rating, comment, page, timestamp } = req.body || {};
+
+    const headerEmail = (req.headers['x-user-email'] as string) || '';
+    const headerId = (req.headers['x-user-id'] as string) || '';
+
+    const effectiveUserId = (userId || headerId || '').toString().trim();
+    const effectiveUserEmail = (userEmail || headerEmail || '').toString().trim().toLowerCase();
 
     // Security: Only authenticated users can submit ratings
-    if (!userId || !userEmail || typeof userEmail !== 'string') {
+    if (!effectiveUserId || !effectiveUserEmail) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required. Please sign in to submit feedback.',
@@ -272,8 +289,8 @@ app.post('/api/feedback', async (req, res) => {
     }
 
     // Sanitize feedback text & retrieve verified user name server-side
-    const cleanUserId = String(userId).trim();
-    const cleanEmail = userEmail.trim().toLowerCase();
+    const cleanUserId = effectiveUserId;
+    const cleanEmail = effectiveUserEmail;
     const verifiedUser = getVerifiedServerUser(cleanEmail) || getVerifiedServerUser(cleanUserId);
     const resolvedName = (verifiedUser?.name || userName || '').trim() || 'CareerAI Student';
 
@@ -285,6 +302,7 @@ app.post('/api/feedback', async (req, res) => {
       rating: numRating,
       comment: typeof comment === 'string' ? comment : '',
       page: typeof page === 'string' ? page : 'Dashboard',
+      timestamp: typeof timestamp === 'string' ? timestamp : undefined,
     });
 
     // Email Notification to ADMIN_EMAIL
@@ -320,7 +338,7 @@ app.post('/api/feedback', async (req, res) => {
 
 // Admin-Only User Feedback Retrieval
 // Normal users must NOT be able to access admin feedback
-app.get('/api/feedback', (req, res) => {
+app.get(['/api/feedback', '/feedback'], (req, res) => {
   const adminEmail = (process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || '').trim().toLowerCase();
   const reqEmail = (
     (req.headers['x-user-email'] as string) ||
@@ -346,7 +364,7 @@ app.get('/api/feedback', (req, res) => {
 });
 
 // Administrator Status Check Endpoint (Never exposes ADMIN_EMAIL to the client)
-app.post('/api/auth/check-admin', (req, res) => {
+app.post(['/api/auth/check-admin', '/auth/check-admin'], (req, res) => {
   const adminEmail = (process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || '').trim().toLowerCase();
   const userEmail = (req.body?.email || '').trim().toLowerCase();
 
@@ -358,7 +376,7 @@ app.post('/api/auth/check-admin', (req, res) => {
 });
 
 // Admin Notification Status (masked, for diagnostics without exposing credentials)
-app.get('/api/notify/status', (req, res) => {
+app.get(['/api/notify/status', '/notify/status'], (req, res) => {
   const hasGmail = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
   const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
   const adminEmail = (process.env.ADMIN_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || '').trim();
@@ -383,7 +401,7 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // AI Career Counselor endpoint
-app.post('/api/gemini/counselor', async (req, res) => {
+app.post(['/api/gemini/counselor', '/gemini/counselor'], async (req, res) => {
   try {
     const rawPrompt = req.body?.prompt || req.body?.message || req.body?.query;
     const prompt = typeof rawPrompt === 'string' ? rawPrompt.trim() : '';
@@ -522,4 +540,10 @@ async function startServer() {
   });
 }
 
-startServer();
+// Export for serverless environments (e.g. Vercel) and automated testing
+export { app };
+export default app;
+
+if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
+  startServer();
+}

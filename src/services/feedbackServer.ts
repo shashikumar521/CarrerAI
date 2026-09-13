@@ -31,19 +31,38 @@ export interface ServerUserRecord {
   registeredAt: string;
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const FEEDBACK_FILE = path.join(DATA_DIR, 'feedback.json');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-
-// Ensure data directory exists
-function ensureDataDir(): void {
+// Dynamic data directory resolution (supports standard server, Docker, and read-only serverless/Vercel)
+function getResolvedDataDir(): string {
+  const primaryDir = path.join(process.cwd(), 'data');
   try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (!fs.existsSync(primaryDir)) {
+      fs.mkdirSync(primaryDir, { recursive: true });
     }
-  } catch (err) {
-    console.error('Failed to create data directory:', err);
+    const testFile = path.join(primaryDir, '.write_test');
+    fs.writeFileSync(testFile, 'ok', 'utf-8');
+    fs.unlinkSync(testFile);
+    return primaryDir;
+  } catch {
+    try {
+      const fallbackDir = path.join('/tmp', 'careerai-data');
+      if (!fs.existsSync(fallbackDir)) {
+        fs.mkdirSync(fallbackDir, { recursive: true });
+      }
+      return fallbackDir;
+    } catch {
+      return '';
+    }
   }
+}
+
+function getFeedbackFilePath(): string {
+  const dir = getResolvedDataDir();
+  return dir ? path.join(dir, 'feedback.json') : '';
+}
+
+function getUsersFilePath(): string {
+  const dir = getResolvedDataDir();
+  return dir ? path.join(dir, 'users.json') : '';
 }
 
 // In-memory cache for fast read access
@@ -52,25 +71,42 @@ let inMemoryUsers: Map<string, ServerUserRecord> | null = null;
 const duplicateSubmissionCache = new Map<string, { record: FeedbackRecord; timestamp: number }>();
 
 /**
- * Load feedback records permanently from disk
+ * Load feedback records permanently from disk / storage
  */
 export function getFeedbackRecords(): FeedbackRecord[] {
   if (inMemoryFeedback !== null) {
     return inMemoryFeedback;
   }
 
-  ensureDataDir();
-  try {
-    if (fs.existsSync(FEEDBACK_FILE)) {
-      const raw = fs.readFileSync(FEEDBACK_FILE, 'utf-8');
+  const filePath = getFeedbackFilePath();
+  if (filePath) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          inMemoryFeedback = parsed;
+          return inMemoryFeedback;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read feedback database file:', err);
+    }
+  }
+
+  // Also check standard primary location if fallback was used
+  const primaryFile = path.join(process.cwd(), 'data', 'feedback.json');
+  if (primaryFile !== filePath && fs.existsSync(primaryFile)) {
+    try {
+      const raw = fs.readFileSync(primaryFile, 'utf-8');
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
         inMemoryFeedback = parsed;
         return inMemoryFeedback;
       }
+    } catch {
+      // ignore
     }
-  } catch (err) {
-    console.error('Failed to read feedback database file:', err);
   }
 
   inMemoryFeedback = [];
@@ -85,21 +121,40 @@ function getUsersMap(): Map<string, ServerUserRecord> {
     return inMemoryUsers;
   }
 
-  ensureDataDir();
   const map = new Map<string, ServerUserRecord>();
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      const raw = fs.readFileSync(USERS_FILE, 'utf-8');
+  const filePath = getUsersFilePath();
+  if (filePath) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const list: ServerUserRecord[] = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          for (const user of list) {
+            if (user.email) map.set(user.email.toLowerCase(), user);
+            if (user.id) map.set(user.id, user);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read users database file:', err);
+    }
+  }
+
+  // Also check standard primary location if fallback was used
+  const primaryFile = path.join(process.cwd(), 'data', 'users.json');
+  if (primaryFile !== filePath && fs.existsSync(primaryFile)) {
+    try {
+      const raw = fs.readFileSync(primaryFile, 'utf-8');
       const list: ServerUserRecord[] = JSON.parse(raw);
       if (Array.isArray(list)) {
         for (const user of list) {
-          if (user.email) map.set(user.email.toLowerCase(), user);
-          if (user.id) map.set(user.id, user);
+          if (user.email && !map.has(user.email.toLowerCase())) map.set(user.email.toLowerCase(), user);
+          if (user.id && !map.has(user.id)) map.set(user.id, user);
         }
       }
+    } catch {
+      // ignore
     }
-  } catch (err) {
-    console.error('Failed to read users database file:', err);
   }
 
   inMemoryUsers = map;
@@ -128,20 +183,21 @@ export function registerServerUser(user: { id?: string; name?: string; email?: s
   usersMap.set(email, updated);
   usersMap.set(resolvedId, updated);
 
-  try {
-    ensureDataDir();
-    // Unique list of users by email
-    const uniqueUsers: ServerUserRecord[] = [];
-    const seen = new Set<string>();
-    for (const record of usersMap.values()) {
-      if (!seen.has(record.email)) {
-        seen.add(record.email);
-        uniqueUsers.push(record);
+  const filePath = getUsersFilePath();
+  if (filePath) {
+    try {
+      const uniqueUsers: ServerUserRecord[] = [];
+      const seen = new Set<string>();
+      for (const record of usersMap.values()) {
+        if (!seen.has(record.email)) {
+          seen.add(record.email);
+          uniqueUsers.push(record);
+        }
       }
+      fs.writeFileSync(filePath, JSON.stringify(uniqueUsers, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Failed to write users file:', err);
     }
-    fs.writeFileSync(USERS_FILE, JSON.stringify(uniqueUsers, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Failed to write users file:', err);
   }
 }
 
@@ -201,6 +257,7 @@ export function saveFeedbackRecord(input: {
   rating: number;
   comment?: string;
   page?: string;
+  timestamp?: string;
 }): { record: FeedbackRecord; isDuplicate: boolean } {
   const cleanUserId = (input.userId || '').trim();
   const cleanEmail = (input.userEmail || '').trim().toLowerCase();
@@ -229,6 +286,10 @@ export function saveFeedbackRecord(input: {
     email: cleanEmail,
   });
 
+  const recordCreatedAt = input.timestamp && !isNaN(Date.parse(input.timestamp))
+    ? input.timestamp
+    : new Date().toISOString();
+
   const record: FeedbackRecord = {
     id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     userId: cleanUserId || verifiedUser?.id || `usr_${Date.now()}`,
@@ -237,7 +298,7 @@ export function saveFeedbackRecord(input: {
     rating: cleanRating,
     comment: cleanComment,
     page: cleanPage,
-    createdAt: new Date().toISOString(),
+    createdAt: recordCreatedAt,
   };
 
   const records = getFeedbackRecords();
@@ -248,13 +309,15 @@ export function saveFeedbackRecord(input: {
   // Cache deduplication record
   duplicateSubmissionCache.set(dedupKey, { record, timestamp: now });
 
-  // Persist permanently to disk
-  try {
-    ensureDataDir();
-    fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(records, null, 2), 'utf-8');
-    console.log(`[Feedback DB] Successfully saved rating ${record.rating}/5 from ${record.userName} (${record.userEmail})`);
-  } catch (err) {
-    console.error('[Feedback DB Error] Failed to write feedback to disk:', err);
+  // Persist permanently to disk / storage
+  const filePath = getFeedbackFilePath();
+  if (filePath) {
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(records, null, 2), 'utf-8');
+      console.log(`[Feedback DB] Successfully saved rating ${record.rating}/5 from ${record.userName} (${record.userEmail})`);
+    } catch (err) {
+      console.error('[Feedback DB Error] Failed to write feedback to disk:', err);
+    }
   }
 
   return { record, isDuplicate: false };

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "test_1",
+    "name": "Test User",
+    "email": "test@example.com",
+    "registeredAt": "2026-09-13T10:34:58.444Z"
+  },
+  {
+    "id": "test_usr_123",
+    "name": "Test Student",
+    "email": "teststudent@example.com",
+    "registeredAt": "2026-09-13T10:41:33.747Z"
+  }
+]

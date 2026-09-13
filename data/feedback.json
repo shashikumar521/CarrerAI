@@ -1,0 +1,22 @@
+[
+  {
+    "id": "fb_1789296093747_cldr6",
+    "userId": "test_usr_123",
+    "userName": "Test Student",
+    "userEmail": "teststudent@example.com",
+    "rating": 5,
+    "comment": "Great platform!",
+    "page": "Dashboard",
+    "createdAt": "2026-09-13T10:41:33.747Z"
+  },
+  {
+    "id": "fb_1789295698444_biejj",
+    "userId": "test_1",
+    "userName": "Test User",
+    "userEmail": "test@example.com",
+    "rating": 5,
+    "comment": "Good",
+    "page": "Dashboard",
+    "createdAt": "2026-09-13T10:34:58.444Z"
+  }
+]
