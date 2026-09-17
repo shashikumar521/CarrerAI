@@ -54,6 +54,7 @@ import {
 } from '../utils/courseSkillService';
 import { FloatingRocket } from './FloatingRocket';
 import { AdminFeedbackSection } from './AdminFeedbackSection';
+import { AboutPlatformInfo } from './AboutPlatformInfo';
 
 interface DashboardViewProps {
   profile: StudentProfile;
@@ -402,7 +403,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             >
               <img
                 src="/careerai-logo.png"
-                alt="CareerAI Logo"
+                alt="CarrerAi logo"
                 className="w-12 h-12 rounded-xl object-contain border border-slate-200/80 shadow-2xs bg-white p-0.5 transition-transform duration-300 group-hover:scale-105"
                 referrerPolicy="no-referrer"
               />
@@ -420,30 +421,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               </div>
 
-              {/* Personalized Dynamic Greeting with Friendly Waving Animation */}
+              {/* Personalized Dynamic Greeting with Friendly Waving Animation & Single Main H1 */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
               >
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight flex flex-wrap items-center gap-2">
-                  <span>Dashboard</span>
-                  <span className="text-slate-300 font-normal text-lg">|</span>
-                  <span className="text-indigo-600 font-semibold text-lg sm:text-xl">
-                    {greetingFirstName ? `Hi, ${greetingFirstName}` : 'Overview'}
-                  </span>
-                  <motion.span
-                    initial={{ rotate: 0 }}
-                    animate={{ rotate: [0, 14, -10, 14, -6, 10, 0] }}
-                    transition={{ duration: 0.75, ease: 'easeInOut', delay: 0.2 }}
-                    className="inline-block origin-bottom-right select-none shrink-0"
-                    aria-hidden="true"
-                  >
-                    👋
-                  </motion.span>
+                  <span>AI-Powered Career Guidance &amp; Learning Platform</span>
+                  {greetingFirstName && (
+                    <span className="text-indigo-600 font-semibold text-base sm:text-lg flex items-center gap-1">
+                      <span>(Hi, {greetingFirstName}</span>
+                      <motion.span
+                        initial={{ rotate: 0 }}
+                        animate={{ rotate: [0, 14, -10, 14, -6, 10, 0] }}
+                        transition={{ duration: 0.75, ease: 'easeInOut', delay: 0.2 }}
+                        className="inline-block origin-bottom-right select-none shrink-0"
+                        aria-hidden="true"
+                      >
+                        👋
+                      </motion.span>
+                      <span>)</span>
+                    </span>
+                  )}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1 leading-relaxed max-w-2xl">
-                  Comprehensive overview of your placement readiness, skills, and opportunities.
+                <p className="text-xs sm:text-sm text-slate-600 font-normal mt-1 leading-relaxed max-w-3xl">
+                  Welcome to CarrerAi – CarrerAi is an AI-powered career guidance and learning platform designed to help students and job seekers explore career opportunities, build professional resumes, develop skills, discover courses and plan their career journey.
                 </p>
               </motion.div>
             </div>
@@ -1395,6 +1398,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Comprehensive CarrerAi Platform Overview & Educational Content */}
+      <AboutPlatformInfo />
     </motion.div>
   );
 };

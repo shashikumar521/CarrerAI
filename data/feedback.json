@@ -1,5 +1,38 @@
 [
   {
+    "id": "fb_1789655402036_wq39g",
+    "userId": "usr_real_123",
+    "userName": "Sudarsi Shashi Kumar",
+    "userEmail": "sudarsi.shashikumar129145@marwadiuniversity.ac.in",
+    "rating": 5,
+    "comment": "CarrerAi feedback test",
+    "page": "Dashboard",
+    "createdAt": "2026-09-17T14:30:02.036Z",
+    "status": "New Feedback"
+  },
+  {
+    "id": "fb_1789655333769_zi18x",
+    "userId": "usr_test_123",
+    "userName": "Test User",
+    "userEmail": "test@example.com",
+    "rating": 5,
+    "comment": "Very useful platform",
+    "page": "Dashboard",
+    "createdAt": "2026-09-17T14:28:53.768Z",
+    "status": "New Feedback"
+  },
+  {
+    "id": "fb_1789655004528_aokll",
+    "userId": "usr_123",
+    "userName": "Test User",
+    "userEmail": "test@example.com",
+    "rating": 5,
+    "comment": "Testing feedback",
+    "page": "Dashboard",
+    "createdAt": "2026-09-17T14:23:24.528Z",
+    "status": "New Feedback"
+  },
+  {
     "id": "fb_1789298190601_qn9om",
     "userId": "usr_priya_789",
     "userName": "CareerAI Student",

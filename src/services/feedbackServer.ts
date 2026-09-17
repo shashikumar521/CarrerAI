@@ -34,6 +34,19 @@ export interface ServerUserRecord {
 
 // Dynamic data directory resolution (supports standard server, Docker, and read-only serverless/Vercel)
 function getResolvedDataDir(): string {
+  // If running in Vercel serverless environment, use /tmp/careerai-data
+  if (process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    try {
+      const vercelDir = path.join('/tmp', 'careerai-data');
+      if (!fs.existsSync(vercelDir)) {
+        fs.mkdirSync(vercelDir, { recursive: true });
+      }
+      return vercelDir;
+    } catch {
+      return '/tmp';
+    }
+  }
+
   const primaryDir = path.join(process.cwd(), 'data');
   try {
     if (!fs.existsSync(primaryDir)) {
@@ -51,7 +64,7 @@ function getResolvedDataDir(): string {
       }
       return fallbackDir;
     } catch {
-      return '';
+      return '/tmp';
     }
   }
 }
@@ -92,9 +105,15 @@ export function getFeedbackRecords(): FeedbackRecord[] {
           }));
           return inMemoryFeedback;
         }
-      } else {
-        // If writable fallback path in /tmp doesn't have the file yet, seed from bundled data
-        const bundledPath = path.join(process.cwd(), 'data', 'feedback.json');
+      }
+
+      // If writable fallback path in /tmp doesn't have the file yet, seed from bundled data
+      const candidates = [
+        path.join(process.cwd(), 'data', 'feedback.json'),
+        path.join(process.cwd(), '..', 'data', 'feedback.json'),
+        '/var/task/data/feedback.json',
+      ];
+      for (const bundledPath of candidates) {
         if (fs.existsSync(bundledPath)) {
           const raw = fs.readFileSync(bundledPath, 'utf-8');
           const parsed = JSON.parse(raw);

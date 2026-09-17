@@ -535,10 +535,10 @@ export const ResumeBuilderView: React.FC<ResumeBuilderViewProps> = ({
         <div>
           <h1 className="text-[21px] font-semibold text-slate-900 dark:text-white tracking-normal leading-[1.2] flex items-center gap-2.5">
             <FileText className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-            <span>Resume &amp; ATS</span>
+            <span>AI Resume Builder – Professional ATS Resume</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Build, analyze, and optimize your resume for applicant tracking systems.
+            Create and improve a professional resume with CarrerAi's career and resume tools.
           </p>
         </div>
 

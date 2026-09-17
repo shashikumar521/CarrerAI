@@ -526,10 +526,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
 
             <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2]">
-              Courses &amp; Certifications
+              CarrerAi Courses &amp; Certifications
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
-              Build job-ready skills through relevant courses and certifications.
+              Explore career-focused courses and learning resources with CarrerAi to build skills and track your learning progress.
             </p>
           </div>
 

@@ -299,10 +299,10 @@ export const JobsView: React.FC<JobsViewProps> = ({
             </div>
 
             <h1 className="text-[21px] font-semibold text-slate-900 tracking-normal leading-[1.2]">
-              Jobs &amp; Internships
+              Career Opportunities &amp; Jobs
             </h1>
             <p className="text-sm text-slate-600 max-w-3xl leading-relaxed">
-              Discover opportunities aligned with your skills and eligibility.
+              Explore career opportunities and job resources through CarrerAi.
             </p>
           </div>
 

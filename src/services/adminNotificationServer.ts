@@ -1,5 +1,5 @@
 import nodemailer, { type Transporter } from 'nodemailer';
-import { getVerifiedServerUser } from './feedbackServer';
+import { getVerifiedServerUser } from './feedbackServer.ts';
 
 export interface LoginNotificationPayload {
   name: string;
@@ -354,37 +354,37 @@ export async function sendAdminRatingEmail(
   const adminEmail = (
     process.env.ADMIN_EMAIL ||
     process.env.ADMIN_NOTIFICATION_EMAIL ||
+    process.env.GMAIL_USER ||
     ''
   ).trim();
 
-  const subject = 'CareerAI – New User Rating ⭐';
+  // Exact Subject matching prompt specification: "New CarrerAi Feedback – 5/5"
+  const subject = `New CarrerAi Feedback – ${safeRating}/5`;
 
-  const textContent = `⭐ New CareerAI User Rating
+  // Exact Body matching prompt specification
+  const textContent = `New CarrerAi feedback received.
 
-User Name: ${displayName}
-User Email: ${safeEmail}
+User:
+${displayName}
 
-Rating: ${safeRating} / 5
-Stars: ${stars}
+Email:
+${safeEmail}
+
+Rating:
+${safeRating}/5
 
 Feedback:
 ${feedbackText}
 
-Page:
-${pageText}
-
-Submitted At:
-${formattedTime}
-
-Status:
-New Feedback`;
+Submitted:
+${formattedTime}`;
 
   const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>CareerAI – New User Rating ⭐</title>
+  <title>New CarrerAi Feedback – ${safeRating}/5</title>
 </head>
 <body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #0f172a;">
   <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
@@ -392,10 +392,10 @@ New Feedback`;
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #4f46e5 100%); padding: 24px; color: #ffffff;">
       <h1 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.025em; color: #ffffff;">
-        ⭐ CareerAI – New User Rating
+        ⭐ New CarrerAi Feedback – ${safeRating}/5
       </h1>
       <p style="margin: 6px 0 0 0; font-size: 13px; color: #fef3c7; font-weight: 500;">
-        A logged-in user just shared their feedback
+        New CarrerAi feedback received.
       </p>
     </div>
 
@@ -415,13 +415,13 @@ New Feedback`;
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tbody>
             <tr>
-              <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 130px; vertical-align: top;">User Name:</td>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 130px; vertical-align: top;">User:</td>
               <td style="padding: 8px 0; color: #0f172a; font-weight: 700; vertical-align: top; font-size: 15px;">
                 ${displayName}
               </td>
             </tr>
             <tr>
-              <td style="padding: 8px 0; color: #64748b; font-weight: 600; vertical-align: top;">User Email:</td>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600; vertical-align: top;">Email:</td>
               <td style="padding: 8px 0; color: #2563eb; font-weight: 600; vertical-align: top;">
                 <a href="mailto:${safeEmail}" style="color: #2563eb; text-decoration: none;">${safeEmail}</a>
               </td>
@@ -429,7 +429,7 @@ New Feedback`;
             <tr>
               <td style="padding: 8px 0; color: #64748b; font-weight: 600; vertical-align: top;">Rating:</td>
               <td style="padding: 8px 0; color: #d97706; font-weight: 700; vertical-align: top;">
-                ${safeRating} / 5 &nbsp; <span style="font-size: 15px;">${stars}</span>
+                ${safeRating}/5 &nbsp; <span style="font-size: 15px;">${stars}</span>
               </td>
             </tr>
             <tr>

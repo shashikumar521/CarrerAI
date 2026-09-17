@@ -1,36 +1,105 @@
 import React from 'react';
-import { GraduationCap, Phone, Mail, User, Sparkles } from 'lucide-react';
+import { Phone, Mail, User, Sparkles } from 'lucide-react';
+import { NavTab } from './Navbar';
 
 interface FooterProps {
   onReplayIntro?: () => void;
+  onNavigateTab?: (tab: NavTab) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
+export const Footer: React.FC<FooterProps> = ({ onReplayIntro, onNavigateTab }) => {
+  const handleLinkClick = (e: React.MouseEvent, tab: NavTab, path: string) => {
+    if (onNavigateTab) {
+      e.preventDefault();
+      onNavigateTab(tab);
+      if (typeof window !== 'undefined') {
+        window.history.pushState({ tab }, '', path);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
-    <footer className="border-t border-slate-800 bg-slate-900 text-slate-400 print:hidden">
+    <footer className="border-t border-slate-800 bg-slate-900 text-slate-400 print:hidden" aria-label="Site Footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 pb-8 border-b border-slate-800">
           {/* Brand & Purpose */}
-          <div className="md:col-span-6 space-y-3">
+          <div className="md:col-span-4 space-y-3">
             <div className="flex items-center gap-2.5">
               <img
                 src="/careerai-logo.png"
-                alt="CareerAI official logo"
+                alt="CarrerAi logo"
                 className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-slate-700 shadow-xs shrink-0"
                 referrerPolicy="no-referrer"
               />
               <span className="text-xl font-semibold tracking-tight text-white">
-                Career<span className="text-indigo-400">AI</span>
+                Carrer<span className="text-indigo-400">Ai</span>
               </span>
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
-              CareerAI is an AI-powered career and placement platform designed to help students track their skills, discover relevant jobs, identify skill gaps, find learning opportunities, and improve their career readiness.
+              CarrerAi is an AI-powered career platform that helps students and job seekers with career guidance, resume building, skill development, courses and career opportunities.
             </p>
           </div>
 
+          {/* Useful Internal Public Links for SEO & Navigation */}
+          <div className="md:col-span-3 space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              Explore CarrerAi
+            </h3>
+            <nav aria-label="Footer Navigation">
+              <ul className="space-y-2 text-xs">
+                <li>
+                  <a
+                    href="/courses"
+                    onClick={(e) => handleLinkClick(e, 'courses', '/courses')}
+                    className="hover:text-indigo-400 transition-colors"
+                  >
+                    Courses &amp; Skill Development
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/career"
+                    onClick={(e) => handleLinkClick(e, 'counselor', '/career')}
+                    className="hover:text-indigo-400 transition-colors"
+                  >
+                    AI Career Guidance &amp; Paths
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/resume"
+                    onClick={(e) => handleLinkClick(e, 'resume', '/resume')}
+                    className="hover:text-indigo-400 transition-colors"
+                  >
+                    Professional Resume Builder
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/jobs"
+                    onClick={(e) => handleLinkClick(e, 'jobs', '/jobs')}
+                    className="hover:text-indigo-400 transition-colors"
+                  >
+                    Career Opportunities &amp; Jobs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/about"
+                    onClick={(e) => handleLinkClick(e, 'about' as NavTab, '/about')}
+                    className="hover:text-indigo-400 transition-colors"
+                  >
+                    About CarrerAi Platform
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
           {/* Created by */}
-          <div className="md:col-span-3 space-y-2">
+          <div className="md:col-span-2 space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-indigo-400" />
               <span>Created by</span>
@@ -46,7 +115,7 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
           {/* Contact Details */}
           <div className="md:col-span-3 space-y-2.5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Contact
+              Contact &amp; Support
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
@@ -79,7 +148,7 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
 
         {/* Bottom Bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-          <p>© 2026 CareerAI. All rights reserved.</p>
+          <p>© 2026 CarrerAi. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-4 text-[11px]">
             {onReplayIntro && (
               <button

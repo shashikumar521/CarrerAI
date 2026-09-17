@@ -3,25 +3,25 @@ import http from 'http';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
-import { getLiveJobs } from './src/services/jobsApiServer';
+import { getLiveJobs } from './src/services/jobsApiServer.ts';
 import {
   sendAdminLoginEmail,
   sendAdminRatingEmail,
-} from './src/services/adminNotificationServer';
+} from './src/services/adminNotificationServer.ts';
 import {
   saveFeedbackRecord,
   getFeedbackRecords,
   getFeedbackStats,
   registerServerUser,
   getVerifiedServerUser,
-} from './src/services/feedbackServer';
+} from './src/services/feedbackServer.ts';
 import {
   getUserNotificationsServer,
   saveUserNotificationsServer,
   markNotificationsReadServer,
   deleteNotificationServer,
   clearAllNotificationsServer,
-} from './src/services/userNotificationServer';
+} from './src/services/userNotificationServer.ts';
 
 dotenv.config();
 
@@ -310,26 +310,39 @@ app.post(['/api/feedback', '/feedback'], async (req, res) => {
     console.log(`[Feedback API] Insert succeeded: Record ${record.id} permanently saved (Rating: ${record.rating}/5, Status: ${record.status})`);
 
     // Email Notification to ADMIN_EMAIL
-    // If email notification fails, the user's rating is still saved.
-    // Do not show user a failed-rating message. Log safely on server.
+    // If email notification fails, the user's rating is still permanently saved.
+    // Return a useful response indicating feedback was saved.
+    let emailSent = false;
     if (!isDuplicate) {
-      sendAdminRatingEmail({
-        userId: record.userId,
-        userName: record.userName,
-        userEmail: record.userEmail,
-        rating: record.rating,
-        comment: record.comment,
-        page: record.page,
-        timestamp: record.createdAt,
-      }).catch((emailErr) => {
+      try {
+        const emailResult: any = await Promise.race([
+          sendAdminRatingEmail({
+            userId: record.userId,
+            userName: record.userName,
+            userEmail: record.userEmail,
+            rating: record.rating,
+            comment: record.comment,
+            page: record.page,
+            timestamp: record.createdAt,
+          }),
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ success: false, error: 'Email dispatch timeout' }), 3500)
+          ),
+        ]);
+        emailSent = Boolean(emailResult?.success && !emailResult?.simulated);
+        if (!emailResult?.success) {
+          console.warn('[Feedback API] Admin email notification could not be delivered:', emailResult?.error || emailResult?.note || 'Unknown');
+        }
+      } catch (emailErr: any) {
         console.error('[Feedback API] Email notification failed (feedback safely stored):', emailErr?.message || emailErr);
-      });
+      }
     }
 
     return res.json({
       success: true,
-      message: 'Feedback submitted successfully',
+      message: 'Thank you for your feedback! Your rating has been submitted successfully.',
       feedback: record,
+      emailSent,
     });
   } catch (error: any) {
     console.error('[Feedback API] Insert failed / Database error:', error?.message || error);
@@ -524,6 +537,7 @@ async function startServer() {
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
+        allowedHosts: true,
         hmr: isHmrDisabled
           ? false
           : {

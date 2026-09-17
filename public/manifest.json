@@ -1,7 +1,7 @@
 {
-  "name": "CareerAI",
-  "short_name": "CareerAI",
-  "description": "AI-powered career guidance, placement readiness and personalized career planning for B.Tech and engineering students.",
+  "name": "CarrerAi – AI Career Guidance, Courses & Resume Builder",
+  "short_name": "CarrerAi",
+  "description": "CarrerAi is an AI-powered career platform that helps students and job seekers with career guidance, resume building, skill development, courses and career opportunities.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

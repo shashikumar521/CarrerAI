@@ -275,10 +275,10 @@ export const AiCounselorView: React.FC<AiCounselorViewProps> = ({
 
             <h1 className="text-[21px] font-semibold text-slate-900 dark:text-white tracking-normal leading-[1.2] flex items-center gap-2.5">
               <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              <span>AI Career Counselor</span>
+              <span>AI Career Guidance – CarrerAi Counselor</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
-              Get personalized guidance for your career, skills, placements, and learning path.
+              Explore career paths, skills and opportunities with AI-powered career guidance from CarrerAi.
             </p>
           </div>
 

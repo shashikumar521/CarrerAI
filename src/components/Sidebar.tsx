@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Target,
   Star,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlacementReadinessReport, AuthUser } from '../types';
@@ -73,6 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'counselor' as NavTab, label: 'AI Counselor', icon: Bot },
     { id: 'resume' as NavTab, label: 'Resume & ATS', icon: FileText },
     { id: 'prep' as NavTab, label: 'Interview Prep', icon: BookOpen },
+    { id: 'about' as NavTab, label: 'About CarrerAi', icon: Sparkles },
   ];
 
   const handleTabClick = (tab: NavTab) => {

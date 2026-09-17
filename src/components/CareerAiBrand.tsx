@@ -37,7 +37,7 @@ export const CareerAiBrand: React.FC<CareerAiBrandProps> = ({
       type="button"
       onClick={onClick}
       id={isSidebar ? 'sidebar-brand-btn' : 'navbar-brand-btn'}
-      aria-label="CareerAI Home"
+      aria-label="CarrerAi Home"
       className={`relative group inline-flex items-center gap-2.5 sm:gap-3 text-left focus:outline-hidden cursor-pointer select-none transition-all duration-300 ${className}`}
     >
       {/* Ambient hover glow halo around the entire branding */}
@@ -46,7 +46,7 @@ export const CareerAiBrand: React.FC<CareerAiBrandProps> = ({
         className="absolute -inset-2 rounded-2xl bg-indigo-500/0 group-hover:bg-indigo-500/[0.04] dark:group-hover:bg-indigo-400/[0.07] transition-all duration-300 pointer-events-none blur-md -z-10"
       />
 
-      {/* CareerAI Logo Icon Container */}
+      {/* CarrerAi Logo Icon Container */}
       <div className="relative shrink-0 flex items-center justify-center">
         {/* Futuristic Ambient Glow behind logo */}
         <div
@@ -57,10 +57,10 @@ export const CareerAiBrand: React.FC<CareerAiBrandProps> = ({
         {/* Micro-floating & subtle hover-scale wrapper */}
         <div className="cai-brand-logo-float relative z-10 transition-transform duration-300 ease-out group-hover:scale-[1.03]">
           <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-indigo-500/30 shadow-xs flex items-center justify-center overflow-hidden p-0.5">
-            {/* Authentic CareerAI Logo Image */}
+            {/* Authentic CarrerAi Logo Image */}
             <img
               src="/careerai-logo.png"
-              alt="CareerAI Logo"
+              alt="CarrerAi logo"
               className="w-full h-full object-contain rounded-full relative z-10"
               referrerPolicy="no-referrer"
             />
@@ -74,10 +74,10 @@ export const CareerAiBrand: React.FC<CareerAiBrandProps> = ({
         </div>
       </div>
 
-      {/* Typography: CareerAI Title, Badge & Subtitle */}
+      {/* Typography: CarrerAi Title, Badge & Subtitle */}
       <div className="flex flex-col justify-center">
         <div className="flex items-center gap-1.5 leading-none">
-          {/* "CareerAI" Text with slow, elegant continuous AI gradient shimmer */}
+          {/* "CarrerAi" Text with slow, elegant continuous AI gradient shimmer */}
           <span
             className={`cai-brand-text font-semibold tracking-[-0.015em] font-sans transition-all duration-300 ${
               isSidebar
@@ -85,7 +85,7 @@ export const CareerAiBrand: React.FC<CareerAiBrandProps> = ({
                 : 'text-[19px] sm:text-[21px]'
             }`}
           >
-            CareerAI
+            CarrerAi
           </span>
 
           {/* Clean tech badge */}

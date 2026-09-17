@@ -1,5 +1,5 @@
-import { saveFeedbackRecord, getFeedbackRecords, getFeedbackStats, getVerifiedServerUser } from '../src/services/feedbackServer';
-import { sendAdminRatingEmail } from '../src/services/adminNotificationServer';
+import { saveFeedbackRecord, getFeedbackRecords, getFeedbackStats, getVerifiedServerUser } from '../src/services/feedbackServer.ts';
+import { sendAdminRatingEmail } from '../src/services/adminNotificationServer.ts';
 
 export default async function handler(req: any, res: any) {
   // Safe CORS Headers for Vercel & container environments
@@ -75,27 +75,40 @@ export default async function handler(req: any, res: any) {
 
       console.log(`[Feedback API] Insert succeeded: Record ${record.id} permanently saved (Rating: ${record.rating}/5, Status: ${record.status})`);
 
-      // Dispatch single admin email notification asynchronously
-      // Critical: Database save does NOT depend on email delivery
+      // Dispatch admin email notification with a 3.5s safety timeout
+      // Important: Feedback storage is already complete and safe regardless of email delivery
+      let emailSent = false;
       if (!isDuplicate) {
-        sendAdminRatingEmail({
-          userId: record.userId,
-          userName: record.userName,
-          userEmail: record.userEmail,
-          rating: record.rating,
-          comment: record.comment,
-          page: record.page,
-          timestamp: record.createdAt,
-        }).catch((emailErr) => {
-          console.error('[Feedback API] Email notification failed (feedback safely stored):', emailErr?.message || emailErr);
-        });
+        try {
+          const emailResult: any = await Promise.race([
+            sendAdminRatingEmail({
+              userId: record.userId,
+              userName: record.userName,
+              userEmail: record.userEmail,
+              rating: record.rating,
+              comment: record.comment,
+              page: record.page,
+              timestamp: record.createdAt,
+            }),
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ success: false, error: 'Email dispatch timeout' }), 3500)
+            ),
+          ]);
+          emailSent = Boolean(emailResult?.success && !emailResult?.simulated);
+          if (!emailResult?.success) {
+            console.warn('[Feedback API] Admin email notification could not be delivered:', emailResult?.error || emailResult?.note || 'Unknown');
+          }
+        } catch (emailErr: any) {
+          console.error('[Feedback API] Email notification failed (feedback safely stored in database):', emailErr?.message || emailErr);
+        }
       }
 
       // Return success response with saved record
       return res.status(200).json({
         success: true,
-        message: 'Feedback submitted successfully',
+        message: 'Thank you for your feedback! Your rating has been submitted successfully.',
         feedback: record,
+        emailSent,
       });
     } catch (error: any) {
       console.error('[Feedback API] Insert failed / Database error:', error?.message || error);

@@ -1,13 +1,8 @@
-# Robots.txt for CareerAI
+# Robots.txt for CarrerAi
 # Production URL: https://carrer-ai-kappa.vercel.app/
-
-User-agent: Googlebot
-Allow: /
-Disallow: /api/
 
 User-agent: *
 Allow: /
 Disallow: /api/
 
 Sitemap: https://carrer-ai-kappa.vercel.app/sitemap.xml
-

@@ -1,4 +1,4 @@
-import { getLiveJobs } from '../src/services/jobsApiServer';
+import { getLiveJobs } from '../src/services/jobsApiServer.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');

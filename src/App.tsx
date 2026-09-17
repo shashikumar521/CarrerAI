@@ -41,6 +41,7 @@ import { LEARNING_PATH_STORAGE_KEY } from './data/coursesDatabase';
 import { COURSE_PROGRESS_UPDATED_EVENT } from './utils/courseSkillService';
 import { ThemeProvider } from './context/ThemeContext';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
+import { AboutPlatformInfo } from './components/AboutPlatformInfo';
 
 const STORAGE_KEY = 'careerai_student_profile_v1';
 const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
@@ -52,9 +53,10 @@ const TAB_NAMES: Record<NavTab, string> = {
   skillgap: 'Skill Gap & Roadmap',
   courses: 'Courses & Certifications',
   jobs: 'Jobs & Internships',
-  counselor: 'AI Counselor',
+  counselor: 'AI Career Guidance',
   resume: 'Resume & ATS',
   prep: 'Interview Prep',
+  about: 'About CarrerAi',
 };
 
 export function App() {
@@ -185,25 +187,104 @@ function CareerAiAppMain() {
     'counselor',
     'resume',
     'prep',
+    'about',
   ];
 
-  const getTabFromHash = (): NavTab => {
-    if (typeof window === 'undefined') return 'dashboard';
-    const hash = window.location.hash.replace('#', '').toLowerCase() as NavTab;
-    return VALID_TABS.includes(hash) ? hash : 'dashboard';
+  const PUBLIC_ROUTE_MAP: Record<string, NavTab> = {
+    '/': 'dashboard',
+    '/courses': 'courses',
+    '/career': 'counselor',
+    '/resume': 'resume',
+    '/jobs': 'jobs',
+    '/about': 'about',
   };
 
-  const [currentTab, setCurrentTab] = useState<NavTab>(() => getTabFromHash());
+  const PAGE_SEO: Record<NavTab, { title: string; description: string; path: string; isPrivate?: boolean }> = {
+    dashboard: {
+      title: 'CarrerAi – AI Career Guidance, Courses & Resume Builder',
+      description: 'CarrerAi is an AI-powered career platform that helps students and job seekers with career guidance, resume building, skill development, courses and career opportunities.',
+      path: '/',
+    },
+    courses: {
+      title: 'CarrerAi Courses – Learn Skills for Your Career',
+      description: 'Explore career-focused courses and learning resources with CarrerAi to build skills and track your learning progress.',
+      path: '/courses',
+    },
+    counselor: {
+      title: 'AI Career Guidance – Explore Career Paths with CarrerAi',
+      description: 'Explore career paths, skills and opportunities with AI-powered career guidance from CarrerAi.',
+      path: '/career',
+    },
+    resume: {
+      title: 'AI Resume Builder – Create a Professional Resume | CarrerAi',
+      description: 'Create and improve a professional resume with CarrerAi\'s career and resume tools.',
+      path: '/resume',
+    },
+    jobs: {
+      title: 'Career Opportunities & Jobs | CarrerAi',
+      description: 'Explore career opportunities and job resources through CarrerAi.',
+      path: '/jobs',
+    },
+    about: {
+      title: 'About CarrerAi – AI-Powered Career Platform',
+      description: 'Learn about CarrerAi and its mission to help students and job seekers with career guidance, learning and professional development.',
+      path: '/about',
+    },
+    profile: {
+      title: 'CarrerAi | Student Profile & Placement Benchmark',
+      description: 'Manage your profile, academic scores, and placement criteria securely on CarrerAi.',
+      path: '#profile',
+      isPrivate: true,
+    },
+    eligibility: {
+      title: 'CarrerAi | Company Placement Eligibility Checker',
+      description: 'Check eligibility across top tech recruiters, cutoffs, and tier benchmarks on CarrerAi.',
+      path: '#eligibility',
+    },
+    skillgap: {
+      title: 'CarrerAi | Technical Skill Gap Analysis & Roadmap',
+      description: 'Identify technical skill gaps and follow step-by-step career roadmaps on CarrerAi.',
+      path: '#skillgap',
+    },
+    prep: {
+      title: 'CarrerAi | Technical Interview Preparation & Drills',
+      description: 'Prepare for technical interviews, core subjects, and behavioral questions on CarrerAi.',
+      path: '#prep',
+    },
+  };
+
+  const getTabFromLocation = (): NavTab => {
+    if (typeof window === 'undefined') return 'dashboard';
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    if (PUBLIC_ROUTE_MAP[path]) {
+      return PUBLIC_ROUTE_MAP[path];
+    }
+    const hash = window.location.hash.replace('#', '').toLowerCase();
+    if (hash === 'career') return 'counselor';
+    if (VALID_TABS.includes(hash as NavTab)) return hash as NavTab;
+    return 'dashboard';
+  };
+
+  const [currentTab, setCurrentTab] = useState<NavTab>(() => getTabFromLocation());
   const [initialCounselorPrompt, setInitialCounselorPrompt] = useState<string>('');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Synchronize browser history and hash navigation
+  // Synchronize browser history and clean SEO-friendly URLs
   const handleSelectTab = (tab: NavTab) => {
     setCurrentTab(tab);
     if (typeof window !== 'undefined') {
-      const targetHash = `#${tab}`;
-      if (window.location.hash !== targetHash) {
-        window.history.pushState({ tab }, '', targetHash);
+      let targetUrl = '/';
+      if (tab === 'dashboard') targetUrl = '/';
+      else if (tab === 'courses') targetUrl = '/courses';
+      else if (tab === 'counselor') targetUrl = '/career';
+      else if (tab === 'resume') targetUrl = '/resume';
+      else if (tab === 'jobs') targetUrl = '/jobs';
+      else if (tab === 'about') targetUrl = '/about';
+      else targetUrl = `#${tab}`;
+
+      const currentPathAndHash = (window.location.pathname.replace(/\/$/, '') || '/') + window.location.hash;
+      if (currentPathAndHash !== targetUrl) {
+        window.history.pushState({ tab }, '', targetUrl);
       }
       // Scroll to top when changing views
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -211,17 +292,78 @@ function CareerAiAppMain() {
   };
 
   useEffect(() => {
-    const handlePopState = () => {
-      const tab = getTabFromHash();
+    const handleLocationChange = () => {
+      const tab = getTabFromLocation();
       setCurrentTab(tab);
     };
-    window.addEventListener('popstate', handlePopState);
-    window.addEventListener('hashchange', handlePopState);
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
     return () => {
-      window.removeEventListener('popstate', handlePopState);
-      window.removeEventListener('hashchange', handlePopState);
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
     };
   }, []);
+
+  // Dynamic SEO metadata synchronization for public and private pages
+  useEffect(() => {
+    const seo = PAGE_SEO[currentTab] || PAGE_SEO.dashboard;
+
+    // 1. Update Title
+    document.title = seo.title;
+
+    // 2. Update Meta Description
+    const descMeta = document.querySelector('meta[name="description"]');
+    if (descMeta) {
+      descMeta.setAttribute('content', seo.description);
+    }
+
+    // 3. Update Open Graph
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', seo.title);
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', seo.description);
+
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) {
+      ogUrl.setAttribute(
+        'content',
+        seo.path.startsWith('/') && seo.path !== '/'
+          ? `https://carrer-ai-kappa.vercel.app${seo.path}`
+          : 'https://carrer-ai-kappa.vercel.app/'
+      );
+    }
+
+    // 4. Update Twitter Card
+    const twTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twTitle) twTitle.setAttribute('content', seo.title);
+
+    const twDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twDesc) twDesc.setAttribute('content', seo.description);
+
+    // 5. Update Canonical Link
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      const canonicalHref =
+        seo.path.startsWith('/') && seo.path !== '/'
+          ? `https://carrer-ai-kappa.vercel.app${seo.path}`
+          : 'https://carrer-ai-kappa.vercel.app/';
+      canonical.setAttribute('href', canonicalHref);
+    }
+
+    // 6. Section 15: Protect private pages with dynamic noindex
+    const robotsMeta = document.querySelector('meta[name="robots"]');
+    if (robotsMeta) {
+      if (seo.isPrivate) {
+        robotsMeta.setAttribute('content', 'noindex, nofollow');
+      } else {
+        robotsMeta.setAttribute(
+          'content',
+          'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+        );
+      }
+    }
+  }, [currentTab]);
 
   // Persist profile changes to localStorage and user account registry
   useEffect(() => {
@@ -600,11 +742,25 @@ function CareerAiAppMain() {
               )}
 
               {currentTab === 'prep' && <PrepHubView />}
+
+              {currentTab === 'about' && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
+                      About CarrerAi – AI-Powered Career Platform
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed max-w-3xl">
+                      Learn about CarrerAi and its mission to help students and job seekers with career guidance, learning and professional development.
+                    </p>
+                  </div>
+                  <AboutPlatformInfo />
+                </div>
+              )}
             </main>
 
             {/* Professional Startup Footer */}
             <div className="relative z-10 print:hidden">
-              <Footer onReplayIntro={triggerIntro} />
+              <Footer onReplayIntro={triggerIntro} onNavigateTab={handleSelectTab} />
             </div>
           </div>
         </>

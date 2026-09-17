@@ -35,7 +35,8 @@ export type NavTab =
   | 'jobs'
   | 'counselor'
   | 'resume'
-  | 'prep';
+  | 'prep'
+  | 'about';
 
 interface NavbarProps {
   currentTab: NavTab;

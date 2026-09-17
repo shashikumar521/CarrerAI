@@ -52,12 +52,12 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     if (submitting || submitted) return;
 
     if (rating < 1 || rating > 5) {
-      setErrorMessage('Please select a star rating (1–5).');
+      setErrorMessage('Please select a rating from 1 to 5.');
       return;
     }
 
     if (!currentUser) {
-      setErrorMessage('You must be signed in to submit a rating.');
+      setErrorMessage('Please log in again before submitting feedback.');
       return;
     }
 
@@ -95,17 +95,22 @@ export const RatingModal: React.FC<RatingModalProps> = ({
         if (onFeedbackSubmitted) {
           onFeedbackSubmitted();
         }
-        // Gracefully auto-close after 2.8 seconds
+        // Gracefully auto-close after 2.5 seconds
         setTimeout(() => {
           onClose();
-        }, 2800);
+        }, 2500);
       } else {
-        const serverError = data?.error || (response.status === 404 ? 'Feedback endpoint not found on server' : 'Failed to submit rating. Please try again.');
-        setErrorMessage(serverError);
+        if (response.status === 401) {
+          setErrorMessage('Please log in again before submitting feedback.');
+        } else if (response.status === 400) {
+          setErrorMessage(data?.error || 'Please select a rating from 1 to 5.');
+        } else {
+          setErrorMessage("We couldn't submit your feedback right now. Please try again.");
+        }
       }
     } catch (err: any) {
       console.error('Rating submission network error:', err);
-      setErrorMessage('Unable to connect to feedback server. Please try again.');
+      setErrorMessage("We couldn't submit your feedback right now. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -164,7 +169,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                 </h3>
 
                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xs mb-6">
-                  Your rating helps us continuously refine CareerAI to better support your placement journey.
+                  Your rating has been submitted successfully.
                 </p>
 
                 <div className="flex items-center gap-1.5 py-1.5 px-3 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300">
