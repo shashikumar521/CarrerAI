@@ -420,12 +420,16 @@ app.get('/sitemap.xml', (req, res) => {
   res.type('application/xml').sendFile(sitemapPath);
 });
 
-// Google Search Console ownership verification route
-app.get('/google96e767e8a9c009cf.html', (req, res) => {
-  const publicPath = path.join(process.cwd(), 'public', 'google96e767e8a9c009cf.html');
-  const distPath = path.join(process.cwd(), 'dist', 'google96e767e8a9c009cf.html');
-  const filePath = fs.existsSync(publicPath) ? publicPath : distPath;
-  res.type('text/html').sendFile(filePath);
+// Google Search Console ownership verification routes (supports old and new verification tokens)
+app.get(['/google96e767e8a9c009cf.html', '/google:code.html'], (req, res) => {
+  const filename = req.path.replace(/^\//, '');
+  const publicPath = path.join(process.cwd(), 'public', filename);
+  const distPath = path.join(process.cwd(), 'dist', filename);
+  const targetPath = fs.existsSync(publicPath) ? publicPath : distPath;
+  if (fs.existsSync(targetPath)) {
+    return res.type('text/html').sendFile(targetPath);
+  }
+  res.status(404).type('text/plain').send('Google verification file not found');
 });
 
 // AI Career Counselor endpoint
