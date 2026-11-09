@@ -54,7 +54,6 @@ import {
 } from '../utils/courseSkillService';
 import { FloatingRocket } from './FloatingRocket';
 import { AdminFeedbackSection } from './AdminFeedbackSection';
-import { AboutPlatformInfo } from './AboutPlatformInfo';
 
 interface DashboardViewProps {
   profile: StudentProfile;
@@ -1398,9 +1397,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Comprehensive CarrerAi Platform Overview & Educational Content */}
-      <AboutPlatformInfo />
     </motion.div>
   );
 };

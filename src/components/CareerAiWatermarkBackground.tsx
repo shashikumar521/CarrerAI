@@ -38,8 +38,12 @@ export const CareerAiWatermarkBackground: React.FC = () => {
 
     mediaQuery.addEventListener('change', handleMediaChange);
 
-    // If reduced motion is requested, do not run mouse/scroll animation loops
-    if (mediaQuery.matches) {
+    // Disable continuous mouse/scroll rAF loop on mobile/touch screens or when reduced motion is preferred
+    const isMobileDevice =
+      typeof window !== 'undefined' &&
+      (window.innerWidth < 768 || window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+
+    if (mediaQuery.matches || isMobileDevice) {
       return () => mediaQuery.removeEventListener('change', handleMediaChange);
     }
 
@@ -122,14 +126,14 @@ export const CareerAiWatermarkBackground: React.FC = () => {
       {/* LAYER 3: Extremely Subtle Soft Atmospheric Orbs & Blobs       */}
       {/* Delicate blur gradients with slow drift (Adapted for Light & Dark) */}
       {/* ------------------------------------------------------------- */}
-      <div className={`absolute -top-32 -right-32 w-[550px] h-[550px] rounded-full bg-indigo-400/[0.025] dark:bg-indigo-500/[0.065] blur-[120px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-1'}`} />
-      <div className={`absolute top-[35%] -left-32 w-[450px] h-[450px] rounded-full bg-cyan-400/[0.02] dark:bg-cyan-400/[0.05] blur-[100px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-2'}`} />
-      <div className={`absolute -bottom-32 -right-20 w-[500px] h-[500px] rounded-full bg-violet-400/[0.022] dark:bg-violet-500/[0.06] blur-[120px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-1'}`} />
-      <div className={`absolute bottom-[20%] left-[10%] w-[380px] h-[380px] rounded-full bg-indigo-300/[0.015] dark:bg-indigo-400/[0.045] blur-[90px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-2'}`} />
+      <div className={`absolute -top-32 -right-32 w-[550px] h-[550px] rounded-full bg-indigo-400/[0.025] dark:bg-indigo-500/[0.065] blur-[50px] sm:blur-[120px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-1'}`} />
+      <div className={`absolute top-[35%] -left-32 w-[450px] h-[450px] rounded-full bg-cyan-400/[0.02] dark:bg-cyan-400/[0.05] blur-[40px] sm:blur-[100px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-2'}`} />
+      <div className={`absolute -bottom-32 -right-20 w-[500px] h-[500px] rounded-full bg-violet-400/[0.022] dark:bg-violet-500/[0.06] blur-[50px] sm:blur-[120px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-1'}`} />
+      <div className={`absolute bottom-[20%] left-[10%] w-[380px] h-[380px] rounded-full bg-indigo-300/[0.015] dark:bg-indigo-400/[0.045] blur-[40px] sm:blur-[90px] transform-gpu pointer-events-none transition-colors duration-500 ${prefersReducedMotion ? '' : 'animate-careerai-blob-2'}`} />
 
-      {/* Floating Micro-Particles (Extremely subtle, 12 non-distracting 2-3px dots) */}
+      {/* Floating Micro-Particles (rendered only on sm and larger to conserve mobile compositor threads) */}
       {!prefersReducedMotion && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="hidden sm:block absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[12%] left-[15%] w-1.5 h-1.5 rounded-full bg-indigo-400/20 animate-careerai-particle" style={{ animationDuration: '18s', animationDelay: '0s' }} />
           <div className="absolute top-[28%] right-[22%] w-2 h-2 rounded-full bg-cyan-400/20 animate-careerai-particle" style={{ animationDuration: '22s', animationDelay: '3s' }} />
           <div className="absolute top-[48%] left-[28%] w-1 h-1 rounded-full bg-violet-400/25 animate-careerai-particle" style={{ animationDuration: '15s', animationDelay: '5s' }} />

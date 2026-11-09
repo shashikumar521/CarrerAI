@@ -123,7 +123,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   placeholder="Search skills, jobs..."
-                  className="w-full pl-8 sm:pl-9 pr-2 sm:pr-14 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700/80 focus:bg-white dark:focus:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 rounded-xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden transition-all shadow-2xs truncate"
+                  aria-label="Search skills, jobs, and modules"
+                  className="w-full pl-8 sm:pl-9 pr-2 sm:pr-14 py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700/80 focus:bg-white dark:focus:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 rounded-xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden transition-all shadow-2xs truncate"
                 />
                 <div className="absolute right-2.5 hidden sm:flex items-center gap-0.5 pointer-events-none">
                   <kbd className="inline-block px-1.5 py-0.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded">
@@ -249,6 +250,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   type="button"
                   id="header-user-menu-btn"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  aria-label="User account menu"
                   className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:pl-2 sm:pr-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs min-h-[40px]"
                   aria-expanded={userDropdownOpen}
                 >

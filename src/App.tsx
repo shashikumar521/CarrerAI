@@ -21,16 +21,31 @@ import { Navbar, NavTab } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { TopHeader } from './components/TopHeader';
 import { DashboardView } from './components/DashboardView';
-import { ProfileView } from './components/ProfileView';
-import { EligibilityView } from './components/EligibilityView';
-import { SkillGapView } from './components/SkillGapView';
-import { CoursesView } from './components/CoursesView';
-import { JobsView } from './components/JobsView';
-import { AiCounselorView } from './components/AiCounselorView';
-import { ResumeBuilderView } from './components/ResumeBuilderView';
-import { PrepHubView } from './components/PrepHubView';
-import { AuthModal } from './components/AuthModal';
-import { RatingModal } from './components/RatingModal';
+
+// Code-split non-initial tab views & modals for optimal mobile performance & instant FCP
+const ProfileView = React.lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
+const EligibilityView = React.lazy(() => import('./components/EligibilityView').then(m => ({ default: m.EligibilityView })));
+const SkillGapView = React.lazy(() => import('./components/SkillGapView').then(m => ({ default: m.SkillGapView })));
+const CoursesView = React.lazy(() => import('./components/CoursesView').then(m => ({ default: m.CoursesView })));
+const JobsView = React.lazy(() => import('./components/JobsView').then(m => ({ default: m.JobsView })));
+const AiCounselorView = React.lazy(() => import('./components/AiCounselorView').then(m => ({ default: m.AiCounselorView })));
+const ResumeBuilderView = React.lazy(() => import('./components/ResumeBuilderView').then(m => ({ default: m.ResumeBuilderView })));
+const PrepHubView = React.lazy(() => import('./components/PrepHubView').then(m => ({ default: m.PrepHubView })));
+const AuthModal = React.lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
+const RatingModal = React.lazy(() => import('./components/RatingModal').then(m => ({ default: m.RatingModal })));
+
+// Lightweight skeleton to prevent layout shift during tab transition
+const TabLoadingSkeleton: React.FC = () => (
+  <div className="w-full space-y-4 animate-pulse py-2">
+    <div className="h-8 bg-slate-200/80 dark:bg-slate-800/80 rounded-xl w-48 sm:w-64" />
+    <div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded-lg w-full max-w-md" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+      <div className="h-36 bg-white dark:bg-slate-850 rounded-2xl border border-slate-200 dark:border-slate-800" />
+      <div className="h-36 bg-white dark:bg-slate-850 rounded-2xl border border-slate-200 dark:border-slate-800" />
+      <div className="h-36 bg-white dark:bg-slate-850 rounded-2xl border border-slate-200 dark:border-slate-800" />
+    </div>
+  </div>
+);
 import { Footer } from './components/Footer';
 import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
 import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
@@ -41,7 +56,6 @@ import { LEARNING_PATH_STORAGE_KEY } from './data/coursesDatabase';
 import { COURSE_PROGRESS_UPDATED_EVENT } from './utils/courseSkillService';
 import { ThemeProvider } from './context/ThemeContext';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
-import { AboutPlatformInfo } from './components/AboutPlatformInfo';
 
 const STORAGE_KEY = 'careerai_student_profile_v1';
 const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
@@ -666,94 +680,95 @@ function CareerAiAppMain() {
                 />
               )}
 
-              {currentTab === 'profile' && (
-                <ProfileView
-                  profile={profile}
-                  onUpdateProfile={handleUpdateProfile}
-                  onLoadDemo={handleLoadDemo}
-                  onClearProfile={handleClearProfile}
-                  currentUser={currentUser}
-                  assessmentSubmitted={assessmentSubmitted}
-                  onSubmitAssessment={handleSubmitAssessment}
-                  onOpenAuth={(mode) => {
-                    setAuthModalMode(mode);
-                    setAuthModalOpen(true);
-                  }}
-                />
-              )}
+              <React.Suspense fallback={<TabLoadingSkeleton />}>
+                {currentTab === 'profile' && (
+                  <ProfileView
+                    profile={profile}
+                    onUpdateProfile={handleUpdateProfile}
+                    onLoadDemo={handleLoadDemo}
+                    onClearProfile={handleClearProfile}
+                    currentUser={currentUser}
+                    assessmentSubmitted={assessmentSubmitted}
+                    onSubmitAssessment={handleSubmitAssessment}
+                    onOpenAuth={(mode) => {
+                      setAuthModalMode(mode);
+                      setAuthModalOpen(true);
+                    }}
+                  />
+                )}
 
-              {currentTab === 'eligibility' && (
-                <EligibilityView
-                  profile={profile}
-                  eligibilityResults={eligibilityResults}
-                  isProfileEmpty={emptyProfileState}
-                  onNavigate={handleSelectTab}
-                  onLoadDemo={handleLoadDemo}
-                />
-              )}
+                {currentTab === 'eligibility' && (
+                  <EligibilityView
+                    profile={profile}
+                    eligibilityResults={eligibilityResults}
+                    isProfileEmpty={emptyProfileState}
+                    onNavigate={handleSelectTab}
+                    onLoadDemo={handleLoadDemo}
+                  />
+                )}
 
-              {currentTab === 'skillgap' && (
-                <SkillGapView
-                  profile={profile}
-                  isProfileEmpty={emptyProfileState}
-                  onNavigate={handleSelectTab}
-                  onLoadDemo={handleLoadDemo}
-                  onAskCounselorWithPrompt={handleAskCounselor}
-                />
-              )}
+                {currentTab === 'skillgap' && (
+                  <SkillGapView
+                    profile={profile}
+                    isProfileEmpty={emptyProfileState}
+                    onNavigate={handleSelectTab}
+                    onLoadDemo={handleLoadDemo}
+                    onAskCounselorWithPrompt={handleAskCounselor}
+                  />
+                )}
 
-              {currentTab === 'courses' && (
-                <CoursesView
-                  profile={profile}
-                  isProfileEmpty={emptyProfileState}
-                  onNavigateToTab={handleSelectTab}
-                  onLoadDemoProfile={handleLoadDemo}
-                />
-              )}
+                {currentTab === 'courses' && (
+                  <CoursesView
+                    profile={profile}
+                    isProfileEmpty={emptyProfileState}
+                    onNavigateToTab={handleSelectTab}
+                    onLoadDemoProfile={handleLoadDemo}
+                  />
+                )}
 
-              {currentTab === 'jobs' && (
-                <JobsView
-                  profile={profile}
-                  currentUser={currentUser}
-                  assessmentSubmitted={assessmentSubmitted}
-                  onNavigate={handleSelectTab}
-                  onLoadDemoProfile={handleLoadDemo}
-                />
-              )}
+                {currentTab === 'jobs' && (
+                  <JobsView
+                    profile={profile}
+                    currentUser={currentUser}
+                    assessmentSubmitted={assessmentSubmitted}
+                    onNavigate={handleSelectTab}
+                    onLoadDemoProfile={handleLoadDemo}
+                  />
+                )}
 
-              {currentTab === 'counselor' && (
-                <AiCounselorView
-                  profile={profile}
-                  isProfileEmpty={emptyProfileState}
-                  initialPrompt={initialCounselorPrompt}
-                  onClearInitialPrompt={() => setInitialCounselorPrompt('')}
-                  onNavigate={handleSelectTab}
-                  onLoadDemo={handleLoadDemo}
-                />
-              )}
+                {currentTab === 'counselor' && (
+                  <AiCounselorView
+                    profile={profile}
+                    isProfileEmpty={emptyProfileState}
+                    initialPrompt={initialCounselorPrompt}
+                    onClearInitialPrompt={() => setInitialCounselorPrompt('')}
+                    onNavigate={handleSelectTab}
+                    onLoadDemo={handleLoadDemo}
+                  />
+                )}
 
-              {currentTab === 'resume' && (
-                <ResumeBuilderView
-                  profile={profile}
-                  isProfileEmpty={emptyProfileState}
-                  onNavigate={handleSelectTab}
-                  onLoadDemo={handleLoadDemo}
-                />
-              )}
+                {currentTab === 'resume' && (
+                  <ResumeBuilderView
+                    profile={profile}
+                    isProfileEmpty={emptyProfileState}
+                    onNavigate={handleSelectTab}
+                    onLoadDemo={handleLoadDemo}
+                  />
+                )}
 
-              {currentTab === 'prep' && <PrepHubView />}
+                {currentTab === 'prep' && <PrepHubView />}
+              </React.Suspense>
 
               {currentTab === 'about' && (
                 <div className="space-y-6">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
-                      About CarrerAi – AI-Powered Career Platform
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
+                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                      CareerAI – Placement Intelligence Platform
                     </h1>
-                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed max-w-3xl">
-                      Learn about CarrerAi and its mission to help students and job seekers with career guidance, learning and professional development.
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed max-w-3xl">
+                      Engineering Placement &amp; Career Intelligence platform providing readiness scoring, recruiter cutoff evaluations, skill roadmaps, and ATS resume tools.
                     </p>
                   </div>
-                  <AboutPlatformInfo />
                 </div>
               )}
             </main>
@@ -768,20 +783,26 @@ function CareerAiAppMain() {
 
       {/* Unified Google & Email Authentication Modal */}
       <div className="print:hidden">
-        <AuthModal
-          isOpen={authModalOpen}
-          initialMode={authModalMode}
-          onClose={() => setAuthModalOpen(false)}
-          onAuthSuccess={handleAuthSuccess}
-        />
+        <React.Suspense fallback={null}>
+          {authModalOpen && (
+            <AuthModal
+              isOpen={authModalOpen}
+              initialMode={authModalMode}
+              onClose={() => setAuthModalOpen(false)}
+              onAuthSuccess={handleAuthSuccess}
+            />
+          )}
 
-        {/* User Rating & Feedback Modal */}
-        <RatingModal
-          isOpen={ratingModalOpen}
-          onClose={() => setRatingModalOpen(false)}
-          currentUser={currentUser}
-          currentPage={TAB_NAMES[currentTab] || currentTab}
-        />
+          {/* User Rating & Feedback Modal */}
+          {ratingModalOpen && (
+            <RatingModal
+              isOpen={ratingModalOpen}
+              onClose={() => setRatingModalOpen(false)}
+              currentUser={currentUser}
+              currentPage={TAB_NAMES[currentTab] || currentTab}
+            />
+          )}
+        </React.Suspense>
 
         {/* Centralized Premium CareerAI Loading Screen & Intro */}
         <CareerAiLoadingScreen

@@ -140,14 +140,14 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           {/* Header Accent Strip */}
           <div className="h-2 w-full bg-gradient-to-r from-amber-400 via-amber-500 to-indigo-600" />
 
-          {/* Close Button */}
+          {/* Close Button with 44px min touch target */}
           <button
             type="button"
             id="rating-modal-close-btn"
             onClick={onClose}
             disabled={submitting}
             aria-label="Close Rating Modal"
-            className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="absolute top-3 right-3 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -213,7 +213,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                             setRating(starNum);
                             setErrorMessage(null);
                           }}
-                          className="p-1 sm:p-1.5 rounded-lg transition-transform hover:scale-115 focus:outline-hidden cursor-pointer"
+                          className="p-1 sm:p-1.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-transform hover:scale-115 focus:outline-hidden cursor-pointer"
                         >
                           <Star
                             className={`w-8 h-8 sm:w-9 sm:h-9 transition-colors ${
