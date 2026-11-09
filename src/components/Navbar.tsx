@@ -27,6 +27,7 @@ import { GoogleIcon } from './GoogleIcon';
 import { CareerAiBrand } from './CareerAiBrand';
 
 export type NavTab =
+  | 'home'
   | 'dashboard'
   | 'profile'
   | 'eligibility'

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {
+  Home,
   LayoutDashboard,
   User,
   Building2,
@@ -60,7 +61,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [mobileOpen]);
 
   const navItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'home' as NavTab, label: 'Homepage', icon: Home },
+    { id: 'dashboard' as NavTab, label: 'Placement Dashboard', icon: LayoutDashboard },
     { id: 'profile' as NavTab, label: 'Profile', icon: User },
     {
       id: 'eligibility' as NavTab,
@@ -101,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div>
         <div className="flex items-center justify-between pb-4 mb-3 border-b border-slate-100 dark:border-slate-800">
           <CareerAiBrand
-            onClick={() => handleTabClick('dashboard')}
+            onClick={() => handleTabClick('home')}
             subtitle="Placement Intelligence SaaS"
             badge="B.Tech"
             size="sidebar"

@@ -133,6 +133,55 @@ h1,
 }
 
 /* -------------------------------------------------------------------------
+   CAREERAI HERO DISPLAY HEADLINE
+   Restored balanced typography: 46–56px desktop, 38–44px tablet, 30–34px mobile (28px <=359px)
+   ------------------------------------------------------------------------- */
+.hero-headline {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: clamp(30px, 7.8vw, 34px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.15 !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+@media (max-width: 359px) {
+  .hero-headline {
+    font-size: 28px !important;
+    line-height: 1.18 !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .hero-headline {
+    font-size: clamp(38px, 4.2vw, 44px) !important;
+    line-height: 1.14 !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-headline {
+    font-size: 46px !important;
+    line-height: 1.14 !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero-headline {
+    font-size: 52px !important;
+    line-height: 1.12 !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .hero-headline {
+    font-size: 56px !important;
+    line-height: 1.10 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
    SECTION HEADING (H2)
    Font: Inter | Size: 24–32px (mobile 22–26px) | Weight: 600
    Letter spacing: 0 | Line height: 1.25
@@ -1556,6 +1605,44 @@ section:not([role="dialog"]) {
   }
   button, a {
     touch-action: manipulation;
+  }
+}
+
+/* =========================================================================
+   CAREERAI FEATURE & JOURNEY CARDS - HOVER & MOTION GUARDRAILS
+   Feature cards lift 5px, Journey cards lift 4px, reduced-motion compliant
+   ========================================================================= */
+.cai-feature-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease;
+  will-change: transform;
+}
+
+.cai-feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.cai-journey-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease;
+  will-change: transform;
+}
+
+.cai-journey-card:hover {
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cai-feature-card,
+  .cai-feature-card:hover,
+  .cai-feature-card *,
+  .cai-journey-card,
+  .cai-journey-card:hover,
+  .cai-journey-card * {
+    transition: none !important;
+    transform: none !important;
   }
 }
 

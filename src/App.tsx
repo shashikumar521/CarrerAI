@@ -46,6 +46,7 @@ const TabLoadingSkeleton: React.FC = () => (
     </div>
   </div>
 );
+import { LandingPageView } from './components/LandingPageView';
 import { Footer } from './components/Footer';
 import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
 import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
@@ -61,7 +62,8 @@ const STORAGE_KEY = 'careerai_student_profile_v1';
 const ASSESSMENT_SUBMITTED_KEY = 'careerai_assessment_submitted_v1';
 
 const TAB_NAMES: Record<NavTab, string> = {
-  dashboard: 'Dashboard',
+  home: 'Home',
+  dashboard: 'Placement Dashboard',
   profile: 'Profile & Assessment',
   eligibility: 'Eligibility Checker',
   skillgap: 'Skill Gap & Roadmap',
@@ -192,6 +194,7 @@ function CareerAiAppMain() {
   });
 
   const VALID_TABS: NavTab[] = [
+    'home',
     'dashboard',
     'profile',
     'eligibility',
@@ -205,19 +208,25 @@ function CareerAiAppMain() {
   ];
 
   const PUBLIC_ROUTE_MAP: Record<string, NavTab> = {
-    '/': 'dashboard',
+    '/': 'home',
     '/courses': 'courses',
     '/career': 'counselor',
     '/resume': 'resume',
     '/jobs': 'jobs',
-    '/about': 'about',
+    '/about': 'home',
   };
 
   const PAGE_SEO: Record<NavTab, { title: string; description: string; path: string; isPrivate?: boolean }> = {
-    dashboard: {
+    home: {
       title: 'CarrerAi – AI Career Guidance, Courses & Resume Builder',
       description: 'CarrerAi is an AI-powered career platform that helps students and job seekers with career guidance, resume building, skill development, courses and career opportunities.',
       path: '/',
+    },
+    dashboard: {
+      title: 'Placement Intelligence Dashboard | CarrerAi',
+      description: 'Comprehensive engineering placement intelligence, recruiter cutoffs, and skill diagnostics on CarrerAi.',
+      path: '#dashboard',
+      isPrivate: true,
     },
     courses: {
       title: 'CarrerAi Courses – Learn Skills for Your Career',
@@ -268,15 +277,17 @@ function CareerAiAppMain() {
   };
 
   const getTabFromLocation = (): NavTab => {
-    if (typeof window === 'undefined') return 'dashboard';
+    if (typeof window === 'undefined') return 'home';
+    const hash = window.location.hash.replace('#', '').toLowerCase();
+    if (hash === 'dashboard') return 'dashboard';
+    if (hash === 'career') return 'counselor';
+    if (VALID_TABS.includes(hash as NavTab)) return hash as NavTab;
+
     const path = window.location.pathname.replace(/\/$/, '') || '/';
     if (PUBLIC_ROUTE_MAP[path]) {
       return PUBLIC_ROUTE_MAP[path];
     }
-    const hash = window.location.hash.replace('#', '').toLowerCase();
-    if (hash === 'career') return 'counselor';
-    if (VALID_TABS.includes(hash as NavTab)) return hash as NavTab;
-    return 'dashboard';
+    return 'home';
   };
 
   const [currentTab, setCurrentTab] = useState<NavTab>(() => getTabFromLocation());
@@ -288,12 +299,13 @@ function CareerAiAppMain() {
     setCurrentTab(tab);
     if (typeof window !== 'undefined') {
       let targetUrl = '/';
-      if (tab === 'dashboard') targetUrl = '/';
+      if (tab === 'home') targetUrl = '/';
+      else if (tab === 'dashboard') targetUrl = '#dashboard';
       else if (tab === 'courses') targetUrl = '/courses';
       else if (tab === 'counselor') targetUrl = '/career';
       else if (tab === 'resume') targetUrl = '/resume';
       else if (tab === 'jobs') targetUrl = '/jobs';
-      else if (tab === 'about') targetUrl = '/about';
+      else if (tab === 'about') targetUrl = '/#about';
       else targetUrl = `#${tab}`;
 
       const currentPathAndHash = (window.location.pathname.replace(/\/$/, '') || '/') + window.location.hash;
@@ -607,177 +619,191 @@ function CareerAiAppMain() {
   };
 
   return (
-    <div className={`relative min-h-screen ${dashboardMounted ? 'bg-slate-50 text-slate-900' : 'bg-[#070B14] text-white'} font-sans selection:bg-indigo-500 selection:text-white print:bg-white print:min-h-0 print:p-0 print:m-0`}>
+    <div className={`relative min-h-screen ${dashboardMounted ? (currentTab === 'home' ? 'bg-white text-[#14213D]' : 'bg-slate-50 text-slate-900') : 'bg-[#070B14] text-white'} font-sans selection:bg-[#5945E8] selection:text-white print:bg-white print:min-h-0 print:p-0 print:m-0`}>
       {dashboardMounted && (
         <>
-          {/* Subtle Animated CareerAI Brand Watermark Background (Layer 2 & 3) */}
-          <div className="print:hidden">
-            <CareerAiWatermarkBackground />
-          </div>
-
-          {/* Premium Subtle Cursor Glow & Card Cursor Manager */}
-          <div className="print:hidden">
-            <CursorGlow />
-            <CardCursorManager />
-          </div>
-
-          {/* Modern Fixed Left Navigation Sidebar (Desktop + Mobile Slideover) */}
-          <div className="print:hidden">
-            <Sidebar
-              currentTab={currentTab}
-              onSelectTab={handleSelectTab}
-              report={readinessReport}
-              isProfileEmpty={emptyProfileState}
-              eligibleCompanyCount={eligibleCompanyCount}
+          {currentTab === 'home' ? (
+            <LandingPageView
+              onNavigate={handleSelectTab}
+              onOpenAuth={(mode) => {
+                setAuthModalMode(mode);
+                setAuthModalOpen(true);
+              }}
               currentUser={currentUser}
-              assessmentSubmitted={assessmentSubmitted}
-              mobileOpen={mobileSidebarOpen}
-              onCloseMobile={() => setMobileSidebarOpen(false)}
-              onOpenRating={() => setRatingModalOpen(true)}
-              isAdmin={isAdmin}
+              onLogout={handleLogout}
             />
-          </div>
+          ) : (
+            <>
+              {/* Subtle Animated CareerAI Brand Watermark Background (Layer 2 & 3) */}
+              <div className="print:hidden">
+                <CareerAiWatermarkBackground />
+              </div>
 
-          {/* Main Content Column (with desktop left padding for the fixed sidebar) */}
-          <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64 print:pl-0 print:m-0 print:min-h-0 print:w-full">
-            {/* Top Header with Search, Notifications, Demo Profile toggle & User Avatar */}
-            <div className="print:hidden">
-              <TopHeader
-                onToggleMobile={() => setMobileSidebarOpen(true)}
-                currentTab={currentTab}
-                onSelectTab={handleSelectTab}
-                report={readinessReport}
-                isProfileEmpty={emptyProfileState}
-                onLoadDemo={handleLoadDemo}
-                onClearProfile={handleClearProfile}
-                currentUser={currentUser}
-                assessmentSubmitted={assessmentSubmitted}
-                onOpenAuth={(mode) => {
-                  setAuthModalMode(mode);
-                  setAuthModalOpen(true);
-                }}
-                onLogout={handleLogout}
-                onReplayIntro={triggerIntro}
-                onOpenRating={() => setRatingModalOpen(true)}
-                isAdmin={isAdmin}
-              />
-            </div>
+              {/* Premium Subtle Cursor Glow & Card Cursor Manager */}
+              <div className="print:hidden">
+                <CursorGlow />
+                <CardCursorManager />
+              </div>
 
-            {/* Main Content Area */}
-            <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
-              {currentTab === 'dashboard' && (
-                <DashboardView
-                  profile={profile}
+              {/* Modern Fixed Left Navigation Sidebar (Desktop + Mobile Slideover) */}
+              <div className="print:hidden">
+                <Sidebar
+                  currentTab={currentTab}
+                  onSelectTab={handleSelectTab}
                   report={readinessReport}
                   isProfileEmpty={emptyProfileState}
-                  eligibilityResults={eligibilityResults}
-                  onNavigate={handleSelectTab}
-                  onLoadDemo={handleLoadDemo}
+                  eligibleCompanyCount={eligibleCompanyCount}
                   currentUser={currentUser}
                   assessmentSubmitted={assessmentSubmitted}
-                  isAdmin={isAdmin}
+                  mobileOpen={mobileSidebarOpen}
+                  onCloseMobile={() => setMobileSidebarOpen(false)}
                   onOpenRating={() => setRatingModalOpen(true)}
+                  isAdmin={isAdmin}
                 />
-              )}
+              </div>
 
-              <React.Suspense fallback={<TabLoadingSkeleton />}>
-                {currentTab === 'profile' && (
-                  <ProfileView
-                    profile={profile}
-                    onUpdateProfile={handleUpdateProfile}
+              {/* Main Content Column (with desktop left padding for the fixed sidebar) */}
+              <div className="flex-1 flex flex-col min-w-0 min-h-screen lg:pl-64 print:pl-0 print:m-0 print:min-h-0 print:w-full">
+                {/* Top Header with Search, Notifications, Demo Profile toggle & User Avatar */}
+                <div className="print:hidden">
+                  <TopHeader
+                    onToggleMobile={() => setMobileSidebarOpen(true)}
+                    currentTab={currentTab}
+                    onSelectTab={handleSelectTab}
+                    report={readinessReport}
+                    isProfileEmpty={emptyProfileState}
                     onLoadDemo={handleLoadDemo}
                     onClearProfile={handleClearProfile}
                     currentUser={currentUser}
                     assessmentSubmitted={assessmentSubmitted}
-                    onSubmitAssessment={handleSubmitAssessment}
                     onOpenAuth={(mode) => {
                       setAuthModalMode(mode);
                       setAuthModalOpen(true);
                     }}
+                    onLogout={handleLogout}
+                    onReplayIntro={triggerIntro}
+                    onOpenRating={() => setRatingModalOpen(true)}
+                    isAdmin={isAdmin}
                   />
-                )}
-
-                {currentTab === 'eligibility' && (
-                  <EligibilityView
-                    profile={profile}
-                    eligibilityResults={eligibilityResults}
-                    isProfileEmpty={emptyProfileState}
-                    onNavigate={handleSelectTab}
-                    onLoadDemo={handleLoadDemo}
-                  />
-                )}
-
-                {currentTab === 'skillgap' && (
-                  <SkillGapView
-                    profile={profile}
-                    isProfileEmpty={emptyProfileState}
-                    onNavigate={handleSelectTab}
-                    onLoadDemo={handleLoadDemo}
-                    onAskCounselorWithPrompt={handleAskCounselor}
-                  />
-                )}
-
-                {currentTab === 'courses' && (
-                  <CoursesView
-                    profile={profile}
-                    isProfileEmpty={emptyProfileState}
-                    onNavigateToTab={handleSelectTab}
-                    onLoadDemoProfile={handleLoadDemo}
-                  />
-                )}
-
-                {currentTab === 'jobs' && (
-                  <JobsView
-                    profile={profile}
-                    currentUser={currentUser}
-                    assessmentSubmitted={assessmentSubmitted}
-                    onNavigate={handleSelectTab}
-                    onLoadDemoProfile={handleLoadDemo}
-                  />
-                )}
-
-                {currentTab === 'counselor' && (
-                  <AiCounselorView
-                    profile={profile}
-                    isProfileEmpty={emptyProfileState}
-                    initialPrompt={initialCounselorPrompt}
-                    onClearInitialPrompt={() => setInitialCounselorPrompt('')}
-                    onNavigate={handleSelectTab}
-                    onLoadDemo={handleLoadDemo}
-                  />
-                )}
-
-                {currentTab === 'resume' && (
-                  <ResumeBuilderView
-                    profile={profile}
-                    isProfileEmpty={emptyProfileState}
-                    onNavigate={handleSelectTab}
-                    onLoadDemo={handleLoadDemo}
-                  />
-                )}
-
-                {currentTab === 'prep' && <PrepHubView />}
-              </React.Suspense>
-
-              {currentTab === 'about' && (
-                <div className="space-y-6">
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
-                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                      CareerAI – Placement Intelligence Platform
-                    </h1>
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed max-w-3xl">
-                      Engineering Placement &amp; Career Intelligence platform providing readiness scoring, recruiter cutoff evaluations, skill roadmaps, and ATS resume tools.
-                    </p>
-                  </div>
                 </div>
-              )}
-            </main>
 
-            {/* Professional Startup Footer */}
-            <div className="relative z-10 print:hidden">
-              <Footer onReplayIntro={triggerIntro} onNavigateTab={handleSelectTab} />
-            </div>
-          </div>
+                {/* Main Content Area */}
+                <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
+                  {currentTab === 'dashboard' && (
+                    <DashboardView
+                      profile={profile}
+                      report={readinessReport}
+                      isProfileEmpty={emptyProfileState}
+                      eligibilityResults={eligibilityResults}
+                      onNavigate={handleSelectTab}
+                      onLoadDemo={handleLoadDemo}
+                      currentUser={currentUser}
+                      assessmentSubmitted={assessmentSubmitted}
+                      isAdmin={isAdmin}
+                      onOpenRating={() => setRatingModalOpen(true)}
+                    />
+                  )}
+
+                  <React.Suspense fallback={<TabLoadingSkeleton />}>
+                    {currentTab === 'profile' && (
+                      <ProfileView
+                        profile={profile}
+                        onUpdateProfile={handleUpdateProfile}
+                        onLoadDemo={handleLoadDemo}
+                        onClearProfile={handleClearProfile}
+                        currentUser={currentUser}
+                        assessmentSubmitted={assessmentSubmitted}
+                        onSubmitAssessment={handleSubmitAssessment}
+                        onOpenAuth={(mode) => {
+                          setAuthModalMode(mode);
+                          setAuthModalOpen(true);
+                        }}
+                      />
+                    )}
+
+                    {currentTab === 'eligibility' && (
+                      <EligibilityView
+                        profile={profile}
+                        eligibilityResults={eligibilityResults}
+                        isProfileEmpty={emptyProfileState}
+                        onNavigate={handleSelectTab}
+                        onLoadDemo={handleLoadDemo}
+                      />
+                    )}
+
+                    {currentTab === 'skillgap' && (
+                      <SkillGapView
+                        profile={profile}
+                        isProfileEmpty={emptyProfileState}
+                        onNavigate={handleSelectTab}
+                        onLoadDemo={handleLoadDemo}
+                        onAskCounselorWithPrompt={handleAskCounselor}
+                      />
+                    )}
+
+                    {currentTab === 'courses' && (
+                      <CoursesView
+                        profile={profile}
+                        isProfileEmpty={emptyProfileState}
+                        onNavigateToTab={handleSelectTab}
+                        onLoadDemoProfile={handleLoadDemo}
+                      />
+                    )}
+
+                    {currentTab === 'jobs' && (
+                      <JobsView
+                        profile={profile}
+                        currentUser={currentUser}
+                        assessmentSubmitted={assessmentSubmitted}
+                        onNavigate={handleSelectTab}
+                        onLoadDemoProfile={handleLoadDemo}
+                      />
+                    )}
+
+                    {currentTab === 'counselor' && (
+                      <AiCounselorView
+                        profile={profile}
+                        isProfileEmpty={emptyProfileState}
+                        initialPrompt={initialCounselorPrompt}
+                        onClearInitialPrompt={() => setInitialCounselorPrompt('')}
+                        onNavigate={handleSelectTab}
+                        onLoadDemo={handleLoadDemo}
+                      />
+                    )}
+
+                    {currentTab === 'resume' && (
+                      <ResumeBuilderView
+                        profile={profile}
+                        isProfileEmpty={emptyProfileState}
+                        onNavigate={handleSelectTab}
+                        onLoadDemo={handleLoadDemo}
+                      />
+                    )}
+
+                    {currentTab === 'prep' && <PrepHubView />}
+                  </React.Suspense>
+
+                  {currentTab === 'about' && (
+                    <div className="space-y-6">
+                      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
+                        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                          CareerAI – Placement Intelligence Platform
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed max-w-3xl">
+                          Engineering Placement &amp; Career Intelligence platform providing readiness scoring, recruiter cutoff evaluations, skill roadmaps, and ATS resume tools.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </main>
+
+                {/* Professional Startup Footer */}
+                <div className="relative z-10 print:hidden">
+                  <Footer onReplayIntro={triggerIntro} onNavigateTab={handleSelectTab} />
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
 

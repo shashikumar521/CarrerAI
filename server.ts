@@ -568,10 +568,26 @@ async function startServer() {
     });
   }
 
+  httpServer.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[Server] Port ${PORT} is already in use.`);
+    } else {
+      console.error('[Server Error]', err);
+    }
+  });
+
   httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`CareerAI server listening at http://0.0.0.0:${PORT}`);
   });
 }
+
+// Global safety error listeners to prevent unexpected termination
+process.on('unhandledRejection', (reason, promise) => {
+  console.warn('[Process] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[Process] Uncaught Exception:', err);
+});
 
 // Export for serverless environments (e.g. Vercel) and automated testing
 export { app };
