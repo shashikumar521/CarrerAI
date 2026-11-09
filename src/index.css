@@ -134,50 +134,51 @@ h1,
 
 /* -------------------------------------------------------------------------
    CAREERAI HERO DISPLAY HEADLINE
-   Restored balanced typography: 46–56px desktop, 38–44px tablet, 30–34px mobile (28px <=359px)
+   Refined balanced typography: 42–52px desktop, 35–40px tablet, 27–32px mobile (25px <=359px)
+   Reduced by ~5–8% for optimal visual balance with 3 balanced lines
    ------------------------------------------------------------------------- */
 .hero-headline {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
-  font-size: clamp(30px, 7.8vw, 34px) !important;
+  font-size: clamp(27px, 7.2vw, 32px) !important;
   font-weight: 700 !important;
-  letter-spacing: -0.025em !important;
-  line-height: 1.15 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.18 !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
 }
 
 @media (max-width: 359px) {
   .hero-headline {
-    font-size: 28px !important;
-    line-height: 1.18 !important;
+    font-size: 25px !important;
+    line-height: 1.20 !important;
   }
 }
 
 @media (min-width: 640px) {
   .hero-headline {
-    font-size: clamp(38px, 4.2vw, 44px) !important;
-    line-height: 1.14 !important;
+    font-size: clamp(35px, 3.8vw, 40px) !important;
+    line-height: 1.16 !important;
   }
 }
 
 @media (min-width: 1024px) {
   .hero-headline {
-    font-size: 46px !important;
-    line-height: 1.14 !important;
+    font-size: 42px !important;
+    line-height: 1.15 !important;
   }
 }
 
 @media (min-width: 1280px) {
   .hero-headline {
-    font-size: 52px !important;
-    line-height: 1.12 !important;
+    font-size: 48px !important;
+    line-height: 1.14 !important;
   }
 }
 
 @media (min-width: 1440px) {
   .hero-headline {
-    font-size: 56px !important;
-    line-height: 1.10 !important;
+    font-size: 52px !important;
+    line-height: 1.12 !important;
   }
 }
 

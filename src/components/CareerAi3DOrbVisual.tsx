@@ -32,8 +32,9 @@ export const CareerAi3DOrbVisual: React.FC = () => {
   };
 
   // Calculate tilt transform for desktop 3D perspective (disabled on touch devices)
-  const tiltX = isHovered && !isTouchDevice ? -mousePos.y * 12 : 0;
-  const tiltY = isHovered && !isTouchDevice ? mousePos.x * 14 : 0;
+  // Calculate subtle tilt transform for desktop 3D perspective (disabled on touch devices)
+  const tiltX = isHovered && !isTouchDevice ? -mousePos.y * 10 : 0;
+  const tiltY = isHovered && !isTouchDevice ? mousePos.x * 12 : 0;
 
   return (
     <div
@@ -41,20 +42,20 @@ export const CareerAi3DOrbVisual: React.FC = () => {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full max-w-[325px] min-[360px]:max-w-[350px] min-[390px]:max-w-[370px] min-[430px]:max-w-[400px] sm:max-w-[480px] lg:max-w-[540px] h-[325px] min-[360px]:h-[350px] min-[390px]:h-[370px] sm:h-[480px] lg:h-[540px] mx-auto flex items-center justify-center select-none"
+      className="relative w-full max-w-[310px] min-[360px]:max-w-[340px] min-[390px]:max-w-[370px] min-[430px]:max-w-[400px] sm:max-w-[460px] lg:max-w-[500px] xl:max-w-[530px] h-[310px] min-[360px]:h-[340px] min-[390px]:h-[370px] sm:h-[450px] lg:h-[480px] xl:h-[490px] mx-auto flex items-center justify-center select-none"
       style={{ perspective: '1100px' }}
       aria-hidden="true"
     >
       {/* =========================================================================
-          AMBIENT BACK-LIGHTING HALO
+          AMBIENT BACK-LIGHTING HALO (Soft Purple & Sky Ambient Depth)
           ========================================================================= */}
       <div
-        className="absolute inset-0 bg-gradient-to-tr from-[#5945E8]/20 via-[#7868F5]/15 to-sky-400/12 rounded-full blur-3xl pointer-events-none transition-transform duration-700 ease-out"
+        className="absolute inset-0 bg-gradient-to-tr from-[#5945E8]/18 via-[#7868F5]/14 to-sky-400/10 rounded-full blur-3xl pointer-events-none transition-transform duration-700 ease-out"
         style={{
-          transform: isTouchDevice ? undefined : `scale(${isHovered ? 1.06 : 1}) translate(${mousePos.x * 16}px, ${mousePos.y * 16}px)`,
+          transform: isTouchDevice ? undefined : `scale(${isHovered ? 1.05 : 1}) translate(${mousePos.x * 14}px, ${mousePos.y * 14}px)`,
         }}
       />
-      <div className="absolute w-44 h-44 sm:w-64 sm:h-64 bg-violet-400/15 rounded-full blur-2xl pointer-events-none cai-breathing-glow" />
+      <div className="absolute w-40 h-40 sm:w-60 sm:h-60 bg-violet-400/12 rounded-full blur-2xl pointer-events-none cai-breathing-glow" />
 
       {/* =========================================================================
           3D STAGE WRAPPER (Tilts gently with desktop mouse parallax)
@@ -135,42 +136,33 @@ export const CareerAi3DOrbVisual: React.FC = () => {
           </g>
 
           {/* Constellation Connection Beams to Nodes */}
-          <line x1="250" y1="250" x2="110" y2="120" stroke="#7868F5" strokeOpacity="0.28" strokeWidth="1" strokeDasharray="3 3" />
-          <line x1="250" y1="250" x2="390" y2="145" stroke="#5945E8" strokeOpacity="0.28" strokeWidth="1" strokeDasharray="3 3" />
-          <line x1="250" y1="250" x2="385" y2="375" stroke="#38BDF8" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 3" />
-          <line x1="250" y1="250" x2="115" y2="350" stroke="#A855F7" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="250" y1="250" x2="110" y2="120" stroke="#7868F5" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="250" y1="250" x2="390" y2="145" stroke="#5945E8" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="250" y1="250" x2="385" y2="375" stroke="#38BDF8" strokeOpacity="0.22" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="250" y1="250" x2="115" y2="350" stroke="#A855F7" strokeOpacity="0.22" strokeWidth="1" strokeDasharray="3 3" />
 
-          {/* =========================================================================
-              AMBIENT GLOWING PARTICLES (6 Gentle Floating Satellites around Orb)
-              ========================================================================= */}
-          {/* Particle 1: Soft Cyan Ambient Drift */}
+          {/* Ambient Glowing Celestial Particles */}
           <g className="cai-particle-drift-1" style={{ transformOrigin: '250px 250px' }}>
             <circle cx="195" cy="180" r="2.2" fill="#38BDF8" fillOpacity="0.85" filter="drop-shadow(0 0 3px #38BDF8)" />
           </g>
 
-          {/* Particle 2: Soft Violet Drift */}
           <g className="cai-particle-drift-2" style={{ transformOrigin: '250px 250px' }}>
             <circle cx="310" cy="185" r="2" fill="#A855F7" fillOpacity="0.8" filter="drop-shadow(0 0 3px #A855F7)" />
           </g>
 
-          {/* Particle 3: Indigo / Violet Glow Pulse */}
           <g className="cai-particle-drift-3" style={{ transformOrigin: '250px 250px' }}>
             <circle cx="230" cy="325" r="2.4" fill="#7868F5" fillOpacity="0.85" filter="drop-shadow(0 0 3px #7868F5)" />
           </g>
 
-          {/* Particle 4: Upper Sky Glint */}
           <g className="cai-particle-drift-4" style={{ transformOrigin: '250px 250px' }}>
             <circle cx="285" cy="295" r="1.8" fill="#38BDF8" fillOpacity="0.75" />
           </g>
 
-          {/* Particle 5: Pure White Star Glint */}
-          <circle cx="160" cy="90" r="2" fill="#FFFFFF" fillOpacity="0.9" className="animate-ping" style={{ animationDuration: '3.5s' }} />
-
-          {/* Particle 6: Quiet Purple Orbital Node */}
-          <circle cx="340" cy="80" r="1.6" fill="#7868F5" fillOpacity="0.85" />
-          <circle cx="430" cy="270" r="2" fill="#38BDF8" fillOpacity="0.65" />
+          <circle cx="160" cy="90" r="2" fill="#FFFFFF" fillOpacity="0.85" className="animate-ping" style={{ animationDuration: '3.5s' }} />
+          <circle cx="340" cy="80" r="1.6" fill="#7868F5" fillOpacity="0.8" />
+          <circle cx="430" cy="270" r="2" fill="#38BDF8" fillOpacity="0.6" />
           <circle cx="70" cy="240" r="1.5" fill="#5945E8" fillOpacity="0.5" />
-          <circle cx="280" cy="420" r="2" fill="#7868F5" fillOpacity="0.7" />
+          <circle cx="280" cy="420" r="2" fill="#7868F5" fillOpacity="0.65" />
         </svg>
 
         {/* =========================================================================
@@ -179,14 +171,14 @@ export const CareerAi3DOrbVisual: React.FC = () => {
             ========================================================================= */}
         <div className="relative z-20 flex items-center justify-center cai-orb-float">
           {/* External Rotating Light Halo */}
-          <div className="absolute w-28 h-28 min-[360px]:w-32 min-[360px]:h-32 sm:w-46 sm:h-46 md:w-52 md:h-52 rounded-full border border-violet-400/35 cai-orbit-spin-slow pointer-events-none" />
+          <div className="absolute w-28 h-28 min-[360px]:w-32 min-[360px]:h-32 sm:w-44 sm:h-44 md:w-50 md:h-50 rounded-full border border-violet-400/35 cai-orbit-spin-slow pointer-events-none" />
 
-          {/* Luminous Pulsating Corona with Breathing Glow */}
-          <div className="absolute w-24 h-24 min-[360px]:w-28 min-[360px]:h-28 sm:w-40 sm:h-40 md:w-46 md:h-46 rounded-full bg-gradient-to-tr from-[#5945E8] via-[#7868F5] to-cyan-400 opacity-80 blur-md cai-breathing-glow pointer-events-none" />
+          {/* Luminous Corona with Breathing Glow */}
+          <div className="absolute w-24 h-24 min-[360px]:w-28 min-[360px]:h-28 sm:w-38 sm:h-38 md:w-44 md:h-44 rounded-full bg-gradient-to-tr from-[#5945E8] via-[#7868F5] to-cyan-400 opacity-75 blur-md cai-breathing-glow pointer-events-none" />
 
           {/* Core 3D Shaded Sphere (Realistic Layered Multi-Point Depth & Lighting) */}
-          <div className="relative w-20 h-20 min-[360px]:w-22 min-[360px]:h-22 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-[#0F172A] via-[#1E1B4B] to-[#6366F1] shadow-[inset_-8px_-8px_20px_rgba(0,0,0,0.7),inset_8px_8px_20px_rgba(255,255,255,0.45),0_0_36px_rgba(89,69,232,0.65)] flex items-center justify-center border border-white/50 overflow-hidden">
-            {/* Ambient Surface Rotation (Texture rotates while logo stays rock-stable) */}
+          <div className="relative w-20 h-20 min-[360px]:w-22 min-[360px]:h-22 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-[#0F172A] via-[#1E1B4B] to-[#6366F1] shadow-[inset_-8px_-8px_20px_rgba(0,0,0,0.7),inset_8px_8px_20px_rgba(255,255,255,0.45),0_0_36px_rgba(89,69,232,0.6),0_10px_25px_rgba(20,33,61,0.18)] flex items-center justify-center border border-white/50 overflow-hidden">
+            {/* Ambient Surface Rotation */}
             <div className="absolute inset-0 cai-orb-axial-spin pointer-events-none opacity-40">
               <div className="absolute inset-1 rounded-full border border-white/25" />
               <div className="absolute inset-2 sm:inset-3 rounded-full border border-violet-300/30" />
@@ -196,7 +188,7 @@ export const CareerAi3DOrbVisual: React.FC = () => {
             {/* Inner Shimmer Reflection Sweep */}
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/25 to-transparent cai-shimmer-sweep pointer-events-none" />
 
-            {/* Core Neural Icon & CareerAI Brand (Stable, Perfectly Readable) */}
+            {/* Core Neural Icon & CareerAI Brand (Stable, Readable) */}
             <div className="relative z-10 flex flex-col items-center justify-center text-white pointer-events-none">
               <div className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center shadow-[inset_0_1px_2px_rgba(255,255,255,0.6),0_2px_8px_rgba(0,0,0,0.3)]">
                 <Sparkles className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-white cai-sparkle-breathe" />
@@ -209,20 +201,21 @@ export const CareerAi3DOrbVisual: React.FC = () => {
         </div>
 
         {/* =========================================================================
-            FLOATING SKILL & CAREER PATH NODES
-            Truly Independent Desynchronized Floating Animations
-            Refined Glass Surfaces & Smooth Transitions
+            FLOATING SKILL & CAREER PATH CARDS
+            Independent Desynchronized Floating Animations
+            Light Glass-Like SaaS Surfaces & Smooth Hover Elevation
+            Balanced Spacing Around Central Sphere (No Overlaps)
             ========================================================================= */}
 
-        {/* Node 1: AI Mentorship (Upper-Left) */}
+        {/* Card 1: AI Mentorship (Upper-Left) */}
         <div
-          className="absolute top-1 left-1 min-[360px]:top-2 min-[360px]:left-1.5 sm:top-10 sm:left-4 md:top-12 md:left-6 z-30 transition-transform duration-500 ease-out pointer-events-auto"
+          className="absolute top-1 left-0.5 min-[360px]:top-1.5 min-[360px]:left-1 sm:top-5 sm:left-2 lg:top-7 lg:left-3 z-30 transition-transform duration-500 ease-out pointer-events-auto"
           style={{
-            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * -16}px, ${mousePos.y * -16}px, 30px)`,
+            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * -12}px, ${mousePos.y * -12}px, 25px)`,
           }}
         >
           <div className="cai-float-card-1">
-            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/92 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(89,69,232,0.08),0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_30px_rgba(89,69,232,0.18)] hover:border-[#5945E8]/60 hover:scale-[1.025] transition-all duration-300 group cursor-default">
+            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(20,33,61,0.06),0_1px_3px_rgba(89,69,232,0.04)] hover:shadow-[0_12px_28px_rgba(89,69,232,0.18)] hover:border-[#5945E8]/60 hover:-translate-y-1 transition-all duration-300 group cursor-default">
               <div className="w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-[#5945E8]/10 text-[#5945E8] flex items-center justify-center group-hover:bg-[#5945E8] group-hover:text-white transition-colors duration-200 shrink-0">
                 <Bot className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5" />
               </div>
@@ -238,15 +231,15 @@ export const CareerAi3DOrbVisual: React.FC = () => {
           </div>
         </div>
 
-        {/* Node 2: Core Engineering (Upper-Right) */}
+        {/* Card 2: Core Engineering (Upper-Right) */}
         <div
-          className="absolute top-12 right-1 min-[360px]:top-14 min-[360px]:right-1.5 sm:top-8 sm:right-4 md:top-10 md:right-6 z-30 transition-transform duration-500 ease-out pointer-events-auto"
+          className="absolute top-10 right-0.5 min-[360px]:top-11 min-[360px]:right-1 sm:top-6 sm:right-2 lg:top-8 lg:right-3 z-30 transition-transform duration-500 ease-out pointer-events-auto"
           style={{
-            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * 18}px, ${mousePos.y * 16}px, 40px)`,
+            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * 14}px, ${mousePos.y * 12}px, 30px)`,
           }}
         >
           <div className="cai-float-card-2">
-            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/92 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(89,69,232,0.08),0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_30px_rgba(16,185,129,0.18)] hover:border-emerald-500/60 hover:scale-[1.025] transition-all duration-300 group cursor-default">
+            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(20,33,61,0.06),0_1px_3px_rgba(89,69,232,0.04)] hover:shadow-[0_12px_28px_rgba(16,185,129,0.18)] hover:border-emerald-500/60 hover:-translate-y-1 transition-all duration-300 group cursor-default">
               <div className="w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-200 shrink-0">
                 <Code2 className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5" />
               </div>
@@ -262,15 +255,15 @@ export const CareerAi3DOrbVisual: React.FC = () => {
           </div>
         </div>
 
-        {/* Node 3: Industry Courses (Lower-Right) */}
+        {/* Card 3: Industry Courses (Lower-Right) */}
         <div
-          className="absolute bottom-1 right-1 min-[360px]:bottom-2 min-[360px]:right-1.5 sm:bottom-10 sm:right-4 md:bottom-12 md:right-6 z-30 transition-transform duration-500 ease-out pointer-events-auto"
+          className="absolute bottom-1 right-0.5 min-[360px]:bottom-1.5 min-[360px]:right-1 sm:bottom-5 sm:right-2 lg:bottom-7 lg:right-3 z-30 transition-transform duration-500 ease-out pointer-events-auto"
           style={{
-            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * -16}px, ${mousePos.y * 20}px, 25px)`,
+            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * -12}px, ${mousePos.y * 14}px, 20px)`,
           }}
         >
           <div className="cai-float-card-3">
-            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/92 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(89,69,232,0.08),0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_30px_rgba(56,189,248,0.20)] hover:border-[#38BDF8]/65 hover:scale-[1.025] transition-all duration-300 group cursor-default">
+            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(20,33,61,0.06),0_1px_3px_rgba(89,69,232,0.04)] hover:shadow-[0_12px_28px_rgba(56,189,248,0.20)] hover:border-[#38BDF8]/65 hover:-translate-y-1 transition-all duration-300 group cursor-default">
               <div className="w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-sky-500/10 text-sky-600 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors duration-200 shrink-0">
                 <Cloud className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5" />
               </div>
@@ -286,15 +279,15 @@ export const CareerAi3DOrbVisual: React.FC = () => {
           </div>
         </div>
 
-        {/* Node 4: Interview Prep (Lower-Left) */}
+        {/* Card 4: Interview Prep (Lower-Left) */}
         <div
-          className="absolute bottom-12 left-1 min-[360px]:bottom-14 min-[360px]:left-1.5 sm:bottom-8 sm:left-4 md:bottom-10 md:left-6 z-30 transition-transform duration-500 ease-out pointer-events-auto"
+          className="absolute bottom-10 left-0.5 min-[360px]:bottom-11 min-[360px]:left-1 sm:bottom-6 sm:left-2 lg:bottom-8 lg:left-3 z-30 transition-transform duration-500 ease-out pointer-events-auto"
           style={{
-            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * 20}px, ${mousePos.y * -16}px, 35px)`,
+            transform: isTouchDevice ? undefined : `translate3d(${mousePos.x * 14}px, ${mousePos.y * -12}px, 25px)`,
           }}
         >
           <div className="cai-float-card-4">
-            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/92 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(89,69,232,0.08),0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_30px_rgba(168,85,247,0.18)] hover:border-violet-500/60 hover:scale-[1.025] transition-all duration-300 group cursor-default">
+            <div className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 px-2 py-1.5 min-[360px]:px-2.5 min-[360px]:py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_4px_16px_rgba(20,33,61,0.06),0_1px_3px_rgba(89,69,232,0.04)] hover:shadow-[0_12px_28px_rgba(168,85,247,0.18)] hover:border-violet-500/60 hover:-translate-y-1 transition-all duration-300 group cursor-default">
               <div className="w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-violet-500/10 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors duration-200 shrink-0">
                 <Target className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5" />
               </div>
@@ -331,11 +324,11 @@ export const CareerAi3DOrbVisual: React.FC = () => {
         }
         @keyframes caiOrbFloat {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-7px); }
+          50% { transform: translateY(-6px); }
         }
         @keyframes caiBreathingGlow {
-          0%, 100% { transform: scale(1); opacity: 0.68; }
-          50% { transform: scale(1.15); opacity: 0.92; }
+          0%, 100% { transform: scale(1); opacity: 0.65; }
+          50% { transform: scale(1.12); opacity: 0.88; }
         }
         @keyframes caiAxialSpin {
           0% { transform: rotate(0deg); }
@@ -343,43 +336,43 @@ export const CareerAi3DOrbVisual: React.FC = () => {
         }
         @keyframes caiSparkleBreathe {
           0%, 100% { transform: scale(1); opacity: 0.9; }
-          50% { transform: scale(1.18); opacity: 1; }
+          50% { transform: scale(1.15); opacity: 1; }
         }
 
         /* 4 Truly Independent Desynchronized Card Floats (Unshared prime cycle times & phase offsets) */
         @keyframes caiFloatCard1 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-6px) rotate(-0.4deg); }
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
         }
         @keyframes caiFloatCard2 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(7px) rotate(0.5deg); }
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(6px); }
         }
         @keyframes caiFloatCard3 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-5px) rotate(-0.3deg); }
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
         }
         @keyframes caiFloatCard4 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(6px) rotate(0.4deg); }
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(5px); }
         }
 
         /* Ambient Celestial Particles Drift */
         @keyframes caiParticleDrift1 {
           0%, 100% { transform: translate(0px, 0px); opacity: 0.85; }
-          50% { transform: translate(-8px, -6px); opacity: 0.45; }
+          50% { transform: translate(-7px, -5px); opacity: 0.45; }
         }
         @keyframes caiParticleDrift2 {
           0%, 100% { transform: translate(0px, 0px); opacity: 0.8; }
-          50% { transform: translate(6px, -8px); opacity: 0.35; }
+          50% { transform: translate(5px, -7px); opacity: 0.35; }
         }
         @keyframes caiParticleDrift3 {
           0%, 100% { transform: translate(0px, 0px); opacity: 0.85; }
-          50% { transform: translate(-5px, 7px); opacity: 0.4; }
+          50% { transform: translate(-4px, 6px); opacity: 0.4; }
         }
         @keyframes caiParticleDrift4 {
           0%, 100% { transform: translate(0px, 0px); opacity: 0.75; }
-          50% { transform: translate(8px, 5px); opacity: 0.3; }
+          50% { transform: translate(7px, 4px); opacity: 0.3; }
         }
 
         .cai-orbit-spin-slow {
@@ -392,29 +385,29 @@ export const CareerAi3DOrbVisual: React.FC = () => {
           animation: caiOrbitInner 26s linear infinite;
         }
         .cai-shimmer-sweep {
-          animation: caiShimmer 6s ease-in-out infinite;
+          animation: caiShimmer 6.5s ease-in-out infinite;
         }
         .cai-orb-float {
           animation: caiOrbFloat 5.6s ease-in-out infinite;
         }
         .cai-breathing-glow {
-          animation: caiBreathingGlow 4.5s ease-in-out infinite;
+          animation: caiBreathingGlow 4.8s ease-in-out infinite;
         }
         .cai-orb-axial-spin {
-          animation: caiAxialSpin 36s linear infinite;
+          animation: caiAxialSpin 38s linear infinite;
         }
         .cai-sparkle-breathe {
           animation: caiSparkleBreathe 2.8s ease-in-out infinite;
         }
 
         .cai-float-card-1 {
-          animation: caiFloatCard1 5.4s ease-in-out infinite;
+          animation: caiFloatCard1 5.6s ease-in-out infinite;
         }
         .cai-float-card-2 {
-          animation: caiFloatCard2 6.6s ease-in-out infinite 0.9s;
+          animation: caiFloatCard2 6.8s ease-in-out infinite 0.8s;
         }
         .cai-float-card-3 {
-          animation: caiFloatCard3 5.8s ease-in-out infinite 1.7s;
+          animation: caiFloatCard3 5.4s ease-in-out infinite 1.6s;
         }
         .cai-float-card-4 {
           animation: caiFloatCard4 7.2s ease-in-out infinite 0.4s;

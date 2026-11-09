@@ -47,7 +47,6 @@ const TabLoadingSkeleton: React.FC = () => (
   </div>
 );
 import { LandingPageView } from './components/LandingPageView';
-import { Footer } from './components/Footer';
 import { CareerAiStartupIntro } from './components/CareerAiStartupIntro';
 import { CareerAiLoadingScreen } from './components/CareerAiLoadingScreen';
 import { CareerAiWatermarkBackground } from './components/CareerAiWatermarkBackground';
@@ -209,11 +208,14 @@ function CareerAiAppMain() {
 
   const PUBLIC_ROUTE_MAP: Record<string, NavTab> = {
     '/': 'home',
+    '/features': 'home',
+    '/how-it-works': 'home',
+    '/about': 'home',
+    '/dashboard': 'dashboard',
     '/courses': 'courses',
     '/career': 'counselor',
     '/resume': 'resume',
     '/jobs': 'jobs',
-    '/about': 'home',
   };
 
   const PAGE_SEO: Record<NavTab, { title: string; description: string; path: string; isPrivate?: boolean }> = {
@@ -279,6 +281,7 @@ function CareerAiAppMain() {
   const getTabFromLocation = (): NavTab => {
     if (typeof window === 'undefined') return 'home';
     const hash = window.location.hash.replace('#', '').toLowerCase();
+    if (hash === 'about') return 'home';
     if (hash === 'dashboard') return 'dashboard';
     if (hash === 'career') return 'counselor';
     if (VALID_TABS.includes(hash as NavTab)) return hash as NavTab;
@@ -296,6 +299,21 @@ function CareerAiAppMain() {
 
   // Synchronize browser history and clean SEO-friendly URLs
   const handleSelectTab = (tab: NavTab) => {
+    if (tab === 'about') {
+      setCurrentTab('home');
+      if (typeof window !== 'undefined') {
+        const targetUrl = '/#about';
+        if (window.location.pathname !== '/' || window.location.hash !== '#about') {
+          window.history.pushState({ tab: 'home' }, '', targetUrl);
+        }
+        setTimeout(() => {
+          const el = document.getElementById('about');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+      return;
+    }
+
     setCurrentTab(tab);
     if (typeof window !== 'undefined') {
       let targetUrl = '/';
@@ -305,7 +323,6 @@ function CareerAiAppMain() {
       else if (tab === 'counselor') targetUrl = '/career';
       else if (tab === 'resume') targetUrl = '/resume';
       else if (tab === 'jobs') targetUrl = '/jobs';
-      else if (tab === 'about') targetUrl = '/#about';
       else targetUrl = `#${tab}`;
 
       const currentPathAndHash = (window.location.pathname.replace(/\/$/, '') || '/') + window.location.hash;
@@ -796,11 +813,6 @@ function CareerAiAppMain() {
                     </div>
                   )}
                 </main>
-
-                {/* Professional Startup Footer */}
-                <div className="relative z-10 print:hidden">
-                  <Footer onReplayIntro={triggerIntro} onNavigateTab={handleSelectTab} />
-                </div>
               </div>
             </>
           )}

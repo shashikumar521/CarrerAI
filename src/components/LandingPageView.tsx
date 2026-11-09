@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bot,
   FileText,
@@ -18,6 +18,7 @@ import {
 import { AuthUser } from '../types';
 import { NavTab } from './Navbar';
 import { CareerAi3DOrbVisual } from './CareerAi3DOrbVisual';
+import { Footer } from './Footer';
 
 interface LandingPageViewProps {
   onNavigate: (tab: NavTab) => void;
@@ -26,6 +27,14 @@ interface LandingPageViewProps {
   onLogout?: () => void;
 }
 
+// Strictly verify if the current route is the exact homepage route '/'
+const isExactHomeRoute = (): boolean => {
+  if (typeof window === 'undefined') return true;
+  const path = (window.location.pathname || '/').replace(/\/$/, '') || '/';
+  const hash = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+  return path === '/' && (hash === '' || hash === 'home');
+};
+
 export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onNavigate,
   onOpenAuth,
@@ -33,15 +42,75 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onLogout,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState<'home' | 'features' | 'how-it-works' | 'about'>('home');
+  const [activeNav, setActiveNav] = useState<'home' | 'features' | 'how-it-works' | 'about'>(() => {
+    if (typeof window === 'undefined') return 'home';
+    const path = (window.location.pathname || '/').replace(/\/$/, '') || '/';
+    const hash = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+    if (path === '/features' || hash === 'features') return 'features';
+    if (path === '/how-it-works' || hash === 'how-it-works') return 'how-it-works';
+    if (path === '/about' || hash === 'about') return 'about';
+    return 'home';
+  });
 
-  // Smooth scroll helper for on-page sections
+  const [isExactHome, setIsExactHome] = useState<boolean>(() => isExactHomeRoute());
+
+  // Synchronize route state on mount, popstate and hashchange
+  useEffect(() => {
+    const handleLocationSync = () => {
+      if (typeof window === 'undefined') return;
+      const path = (window.location.pathname || '/').replace(/\/$/, '') || '/';
+      const hash = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+
+      setIsExactHome(isExactHomeRoute());
+
+      if (path === '/features' || hash === 'features') {
+        setActiveNav('features');
+        setTimeout(() => {
+          const el = document.getElementById('features');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      } else if (path === '/how-it-works' || hash === 'how-it-works') {
+        setActiveNav('how-it-works');
+        setTimeout(() => {
+          const el = document.getElementById('how-it-works');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      } else if (path === '/about' || hash === 'about') {
+        setActiveNav('about');
+      } else if (path === '/' && (hash === '' || hash === 'home')) {
+        setActiveNav('home');
+      }
+    };
+
+    handleLocationSync();
+    window.addEventListener('popstate', handleLocationSync);
+    window.addEventListener('hashchange', handleLocationSync);
+    return () => {
+      window.removeEventListener('popstate', handleLocationSync);
+      window.removeEventListener('hashchange', handleLocationSync);
+    };
+  }, []);
+
+  // Smooth scroll helper for on-page sections with URL route synchronization
   const scrollToSection = (sectionId: string, navKey?: 'home' | 'features' | 'how-it-works' | 'about') => {
     setMobileMenuOpen(false);
-    if (navKey) setActiveNav(navKey);
+    if (navKey) {
+      setActiveNav(navKey);
+      if (typeof window !== 'undefined') {
+        const targetPath = navKey === 'home' ? '/' : `/${navKey}`;
+        window.history.pushState({ tab: navKey }, '', targetPath);
+        setIsExactHome(targetPath === '/');
+      }
+    }
+    if (navKey === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -68,8 +137,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               href="/"
               onClick={(e) => {
                 e.preventDefault();
-                setActiveNav('home');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                scrollToSection('', 'home');
               }}
               className="flex items-center gap-2.5 sm:gap-3 group focus:outline-hidden"
               aria-label="CareerAI Homepage"
@@ -96,10 +164,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <nav className="hidden md:flex items-center gap-1 bg-[#F7F8FC] p-1.5 rounded-full border border-[#E8EAF2]">
               <button
                 type="button"
-                onClick={() => {
-                  setActiveNav('home');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={() => scrollToSection('', 'home')}
                 className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 cursor-pointer ${
                   activeNav === 'home'
                     ? 'bg-white text-[#14213D] shadow-xs'
@@ -207,11 +272,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <nav className="flex flex-col gap-1.5">
               <button
                 type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setActiveNav('home');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={() => scrollToSection('', 'home')}
                 className={`w-full min-h-[44px] text-left px-3.5 py-2.5 rounded-xl text-base font-medium transition-colors ${
                   activeNav === 'home' ? 'bg-[#F0EDFF] text-[#5945E8]' : 'text-[#14213D] hover:bg-slate-50'
                 }`}
@@ -321,54 +382,52 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-14 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-12 items-center">
               {/* LEFT COLUMN: Headlines, Value Prop, CTA Actions & Benefit Indicators */}
               <div className="lg:col-span-6 xl:col-span-6 flex flex-col items-start text-left">
-                {/* Small Animated Badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F0EDFF] border border-[#5945E8]/20 text-[11px] sm:text-xs font-semibold tracking-wider text-[#5945E8] uppercase mb-3.5 sm:mb-5">
-                  <span className="w-2 h-2 rounded-full bg-[#5945E8] animate-pulse" />
+                {/* Small Introductory Badge */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0EDFF] border border-[#5945E8]/20 text-[11px] sm:text-xs font-semibold tracking-wider text-[#5945E8] uppercase mb-3 sm:mb-4">
+                  <Sparkles className="w-3.5 h-3.5 text-[#5945E8]" />
                   <span>YOUR PERSONAL AI CAREER COMPANION</span>
                 </div>
 
-                {/* Restored Balanced Headline — Exact 3 Lines without awkward splits */}
-                <h1 className="hero-headline text-[#14213D] mb-4 sm:mb-5 max-w-xl">
-                  <span>Build Your Skills.</span>
-                  <br />
-                  <span className="inline-block">Discover Your Potential.</span>
-                  <br />
-                  <span className="bg-gradient-to-r from-[#5945E8] via-[#7868F5] to-[#4338CA] bg-clip-text text-transparent">
+                {/* Refined Balanced 3-Line Heading with Purple Gradient Highlight on 3rd Line */}
+                <h1 className="hero-headline text-[#14213D] mb-3.5 sm:mb-4 max-w-xl">
+                  <span className="block">Build Your Skills.</span>
+                  <span className="block">Discover Your Potential.</span>
+                  <span className="block bg-gradient-to-r from-[#5945E8] via-[#7868F5] to-[#4338CA] bg-clip-text text-transparent">
                     Shape Your Future.
                   </span>
                 </h1>
 
-                {/* Description: ~17-18px readable text with balanced line spacing */}
-                <p className="text-[16px] min-[360px]:text-[17px] sm:text-lg text-[#64748B] leading-relaxed mb-6 sm:mb-7 max-w-lg">
+                {/* Description: Readable text with balanced width & line spacing */}
+                <p className="text-[15px] min-[360px]:text-[16px] sm:text-[17px] text-[#64748B] leading-relaxed mb-5 sm:mb-6 max-w-lg">
                   Discover your strengths, build professional resumes, develop in-demand skills and prepare for opportunities with your intelligent career companion.
                 </p>
 
-                {/* CTA Buttons: consistent height and touch-safe dimensions */}
-                <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-4 mb-5 sm:mb-6">
+                {/* CTA Buttons: Consistent height, smooth hover elevation, accessible focus & contrast */}
+                <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5 sm:mb-6">
                   <button
                     type="button"
                     onClick={handlePrimaryCTA}
-                    className="min-h-[48px] inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-[#5945E8] to-[#7868F5] hover:opacity-95 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer text-center group"
+                    className="min-h-[48px] inline-flex items-center justify-center gap-2 px-6.5 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-[#5945E8] to-[#7868F5] hover:from-[#4F3ED4] hover:to-[#6C5CE7] hover:-translate-y-0.5 shadow-md hover:shadow-lg active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5945E8] focus-visible:ring-offset-2 rounded-xl transition-all duration-200 cursor-pointer text-center group"
                   >
                     <span>Start Your Journey</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => scrollToSection('features', 'features')}
-                    className="min-h-[48px] inline-flex items-center justify-center px-5.5 py-3.5 text-base font-medium text-[#14213D] bg-white hover:bg-slate-50 border border-[#E8EAF2] rounded-xl shadow-2xs transition-colors cursor-pointer text-center"
+                    className="min-h-[48px] inline-flex items-center justify-center px-6 py-3.5 text-base font-medium text-[#14213D] bg-white hover:bg-slate-50 hover:-translate-y-0.5 border border-[#E8EAF2] hover:border-[#5945E8]/30 shadow-2xs hover:shadow-sm active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5945E8] focus-visible:ring-offset-2 rounded-xl transition-all duration-200 cursor-pointer text-center"
                   >
                     Explore Features
                   </button>
                 </div>
 
-                {/* Hero Benefit Indicators: Clean structured responsive 2-row on mobile / 3-col on desktop */}
-                <div className="w-full pt-3 border-t border-slate-100">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs font-medium text-[#14213D]">
+                {/* Hero Benefit Indicators: Clean structured responsive layout */}
+                <div className="w-full pt-3.5 border-t border-[#E8EAF2]/80">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs sm:text-[13px] font-medium text-[#14213D]">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-[#5945E8] shrink-0" />
                       <span className="truncate">Career Guidance</span>
@@ -888,41 +947,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </section>
 
         {/* =========================================================================
-            5. ABOUT SECTION
-            Compact editorial card, responsive alignment, preserved contact details
-            ========================================================================= */}
-        <section id="about" className="py-10 sm:py-16 bg-[#F7F8FC] border-t border-[#E8EAF2]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto bg-white rounded-2xl sm:rounded-3xl border border-[#E8EAF2] p-5 sm:p-10 shadow-xs text-center relative overflow-hidden">
-              <div
-                aria-hidden="true"
-                className="absolute top-0 right-0 w-64 h-64 bg-violet-400/10 rounded-full blur-3xl pointer-events-none"
-              />
-
-              <div className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-[#5945E8] uppercase mb-2">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>ABOUT CAREERAI</span>
-              </div>
-              <h2 className="text-xl min-[360px]:text-2xl sm:text-3xl md:text-4xl font-semibold text-[#14213D] tracking-tight mb-3">
-                Empowering Your Next Career Move
-              </h2>
-              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed mb-5 max-w-2xl mx-auto">
-                CareerAI brings career guidance, skill development, resume building and interview preparation together in one intelligent platform.
-              </p>
-
-              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-xs text-[#64748B]">
-                <span className="font-semibold text-[#14213D]">Founder: Sudarsi Shashi Kumar</span>
-                <span aria-hidden="true" className="hidden sm:inline text-slate-300">·</span>
-                <span>Contact: sudarsishashikumar521@gmail.com</span>
-                <span aria-hidden="true" className="hidden sm:inline text-slate-300">·</span>
-                <span>Phone: +91-6303268680</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================================
-            6. FINAL CALL TO ACTION (Deep Navy & Violet with Decorative Orbitals)
+            5. FINAL CALL TO ACTION (Deep Navy & Violet with Decorative Orbitals)
             Responsive heading, compact vertical spacing, touch-friendly CTA buttons
             ========================================================================= */}
         <section className="py-12 sm:py-20 bg-[#14213D] text-white relative overflow-hidden">
@@ -978,91 +1003,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       </main>
 
       {/* =========================================================================
-          7. FOOTER — PRECISE 5-ROW MOBILE STRUCTURE / ELEGANT DESKTOP ROW
-          Row 1: Logo & brand name
-          Row 2: AI Career Guidance & Placement Platform
-          Row 3: Back to Top | Features | How It Works
-          Row 4: Placement Hub | Courses
-          Final Row: Copyright © 2026 CareerAI. All rights reserved.
+          6. FOOTER — FULL BRANDED MARKETING FOOTER
+          Rendered EXCLUSIVELY when current route is exact homepage route '/'
           ========================================================================= */}
-      <footer className="bg-[#F7F8FC] border-t border-[#E8EAF2] py-8 sm:py-10 text-xs text-[#64748B]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 text-center md:text-left">
-            {/* Rows 1 & 2 on mobile: Logo + Brand, Tagline */}
-            <div className="flex flex-col items-center md:items-start gap-1">
-              <div className="flex items-center gap-2">
-                <img
-                  src="/careerai-logo.png"
-                  alt="CareerAI logo"
-                  className="w-6 h-6 object-contain rounded-full"
-                />
-                <span className="font-semibold text-[#14213D] text-sm tracking-tight">
-                  CareerAI
-                </span>
-              </div>
-              <p className="text-xs text-[#64748B]">
-                AI Career Guidance &amp; Placement Platform
-              </p>
-            </div>
-
-            {/* Rows 3 & 4 on mobile: Clean grouped links with subtle dividers */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-5 font-medium text-xs">
-              {/* Row 3 on mobile: Back to Top | Features | How It Works */}
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="hover:text-[#14213D] transition-colors cursor-pointer py-1"
-                >
-                  Back to Top
-                </button>
-                <span aria-hidden="true" className="text-slate-300">|</span>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('features', 'features')}
-                  className="hover:text-[#14213D] transition-colors cursor-pointer py-1"
-                >
-                  Features
-                </button>
-                <span aria-hidden="true" className="text-slate-300">|</span>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('how-it-works', 'how-it-works')}
-                  className="hover:text-[#14213D] transition-colors cursor-pointer py-1"
-                >
-                  How It Works
-                </button>
-              </div>
-
-              <span aria-hidden="true" className="hidden sm:inline text-slate-300">·</span>
-
-              {/* Row 4 on mobile: Placement Hub | Courses */}
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('dashboard')}
-                  className="hover:text-[#14213D] transition-colors cursor-pointer py-1"
-                >
-                  Placement Hub
-                </button>
-                <span aria-hidden="true" className="text-slate-300">|</span>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('courses')}
-                  className="hover:text-[#14213D] transition-colors cursor-pointer py-1"
-                >
-                  Courses
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Final Row on mobile & desktop: Copyright */}
-          <div className="mt-6 pt-5 border-t border-[#E8EAF2] text-center text-[11px] text-[#64748B]">
-            <p>© {new Date().getFullYear()} CareerAI. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      {isExactHome && (
+        <Footer onNavigateTab={onNavigate} />
+      )}
     </div>
   );
 };
