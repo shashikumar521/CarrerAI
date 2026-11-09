@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { getLiveJobs } from './src/services/jobsApiServer.ts';
@@ -417,6 +418,14 @@ app.get('/robots.txt', (req, res) => {
 app.get('/sitemap.xml', (req, res) => {
   const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
   res.type('application/xml').sendFile(sitemapPath);
+});
+
+// Google Search Console ownership verification route
+app.get('/google96e767e8a9c009cf.html', (req, res) => {
+  const publicPath = path.join(process.cwd(), 'public', 'google96e767e8a9c009cf.html');
+  const distPath = path.join(process.cwd(), 'dist', 'google96e767e8a9c009cf.html');
+  const filePath = fs.existsSync(publicPath) ? publicPath : distPath;
+  res.type('text/html').sendFile(filePath);
 });
 
 // AI Career Counselor endpoint
